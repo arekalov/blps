@@ -7,7 +7,7 @@ import com.arekalov.blps.model.User
 import com.arekalov.blps.model.enum.UserRole
 
 fun User.toResponse() = UserResponse(
-    id = id.toString(),
+    id = id!!.toString(),
     email = email,
     companyName = companyName,
     role = role.name,
@@ -16,12 +16,13 @@ fun User.toResponse() = UserResponse(
 fun User.toAuthResponse(accessToken: String, refreshToken: String) = AuthResponse(
     accessToken = accessToken,
     refreshToken = refreshToken,
-    userId = id.toString(),
+    userId = id!!.toString(),
     email = email,
     role = role.name,
 )
 
 fun RegisterRequest.toEntity(encodedPassword: String) = User(
+    id = null,
     email = email,
     passwordHash = encodedPassword,
     companyName = companyName,

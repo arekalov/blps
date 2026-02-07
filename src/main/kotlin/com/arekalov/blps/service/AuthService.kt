@@ -26,12 +26,12 @@ class AuthService(
             throw ValidationException("User with email ${request.email} already exists")
         }
 
-        val encodedPassword = passwordEncoder.encode(request.password)
+        val encodedPassword = passwordEncoder.encode(request.password)!!
         val user = request.toEntity(encodedPassword)
         val savedUser = userRepository.save(user)
 
-        val accessToken = jwtTokenProvider.generateAccessToken(savedUser.id, savedUser.role.name)
-        val refreshToken = jwtTokenProvider.generateRefreshToken(savedUser.id)
+        val accessToken = jwtTokenProvider.generateAccessToken(savedUser.id!!, savedUser.role.name)
+        val refreshToken = jwtTokenProvider.generateRefreshToken(savedUser.id!!)
 
         return savedUser.toAuthResponse(accessToken, refreshToken)
     }
@@ -45,8 +45,8 @@ class AuthService(
             throw UnauthorizedException("Invalid email or password")
         }
 
-        val accessToken = jwtTokenProvider.generateAccessToken(user.id, user.role.name)
-        val refreshToken = jwtTokenProvider.generateRefreshToken(user.id)
+        val accessToken = jwtTokenProvider.generateAccessToken(user.id!!, user.role.name)
+        val refreshToken = jwtTokenProvider.generateRefreshToken(user.id!!)
 
         return user.toAuthResponse(accessToken, refreshToken)
     }
@@ -62,8 +62,8 @@ class AuthService(
             UnauthorizedException("User not found")
         }
 
-        val newAccessToken = jwtTokenProvider.generateAccessToken(user.id, user.role.name)
-        val newRefreshToken = jwtTokenProvider.generateRefreshToken(user.id)
+        val newAccessToken = jwtTokenProvider.generateAccessToken(user.id!!, user.role.name)
+        val newRefreshToken = jwtTokenProvider.generateRefreshToken(user.id!!)
 
         return user.toAuthResponse(newAccessToken, newRefreshToken)
     }

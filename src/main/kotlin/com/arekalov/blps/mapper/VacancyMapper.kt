@@ -9,7 +9,7 @@ import com.arekalov.blps.model.enum.VacancyStatus
 import java.time.LocalDateTime
 
 fun Vacancy.toResponse() = VacancyResponse(
-    id = id.toString(),
+    id = id!!.toString(),
     title = title,
     description = description,
     experienceLevel = experienceLevel,
@@ -24,7 +24,7 @@ fun Vacancy.toResponse() = VacancyResponse(
     companyDescription = companyDescription,
     additionalSkills = additionalSkills.map { it.name },
     status = status,
-    employerId = employer.id.toString(),
+    employerId = employer.id!!.toString(),
     tariffId = tariff?.id?.toString(),
     createdAt = createdAt,
     updatedAt = updatedAt,
@@ -32,6 +32,7 @@ fun Vacancy.toResponse() = VacancyResponse(
 )
 
 fun CreateVacancyRequest.toEntity(employer: User, skills: List<Skill>) = Vacancy(
+    id = null,
     title = title,
     description = description,
     experienceLevel = experienceLevel,

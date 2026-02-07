@@ -43,5 +43,8 @@ out/
 local.properties
 .env
 
+### Application Config ###
+application.yaml
+
 ### Cursor AI ###
 .cursor/

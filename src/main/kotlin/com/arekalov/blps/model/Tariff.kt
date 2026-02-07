@@ -2,25 +2,29 @@ package com.arekalov.blps.model
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import java.math.BigDecimal
 import java.util.UUID
 
 @Entity
 @Table(name = "tariffs")
 data class Tariff(
     @Id
-    val id: UUID = UUID.randomUUID(),
+    @GeneratedValue(strategy = GenerationType.UUID)
+    val id: UUID? = null,
 
     @Column(nullable = false)
-    val name: String,
+    var name: String,
 
     @Column(nullable = false)
-    val price: Int,
+    var price: BigDecimal,
 
     @Column(nullable = false)
-    val durationDays: Int,
+    var durationDays: Int,
 
     @Column(columnDefinition = "TEXT")
-    val description: String,
+    var description: String,
 )

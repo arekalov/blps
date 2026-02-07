@@ -5,7 +5,7 @@ import com.arekalov.blps.dto.tariff.TariffResponse
 import com.arekalov.blps.model.Tariff
 
 fun Tariff.toResponse() = TariffResponse(
-    id = id.toString(),
+    id = id!!.toString(),
     name = name,
     price = price,
     durationDays = durationDays,
@@ -13,6 +13,7 @@ fun Tariff.toResponse() = TariffResponse(
 )
 
 fun CreateTariffRequest.toEntity() = Tariff(
+    id = null,
     name = name,
     price = price,
     durationDays = durationDays,

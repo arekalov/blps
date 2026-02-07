@@ -11,12 +11,15 @@ import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
+import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -24,44 +27,46 @@ import java.util.UUID
 @Table(name = "vacancies")
 data class Vacancy(
     @Id
-    val id: UUID = UUID.randomUUID(),
+    @GeneratedValue(strategy = GenerationType.UUID)
+    val id: UUID? = null,
 
     @Column(nullable = false)
-    val title: String,
-
-    @Column(nullable = false)
-    val specialization: String,
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    val experienceLevel: ExperienceLevel,
+    var title: String,
 
     @Column(nullable = false, columnDefinition = "TEXT")
-    val workConditions: String,
+    var description: String,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    val employmentType: EmploymentType,
+    var experienceLevel: ExperienceLevel,
+
+    var salaryFrom: BigDecimal? = null,
+
+    var salaryTo: BigDecimal? = null,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    val workSchedule: WorkSchedule,
+    var employmentType: EmploymentType,
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    var workFormat: WorkFormat,
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    var employmentFormat: EmploymentFormat,
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    var workSchedule: WorkSchedule,
 
     @Column(nullable = false)
-    val city: String,
+    var city: String,
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    val description: String,
+    var address: String? = null,
 
-    @Enumerated(EnumType.STRING)
-    val workFormat: WorkFormat? = null,
-
-    @Enumerated(EnumType.STRING)
-    val employmentFormat: EmploymentFormat? = null,
-
-    val salaryFrom: Int? = null,
-
-    val salaryTo: Int? = null,
+    @Column(columnDefinition = "TEXT")
+    var companyDescription: String? = null,
 
     @ManyToMany
     @JoinTable(
@@ -69,11 +74,11 @@ data class Vacancy(
         joinColumns = [JoinColumn(name = "vacancy_id")],
         inverseJoinColumns = [JoinColumn(name = "skill_id")],
     )
-    val skills: MutableSet<Skill> = mutableSetOf(),
+    var additionalSkills: MutableList<Skill> = mutableListOf(),
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    val status: VacancyStatus = VacancyStatus.DRAFT,
+    var status: VacancyStatus = VacancyStatus.DRAFT,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employer_id", nullable = false)
@@ -81,13 +86,13 @@ data class Vacancy(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tariff_id")
-    val tariff: Tariff? = null,
+    var tariff: Tariff? = null,
 
     @Column(nullable = false, updatable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
     @Column(nullable = false)
-    val updatedAt: LocalDateTime = LocalDateTime.now(),
+    var updatedAt: LocalDateTime = LocalDateTime.now(),
 
-    val publishedAt: LocalDateTime? = null,
+    var publishedAt: LocalDateTime? = null,
 )
