@@ -52,7 +52,7 @@ class VacancyController(
     }
 
     @GetMapping("/my")
-    @SecurityRequirement(name = "Bearer Authentication")
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Get my vacancies", description = "Get paginated list of current user's vacancies")
     fun getMyVacancies(
         authentication: Authentication,
@@ -65,7 +65,7 @@ class VacancyController(
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @SecurityRequirement(name = "Bearer Authentication")
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Create vacancy", description = "Create a new vacancy draft")
     fun createVacancy(
         authentication: Authentication,
@@ -76,7 +76,7 @@ class VacancyController(
     }
 
     @PutMapping("/{id}")
-    @SecurityRequirement(name = "Bearer Authentication")
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Update vacancy", description = "Update existing vacancy (owner or admin)")
     fun updateVacancy(
         authentication: Authentication,
@@ -90,7 +90,7 @@ class VacancyController(
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @SecurityRequirement(name = "Bearer Authentication")
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Delete vacancy", description = "Delete vacancy (owner or admin)")
     fun deleteVacancy(
         authentication: Authentication,
@@ -102,7 +102,7 @@ class VacancyController(
     }
 
     @PatchMapping("/{id}/tariff")
-    @SecurityRequirement(name = "Bearer Authentication")
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Select tariff", description = "Select tariff for vacancy (BPMN: Draft -> Payment)")
     fun selectTariff(
         authentication: Authentication,
@@ -115,7 +115,7 @@ class VacancyController(
     }
 
     @PatchMapping("/{id}/publish")
-    @SecurityRequirement(name = "Bearer Authentication")
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Publish vacancy", description = "Publish vacancy (BPMN: Draft -> Published)")
     fun publishVacancy(
         authentication: Authentication,
@@ -127,7 +127,7 @@ class VacancyController(
     }
 
     @PatchMapping("/{id}/archive")
-    @SecurityRequirement(name = "Bearer Authentication")
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Archive vacancy", description = "Archive vacancy (BPMN: Published -> Archived)")
     fun archiveVacancy(
         authentication: Authentication,

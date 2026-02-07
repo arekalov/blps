@@ -19,7 +19,7 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1")
-@SecurityRequirement(name = "Bearer Authentication")
+@SecurityRequirement(name = "bearerAuth")
 @Tag(name = "User & Admin", description = "User profile and admin endpoints")
 class UserController(
     private val userRepository: UserRepository,

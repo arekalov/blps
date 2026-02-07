@@ -23,6 +23,6 @@ springdoc:
   api-docs:
     path: /v3/api-docs
   swagger-ui:
-    path: /swagger-ui.html
-    enabled: true
+    enabled: false
+  writer-with-default-pretty-printer: true
   paths-to-match: /api/v1/**

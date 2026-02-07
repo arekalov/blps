@@ -49,7 +49,7 @@ class TariffController(
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN')")
-    @SecurityRequirement(name = "Bearer Authentication")
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Create tariff", description = "Create a new tariff (admin only)")
     fun createTariff(@Valid @RequestBody request: CreateTariffRequest): TariffResponse {
         return tariffService.createTariff(request)
@@ -57,7 +57,7 @@ class TariffController(
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @SecurityRequirement(name = "Bearer Authentication")
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Update tariff", description = "Update existing tariff (admin only)")
     fun updateTariff(
         @PathVariable id: UUID,
@@ -69,7 +69,7 @@ class TariffController(
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN')")
-    @SecurityRequirement(name = "Bearer Authentication")
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Delete tariff", description = "Delete tariff by ID (admin only)")
     fun deleteTariff(@PathVariable id: UUID) {
         tariffService.deleteTariff(id)
