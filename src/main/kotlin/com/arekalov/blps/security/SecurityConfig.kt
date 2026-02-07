@@ -1,7 +1,5 @@
 package com.arekalov.blps.security
 
-import com.arekalov.blps.security.Roles.ADMIN
-import com.arekalov.blps.security.Roles.EMPLOYER
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -47,12 +45,6 @@ class SecurityConfig(
                     .requestMatchers("/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/tariffs/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/vacancies/**").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/v1/tariffs/**").hasRole(ADMIN)
-                    .requestMatchers(HttpMethod.PUT, "/api/v1/tariffs/**").hasRole(ADMIN)
-                    .requestMatchers(HttpMethod.DELETE, "/api/v1/tariffs/**").hasRole(ADMIN)
-                    .requestMatchers("/api/v1/vacancies/**").hasAnyRole(EMPLOYER, ADMIN)
-                    .requestMatchers("/api/v1/admin/**").hasRole(ADMIN)
-                    .requestMatchers("/api/v1/users/me").authenticated()
                     .anyRequest().authenticated()
             }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
