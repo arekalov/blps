@@ -1,0 +1,45 @@
+name: Deploy Swagger UI
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'docs/openapi.yaml'
+      - '.github/workflows/swagger-deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy-swagger:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify OpenAPI file exists
+        run: |
+          if [ ! -f docs/openapi.yaml ]; then
+            echo "Error: docs/openapi.yaml not found!"
+            exit 1
+          fi
+          echo "OpenAPI spec found (first 30 lines):"
+          head -n 30 docs/openapi.yaml
+
+      - name: Generate Swagger UI
+        uses: Legion2/swagger-ui-action@v1
+        with:
+          output: swagger-ui
+          spec-file: docs/openapi.yaml
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./swagger-ui
+          publish_branch: github-pages
+          force_orphan: true
