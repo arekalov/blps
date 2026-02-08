@@ -1,45 +1,5 @@
-## Бизнес логика программных систем
-### ЛР 1
-Рекалов Арём Олегович, поток 1.4, группа P3309
+# Class Diagram
 
-Вариант 2815
-
----
-
-## 1. Текст задания
-
-![](images/var.png)
-
-Описать бизнес-процесс в соответствии с нотацией BPMN 2.0, после чего реализовать его в виде приложения на базе Spring Boot.
-
-**Порядок выполнения работы:**
-1. Выбрать один из бизнес-процессов, реализуемых сайтом из варианта задания.
-2. Утвердить выбранный бизнес-процесс у преподавателя.
-3. Специфицировать модель реализуемого бизнес-процесса в соответствии с требованиями BPMN 2.0.
-4. Разработать приложение на базе Spring Boot, реализующее описанный на предыдущем шаге бизнес-процесс. Приложение должно использовать СУБД PostgreSQL для хранения данных, для всех публичных интерфейсов должны быть разработаны REST API.
-5. Разработать набор curl-скриптов, либо набор запросов для REST клиента Insomnia для тестирования публичных интерфейсов разработанного программного модуля. Запросы Insomnia оформить в виде файла экспорта.
-6. Развернуть разработанное приложение на сервере helios.
-
-**Содержание отчёта:**
-1. Текст задания.
-2. Модель потока управления для автоматизируемого бизнес-процесса.
-3. UML-диаграммы классов и пакетов разработанного приложения.
-4. Спецификация REST API для всех публичных интерфейсов разработанного приложения.
-5. Исходный код системы или ссылка на репозиторий с исходным кодом.
-6. Выводы по работе.
-
-## 2. Модель потока управления для автоматизируемого бизнес-процесса.
-Примеры интерфейса hh.ru при подаче побъявлений:
-![](images/1.png)
-![](images/2.png)
-![](images/3.png)
-![](images/4.png)
-![](images/5.png)
-
-Построенная bpmn модель:
-![](images/diagram.svg)
-
-## 3. UML-диаграммы классов и пакетов разработанного приложения.
 ```mermaid
 classDiagram
     %% ============================================
@@ -642,64 +602,51 @@ classDiagram
     TariffController ..> PaginationConstants : uses
 ```
 
-## 4. Спецификация REST API для всех публичных интерфейсов разработанного приложения.
-Swagger доступен на https://arekalov.github.io/blps/
+## Component Legend
 
-## 5. Исходный код системы или ссылка на репозиторий с исходным кодом.
-Er-диаграмма бд
-```mermaid
-erDiagram
-    USERS ||--o{ VACANCIES : "employer_id"
-    TARIFFS ||--o{ VACANCIES : "tariff_id"
-    VACANCIES }o--o{ SKILLS : "vacancy_skills"
+### 📘 Controller Layer
+- **AuthController**: Authentication and registration endpoints
+- **VacancyController**: Vacancy CRUD and BPMN workflow operations
+- **TariffController**: Tariff management endpoints
+- **UserController**: User profile and admin operations
 
-    USERS {
-        uuid id PK
-        varchar email UK
-        varchar password_hash
-        varchar company_name
-        varchar role
-        timestamp created_at
-    }
+### 📙 Service Layer
+- **AuthService**: Authentication logic, JWT token generation
+- **VacancyService**: Vacancy business logic, BPMN process implementation
+- **TariffService**: Tariff business logic
 
-    VACANCIES {
-        uuid id PK
-        uuid employer_id FK
-        uuid tariff_id FK
-        varchar title
-        text description
-        varchar experience_level
-        decimal salary_from
-        decimal salary_to
-        varchar employment_type
-        varchar work_format
-        varchar employment_format
-        varchar work_schedule
-        varchar city
-        varchar address
-        text company_description
-        varchar status
-        timestamp created_at
-        timestamp updated_at
-        timestamp published_at
-    }
+### 📕 Repository Layer
+- **UserRepository**: User data access
+- **VacancyRepository**: Vacancy data access with custom queries
+- **TariffRepository**: Tariff data access
+- **SkillRepository**: Skill data access
 
-    TARIFFS {
-        uuid id PK
-        varchar name
-        decimal price
-        int duration_days
-        text description
-    }
+### 📗 Entity Layer
+- **User**: Employer/Admin entity
+- **Vacancy**: Job vacancy entity
+- **Tariff**: Publication tariff entity
+- **Skill**: Skill entity for vacancy requirements
 
-    SKILLS {
-        uuid id PK
-        varchar name UK
-    }
-```
+### 📔 DTO Layer
+- **Request DTOs**: Input validation
+- **Response DTOs**: Output formatting
+- **Common DTOs**: PagedResponse, ErrorResponse
 
-Исходный код находится в репозитории https://github.com/arekalov/blps
+### 🔧 Mapper Layer
+- **UserMapper**: User ↔ DTO conversions
+- **VacancyMapper**: Vacancy ↔ DTO conversions
+- **TariffMapper**: Tariff ↔ DTO conversions
+- **PageMapper**: Page ↔ PagedResponse conversions
 
-## 6. Выводы по работе.
+### 🔐 Security Layer
+- **JwtTokenProvider**: JWT token generation and validation
+- **JwtAuthenticationFilter**: JWT authentication filter
+- **SecurityConfig**: Spring Security configuration
 
-В ходе выполнения лабораторной работы был изучен процесс разработки бизнес-приложений от моделирования до развертывания. Разработана BPMN 2.0 модель бизнес-процесса подачи объявлений на hh.ru, спроектирована и реализована многоуровневая архитектура приложения на базе Spring Boot с использованием PostgreSQL для хранения данных. Созданы REST API для публичных интерфейсов системы, что обеспечивает универсальность доступа к функциональности. Получены практические навыки тестирования веб-сервисов и развертывания приложений на сервере, что является важной частью жизненного цикла разработки программного обеспечения.
+### ⚠️ Exception Layer
+- **Custom Exceptions**: NotFoundException, ValidationException, UnauthorizedException, ForbiddenException
+- **GlobalExceptionHandler**: Centralized exception handling
+
+### ⚙️ Config Layer
+- **OpenApiConfig**: Swagger/OpenAPI configuration
+- **PaginationConstants**: Shared constants
