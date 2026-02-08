@@ -45,6 +45,8 @@ local.properties
 
 ### Application Config ###
 application.yaml
+application-prod.yaml
+deployment/application-prod.yaml
 
 ### Cursor AI ###
 .cursor/

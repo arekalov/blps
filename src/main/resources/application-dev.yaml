@@ -1,0 +1,37 @@
+# Development Profile - для локальной разработки с Neon DB
+
+spring:
+  datasource:
+    url: jdbc:postgresql://ep-cold-pond-aiwpwa1w-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require
+    username: neondb_owner
+    password: npg_yASDEsN1vxF8
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+server:
+  port: 8080
+
+jwt:
+  secret: blps-jwt-secret-key-dev-environment-not-for-production-use
+
+springdoc:
+  swagger-ui:
+    enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.arekalov.blps: DEBUG
+    org.springframework.web: INFO
+    org.hibernate: WARN

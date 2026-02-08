@@ -1,28 +1,43 @@
 spring:
   application:
     name: blps
-  datasource:
-    url: jdbc:postgresql://ep-cold-pond-aiwpwa1w-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require
-    username: neondb_owner
-    password: npg_yASDEsN1vxF8
-    driver-class-name: org.postgresql.Driver
+  
+  # Профиль по умолчанию для локальной разработки
+  profiles:
+    active: dev
+  
+  # Общие настройки JPA
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: false
     properties:
       hibernate:
-        format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
-  
-jwt:
-  secret: ${JWT_SECRET:blps-super-secret-jwt-key-change-in-production-12345678}
-  expiration: 86400000
+        jdbc:
+          time_zone: UTC
 
+# Настройки сервера
+server:
+  compression:
+    enabled: true
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# JWT настройки (общие)
+jwt:
+  expiration: 86400000  # 24 часа
+
+# OpenAPI настройки (общие)
 springdoc:
   api-docs:
     path: /v3/api-docs
   swagger-ui:
-    enabled: false
+    path: /swagger-ui.html
   writer-with-default-pretty-printer: true
   paths-to-match: /api/v1/**
+
+# Настройки логирования (общие)
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
