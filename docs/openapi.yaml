@@ -200,7 +200,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/PageVacancyResponse"
+                $ref: "#/components/schemas/PagedResponseVacancyResponse"
     post:
       tags:
       - Vacancies
@@ -241,7 +241,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/PageTariffResponse"
+                $ref: "#/components/schemas/PagedResponseTariffResponse"
     post:
       tags:
       - Tariffs
@@ -267,8 +267,8 @@ paths:
     post:
       tags:
       - Authentication
-      summary: Register new employer
-      description: Register a new employer account
+      summary: Register new user
+      description: "Register a new user account (employer by default, admin if isAdmin=true)"
       operationId: register
       requestBody:
         content:
@@ -427,7 +427,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/PageVacancyResponse"
+                $ref: "#/components/schemas/PagedResponseVacancyResponse"
       security:
       - bearerAuth: []
   /api/v1/users/me:
@@ -738,6 +738,7 @@ components:
       required:
       - companyName
       - email
+      - isAdmin
       - password
       type: object
       properties:
@@ -749,6 +750,8 @@ components:
           type: string
         companyName:
           type: string
+        isAdmin:
+          type: boolean
     AuthResponse:
       required:
       - accessToken
@@ -800,65 +803,31 @@ components:
           type: array
           items:
             type: string
-    PageVacancyResponse:
+    PagedResponseVacancyResponse:
+      required:
+      - content
+      - page
+      - size
+      - totalElements
+      - totalPages
       type: object
       properties:
-        totalPages:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/VacancyResponse"
+        page:
+          type: integer
+          format: int32
+        size:
           type: integer
           format: int32
         totalElements:
           type: integer
           format: int64
-        pageable:
-          $ref: "#/components/schemas/PageableObject"
-        numberOfElements:
+        totalPages:
           type: integer
           format: int32
-        first:
-          type: boolean
-        last:
-          type: boolean
-        size:
-          type: integer
-          format: int32
-        content:
-          type: array
-          items:
-            $ref: "#/components/schemas/VacancyResponse"
-        number:
-          type: integer
-          format: int32
-        sort:
-          $ref: "#/components/schemas/SortObject"
-        empty:
-          type: boolean
-    PageableObject:
-      type: object
-      properties:
-        pageNumber:
-          type: integer
-          format: int32
-        pageSize:
-          type: integer
-          format: int32
-        paged:
-          type: boolean
-        unpaged:
-          type: boolean
-        offset:
-          type: integer
-          format: int64
-        sort:
-          $ref: "#/components/schemas/SortObject"
-    SortObject:
-      type: object
-      properties:
-        sorted:
-          type: boolean
-        unsorted:
-          type: boolean
-        empty:
-          type: boolean
     UserResponse:
       required:
       - companyName
@@ -875,38 +844,31 @@ components:
           type: string
         role:
           type: string
-    PageTariffResponse:
+    PagedResponseTariffResponse:
+      required:
+      - content
+      - page
+      - size
+      - totalElements
+      - totalPages
       type: object
       properties:
-        totalPages:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/TariffResponse"
+        page:
+          type: integer
+          format: int32
+        size:
           type: integer
           format: int32
         totalElements:
           type: integer
           format: int64
-        pageable:
-          $ref: "#/components/schemas/PageableObject"
-        numberOfElements:
+        totalPages:
           type: integer
           format: int32
-        first:
-          type: boolean
-        last:
-          type: boolean
-        size:
-          type: integer
-          format: int32
-        content:
-          type: array
-          items:
-            $ref: "#/components/schemas/TariffResponse"
-        number:
-          type: integer
-          format: int32
-        sort:
-          $ref: "#/components/schemas/SortObject"
-        empty:
-          type: boolean
   securitySchemes:
     bearerAuth:
       type: http
