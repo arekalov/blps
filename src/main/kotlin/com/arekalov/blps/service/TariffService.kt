@@ -1,13 +1,14 @@
 package com.arekalov.blps.service
 
+import com.arekalov.blps.dto.common.PagedResponse
 import com.arekalov.blps.dto.tariff.CreateTariffRequest
 import com.arekalov.blps.dto.tariff.TariffResponse
 import com.arekalov.blps.dto.tariff.UpdateTariffRequest
 import com.arekalov.blps.exception.NotFoundException
 import com.arekalov.blps.mapper.toEntity
+import com.arekalov.blps.mapper.toPagedResponse
 import com.arekalov.blps.mapper.toResponse
 import com.arekalov.blps.repository.TariffRepository
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -19,8 +20,8 @@ class TariffService(
 ) {
 
     @Transactional(readOnly = true)
-    fun getAllTariffs(pageable: Pageable): Page<TariffResponse> {
-        return tariffRepository.findAll(pageable).map { it.toResponse() }
+    fun getAllTariffs(pageable: Pageable): PagedResponse<TariffResponse> {
+        return tariffRepository.findAll(pageable).toPagedResponse { it.toResponse() }
     }
 
     @Transactional(readOnly = true)

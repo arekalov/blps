@@ -1,5 +1,7 @@
 package com.arekalov.blps.controller
 
+import com.arekalov.blps.common.PaginationConstants.DEFAULT_PAGE_SIZE
+import com.arekalov.blps.dto.common.PagedResponse
 import com.arekalov.blps.dto.vacancy.CreateVacancyRequest
 import com.arekalov.blps.dto.vacancy.UpdateVacancyRequest
 import com.arekalov.blps.dto.vacancy.VacancyResponse
@@ -10,11 +12,11 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -40,8 +42,12 @@ class VacancyController(
     @Operation(summary = "Get all vacancies", description = "Get paginated list of all vacancies (public)")
     fun getAllVacancies(
         @RequestParam(required = false) status: VacancyStatus?,
-        @PageableDefault(size = 20, sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
-    ): Page<VacancyResponse> {
+        @PageableDefault(
+            size = DEFAULT_PAGE_SIZE,
+            sort = ["createdAt"],
+            direction = Sort.Direction.DESC,
+        ) pageable: Pageable,
+    ): PagedResponse<VacancyResponse> {
         return vacancyService.getAllVacancies(status, pageable)
     }
 
@@ -52,18 +58,24 @@ class VacancyController(
     }
 
     @GetMapping("/my")
+    @PreAuthorize("isAuthenticated()")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Get my vacancies", description = "Get paginated list of current user's vacancies")
     fun getMyVacancies(
         authentication: Authentication,
         @RequestParam(required = false) status: VacancyStatus?,
-        @PageableDefault(size = 20, sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
-    ): Page<VacancyResponse> {
-        val userId = UUID.fromString(authentication.principal as String)
+        @PageableDefault(
+            size = DEFAULT_PAGE_SIZE,
+            sort = ["createdAt"],
+            direction = Sort.Direction.DESC,
+        ) pageable: Pageable,
+    ): PagedResponse<VacancyResponse> {
+        val userId = authentication.principal as UUID
         return vacancyService.getMyVacancies(userId, status, pageable)
     }
 
     @PostMapping
+    @PreAuthorize("isAuthenticated()")
     @ResponseStatus(HttpStatus.CREATED)
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Create vacancy", description = "Create a new vacancy draft")
@@ -71,7 +83,7 @@ class VacancyController(
         authentication: Authentication,
         @Valid @RequestBody request: CreateVacancyRequest,
     ): VacancyResponse {
-        val userId = UUID.fromString(authentication.principal as String)
+        val userId = authentication.principal as UUID
         return vacancyService.createVacancy(userId, request)
     }
 
@@ -83,7 +95,7 @@ class VacancyController(
         @PathVariable id: UUID,
         @Valid @RequestBody request: UpdateVacancyRequest,
     ): VacancyResponse {
-        val userId = UUID.fromString(authentication.principal as String)
+        val userId = authentication.principal as UUID
         val userRole = getUserRole(authentication)
         return vacancyService.updateVacancy(userId, id, userRole, request)
     }
@@ -96,7 +108,7 @@ class VacancyController(
         authentication: Authentication,
         @PathVariable id: UUID,
     ) {
-        val userId = UUID.fromString(authentication.principal as String)
+        val userId = authentication.principal as UUID
         val userRole = getUserRole(authentication)
         vacancyService.deleteVacancy(userId, id, userRole)
     }
@@ -109,7 +121,7 @@ class VacancyController(
         @PathVariable id: UUID,
         @RequestParam tariffId: UUID,
     ): VacancyResponse {
-        val userId = UUID.fromString(authentication.principal as String)
+        val userId = authentication.principal as UUID
         val userRole = getUserRole(authentication)
         return vacancyService.selectTariff(userId, id, tariffId, userRole)
     }
@@ -121,7 +133,7 @@ class VacancyController(
         authentication: Authentication,
         @PathVariable id: UUID,
     ): VacancyResponse {
-        val userId = UUID.fromString(authentication.principal as String)
+        val userId = authentication.principal as UUID
         val userRole = getUserRole(authentication)
         return vacancyService.publishVacancy(userId, id, userRole)
     }
@@ -133,7 +145,7 @@ class VacancyController(
         authentication: Authentication,
         @PathVariable id: UUID,
     ): VacancyResponse {
-        val userId = UUID.fromString(authentication.principal as String)
+        val userId = authentication.principal as UUID
         val userRole = getUserRole(authentication)
         return vacancyService.archiveVacancy(userId, id, userRole)
     }

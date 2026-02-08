@@ -1,8 +1,10 @@
 package com.arekalov.blps.controller
 
 import com.arekalov.blps.dto.user.UserResponse
+import com.arekalov.blps.exception.NotFoundException
 import com.arekalov.blps.mapper.toResponse
 import com.arekalov.blps.repository.UserRepository
+import com.arekalov.blps.repository.VacancyRepository
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -23,14 +25,15 @@ import java.util.UUID
 @Tag(name = "User & Admin", description = "User profile and admin endpoints")
 class UserController(
     private val userRepository: UserRepository,
+    private val vacancyRepository: VacancyRepository,
 ) {
 
     @GetMapping("/users/me")
     @Operation(summary = "Get current user", description = "Get current authenticated user profile")
     fun getCurrentUser(authentication: Authentication): UserResponse {
-        val userId = UUID.fromString(authentication.principal as String)
+        val userId = authentication.principal as UUID
         val user = userRepository.findById(userId).orElseThrow {
-            throw IllegalStateException("User not found")
+            NotFoundException("User with id $userId not found")
         }
         return user.toResponse()
     }
@@ -43,6 +46,10 @@ class UserController(
         description = "Delete user and all their vacancies (admin only, cascaded deletion)",
     )
     fun deleteUser(@PathVariable userId: UUID) {
-        userRepository.deleteById(userId)
+        val user = userRepository.findById(userId).orElseThrow {
+            NotFoundException("User with id $userId not found")
+        }
+        vacancyRepository.deleteAll(vacancyRepository.findByEmployerId(user.id!!))
+        userRepository.delete(user)
     }
 }

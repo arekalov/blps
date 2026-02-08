@@ -44,7 +44,7 @@ class SecurityConfig(
                     .requestMatchers("/api/v1/health").permitAll()
                     .requestMatchers("/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/tariffs/**").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v1/vacancies/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/vacancies", "/api/v1/vacancies/{id}").permitAll()
                     .anyRequest().authenticated()
             }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)

@@ -1,5 +1,7 @@
 package com.arekalov.blps.controller
 
+import com.arekalov.blps.common.PaginationConstants.DEFAULT_PAGE_SIZE
+import com.arekalov.blps.dto.common.PagedResponse
 import com.arekalov.blps.dto.tariff.CreateTariffRequest
 import com.arekalov.blps.dto.tariff.TariffResponse
 import com.arekalov.blps.dto.tariff.UpdateTariffRequest
@@ -8,7 +10,6 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.web.PageableDefault
@@ -35,8 +36,12 @@ class TariffController(
     @GetMapping
     @Operation(summary = "Get all tariffs", description = "Get paginated list of all tariffs (public)")
     fun getAllTariffs(
-        @PageableDefault(size = 20, sort = ["price"], direction = Sort.Direction.ASC) pageable: Pageable,
-    ): Page<TariffResponse> {
+        @PageableDefault(
+            size = DEFAULT_PAGE_SIZE,
+            sort = ["price"],
+            direction = Sort.Direction.ASC,
+        ) pageable: Pageable,
+    ): PagedResponse<TariffResponse> {
         return tariffService.getAllTariffs(pageable)
     }
 

@@ -1,5 +1,6 @@
 package com.arekalov.blps.security
 
+import com.arekalov.blps.repository.UserRepository
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -13,6 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter
 @Component
 class JwtAuthenticationFilter(
     private val jwtTokenProvider: JwtTokenProvider,
+    private val userRepository: UserRepository,
 ) : OncePerRequestFilter() {
 
     private val logger = LoggerFactory.getLogger(JwtAuthenticationFilter::class.java)
@@ -33,11 +35,15 @@ class JwtAuthenticationFilter(
 
             logger.debug("Token valid. UserId: $userId, Role: $role")
 
-            val authorities = listOf(SimpleGrantedAuthority("ROLE_$role"))
-            val authentication = UsernamePasswordAuthenticationToken(userId, null, authorities)
+            if (userRepository.existsById(userId)) {
+                val authorities = listOf(SimpleGrantedAuthority("ROLE_$role"))
+                val authentication = UsernamePasswordAuthenticationToken(userId, null, authorities)
 
-            SecurityContextHolder.getContext().authentication = authentication
-            logger.debug("SecurityContext set with authorities: ${authorities.joinToString { it.authority }}")
+                SecurityContextHolder.getContext().authentication = authentication
+                logger.debug("SecurityContext set with authorities: ${authorities.joinToString { it.authority }}")
+            } else {
+                logger.debug("User with id $userId not found in database, token rejected")
+            }
         } else {
             logger.debug("Token invalid or not present")
         }

@@ -6,6 +6,7 @@ import com.arekalov.blps.exception.NotFoundException
 import com.arekalov.blps.exception.UnauthorizedException
 import com.arekalov.blps.exception.ValidationException
 import jakarta.servlet.http.HttpServletRequest
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.AccessDeniedException
@@ -17,6 +18,8 @@ import java.time.LocalDateTime
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
+
+    private val logger = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
 
     @ExceptionHandler(NotFoundException::class)
     fun handleNotFoundException(
@@ -143,9 +146,10 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception::class)
     fun handleGeneralException(
-        @Suppress("UNUSED_PARAMETER") ex: Exception,
+        ex: Exception,
         request: HttpServletRequest,
     ): ResponseEntity<ErrorResponse> {
+        logger.error("Unexpected error occurred at ${request.requestURI}", ex)
         val errorResponse = ErrorResponse(
             timestamp = LocalDateTime.now(),
             status = HttpStatus.INTERNAL_SERVER_ERROR.value(),

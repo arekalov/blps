@@ -13,4 +13,5 @@ data class RegisterRequest(
     val password: String,
     @field:NotBlank(message = "Company name cannot be blank")
     val companyName: String,
+    val isAdmin: Boolean = false,
 )

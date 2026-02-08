@@ -1,5 +1,6 @@
 package com.arekalov.blps.service
 
+import com.arekalov.blps.dto.common.PagedResponse
 import com.arekalov.blps.dto.vacancy.CreateVacancyRequest
 import com.arekalov.blps.dto.vacancy.UpdateVacancyRequest
 import com.arekalov.blps.dto.vacancy.VacancyResponse
@@ -7,6 +8,7 @@ import com.arekalov.blps.exception.ForbiddenException
 import com.arekalov.blps.exception.NotFoundException
 import com.arekalov.blps.exception.ValidationException
 import com.arekalov.blps.mapper.toEntity
+import com.arekalov.blps.mapper.toPagedResponse
 import com.arekalov.blps.mapper.toResponse
 import com.arekalov.blps.model.Skill
 import com.arekalov.blps.model.enum.UserRole
@@ -15,7 +17,6 @@ import com.arekalov.blps.repository.SkillRepository
 import com.arekalov.blps.repository.TariffRepository
 import com.arekalov.blps.repository.UserRepository
 import com.arekalov.blps.repository.VacancyRepository
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -31,13 +32,13 @@ class VacancyService(
 ) {
 
     @Transactional(readOnly = true)
-    fun getAllVacancies(status: VacancyStatus?, pageable: Pageable): Page<VacancyResponse> {
+    fun getAllVacancies(status: VacancyStatus?, pageable: Pageable): PagedResponse<VacancyResponse> {
         val vacancies = if (status != null) {
             vacancyRepository.findByStatus(status, pageable)
         } else {
             vacancyRepository.findAll(pageable)
         }
-        return vacancies.map { it.toResponse() }
+        return vacancies.toPagedResponse { it.toResponse() }
     }
 
     @Transactional(readOnly = true)
@@ -49,13 +50,13 @@ class VacancyService(
     }
 
     @Transactional(readOnly = true)
-    fun getMyVacancies(userId: UUID, status: VacancyStatus?, pageable: Pageable): Page<VacancyResponse> {
+    fun getMyVacancies(userId: UUID, status: VacancyStatus?, pageable: Pageable): PagedResponse<VacancyResponse> {
         val vacancies = if (status != null) {
             vacancyRepository.findByEmployerIdAndStatus(userId, status, pageable)
         } else {
             vacancyRepository.findByEmployerId(userId, pageable)
         }
-        return vacancies.map { it.toResponse() }
+        return vacancies.toPagedResponse { it.toResponse() }
     }
 
     @Transactional

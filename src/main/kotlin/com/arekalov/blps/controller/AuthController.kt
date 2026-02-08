@@ -24,7 +24,10 @@ class AuthController(
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Register new employer", description = "Register a new employer account")
+    @Operation(
+        summary = "Register new user",
+        description = "Register a new user account (employer by default, admin if isAdmin=true)",
+    )
     fun register(@Valid @RequestBody request: RegisterRequest): AuthResponse {
         return authService.register(request)
     }

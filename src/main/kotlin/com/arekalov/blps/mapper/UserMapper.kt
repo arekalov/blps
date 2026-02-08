@@ -26,5 +26,5 @@ fun RegisterRequest.toEntity(encodedPassword: String) = User(
     email = email,
     passwordHash = encodedPassword,
     companyName = companyName,
-    role = UserRole.EMPLOYER,
+    role = if (isAdmin) UserRole.ADMIN else UserRole.EMPLOYER,
 )
