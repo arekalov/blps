@@ -1,12 +1,17 @@
 package com.arekalov.blps.controller
 
 import com.arekalov.blps.common.PaginationConstants.DEFAULT_PAGE_SIZE
+import com.arekalov.blps.dto.common.ErrorResponse
 import com.arekalov.blps.dto.common.PagedResponse
 import com.arekalov.blps.dto.tariff.CreateTariffRequest
 import com.arekalov.blps.dto.tariff.TariffResponse
 import com.arekalov.blps.dto.tariff.UpdateTariffRequest
 import com.arekalov.blps.service.TariffService
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
@@ -47,6 +52,16 @@ class TariffController(
 
     @GetMapping("/{id}")
     @Operation(summary = "Get tariff by ID", description = "Get tariff details by ID (public)")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Tariff found"),
+            ApiResponse(
+                responseCode = "404",
+                description = "Tariff not found",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+        ],
+    )
     fun getTariffById(@PathVariable id: UUID): TariffResponse {
         return tariffService.getTariffById(id)
     }
@@ -56,6 +71,26 @@ class TariffController(
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Create tariff", description = "Create a new tariff (admin only)")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "201", description = "Tariff created successfully"),
+            ApiResponse(
+                responseCode = "400",
+                description = "Validation error - invalid request data",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized - missing or invalid token",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "403",
+                description = "Forbidden - admin role required",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+        ],
+    )
     fun createTariff(@Valid @RequestBody request: CreateTariffRequest): TariffResponse {
         return tariffService.createTariff(request)
     }
@@ -64,6 +99,31 @@ class TariffController(
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Update tariff", description = "Update existing tariff (admin only)")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Tariff updated successfully"),
+            ApiResponse(
+                responseCode = "400",
+                description = "Validation error - invalid request data",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized - missing or invalid token",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "403",
+                description = "Forbidden - admin role required",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "Tariff not found",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+        ],
+    )
     fun updateTariff(
         @PathVariable id: UUID,
         @Valid @RequestBody request: UpdateTariffRequest,
@@ -76,6 +136,26 @@ class TariffController(
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Delete tariff", description = "Delete tariff by ID (admin only)")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "204", description = "Tariff deleted successfully"),
+            ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized - missing or invalid token",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "403",
+                description = "Forbidden - admin role required",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "Tariff not found",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+        ],
+    )
     fun deleteTariff(@PathVariable id: UUID) {
         tariffService.deleteTariff(id)
     }

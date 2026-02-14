@@ -1,6 +1,7 @@
 package com.arekalov.blps.controller
 
 import com.arekalov.blps.common.PaginationConstants.DEFAULT_PAGE_SIZE
+import com.arekalov.blps.dto.common.ErrorResponse
 import com.arekalov.blps.dto.common.PagedResponse
 import com.arekalov.blps.dto.vacancy.CreateVacancyRequest
 import com.arekalov.blps.dto.vacancy.UpdateVacancyRequest
@@ -9,6 +10,10 @@ import com.arekalov.blps.model.enum.UserRole
 import com.arekalov.blps.model.enum.VacancyStatus
 import com.arekalov.blps.service.VacancyService
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
@@ -52,6 +57,16 @@ class VacancyController(
 
     @GetMapping("/{id}")
     @Operation(summary = "Get vacancy by ID", description = "Get vacancy details by ID (public)")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Vacancy found"),
+            ApiResponse(
+                responseCode = "404",
+                description = "Vacancy not found",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+        ],
+    )
     fun getVacancyById(@PathVariable id: UUID): VacancyResponse {
         return vacancyService.getVacancyById(id)
     }
@@ -60,6 +75,16 @@ class VacancyController(
     @PreAuthorize("isAuthenticated()")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Get my vacancies", description = "Get paginated list of current user's vacancies")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Vacancies retrieved successfully"),
+            ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized - missing or invalid token",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+        ],
+    )
     fun getMyVacancies(
         authentication: Authentication,
         @RequestParam(required = false) status: VacancyStatus?,
@@ -78,6 +103,21 @@ class VacancyController(
     @ResponseStatus(HttpStatus.CREATED)
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Create vacancy", description = "Create a new vacancy draft")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "201", description = "Vacancy created successfully"),
+            ApiResponse(
+                responseCode = "400",
+                description = "Validation error - invalid request data",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized - missing or invalid token",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+        ],
+    )
     fun createVacancy(
         authentication: Authentication,
         @Valid @RequestBody request: CreateVacancyRequest,
@@ -89,6 +129,31 @@ class VacancyController(
     @PatchMapping("/{id}")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Update vacancy", description = "Partially update existing vacancy (owner or admin)")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Vacancy updated successfully"),
+            ApiResponse(
+                responseCode = "400",
+                description = "Validation error - invalid request data",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized - missing or invalid token",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "403",
+                description = "Forbidden - you don't have permission to update this vacancy",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "Vacancy not found",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+        ],
+    )
     fun updateVacancy(
         authentication: Authentication,
         @PathVariable id: UUID,
@@ -103,6 +168,26 @@ class VacancyController(
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Delete vacancy", description = "Delete vacancy (owner or admin)")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "204", description = "Vacancy deleted successfully"),
+            ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized - missing or invalid token",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "403",
+                description = "Forbidden - you don't have permission to delete this vacancy",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "Vacancy not found",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+        ],
+    )
     fun deleteVacancy(
         authentication: Authentication,
         @PathVariable id: UUID,
@@ -128,6 +213,31 @@ class VacancyController(
     @PatchMapping("/{id}/publish")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Publish vacancy", description = "Publish vacancy (BPMN: Draft -> Published)")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Vacancy published successfully"),
+            ApiResponse(
+                responseCode = "400",
+                description = "Validation error - vacancy must have a tariff selected",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized - missing or invalid token",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "403",
+                description = "Forbidden - you don't have permission to publish this vacancy",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "Vacancy not found",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+        ],
+    )
     fun publishVacancy(
         authentication: Authentication,
         @PathVariable id: UUID,

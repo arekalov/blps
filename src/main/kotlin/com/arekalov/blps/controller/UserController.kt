@@ -1,11 +1,16 @@
 package com.arekalov.blps.controller
 
+import com.arekalov.blps.dto.common.ErrorResponse
 import com.arekalov.blps.dto.user.UserResponse
 import com.arekalov.blps.exception.NotFoundException
 import com.arekalov.blps.mapper.toResponse
 import com.arekalov.blps.repository.UserRepository
 import com.arekalov.blps.repository.VacancyRepository
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
@@ -30,6 +35,21 @@ class UserController(
 
     @GetMapping("/users/me")
     @Operation(summary = "Get current user", description = "Get current authenticated user profile")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "User profile retrieved successfully"),
+            ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized - missing or invalid token",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "User not found",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+        ],
+    )
     fun getCurrentUser(authentication: Authentication): UserResponse {
         val userId = authentication.principal as UUID
         val user = userRepository.findById(userId).orElseThrow {
@@ -44,6 +64,26 @@ class UserController(
     @Operation(
         summary = "Delete user",
         description = "Delete user and all their vacancies (admin only, cascaded deletion)",
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "204", description = "User deleted successfully"),
+            ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized - missing or invalid token",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "403",
+                description = "Forbidden - admin role required",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "User not found",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+        ],
     )
     fun deleteUser(@PathVariable userId: UUID) {
         val user = userRepository.findById(userId).orElseThrow {
