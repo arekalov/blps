@@ -1,0 +1,1220 @@
+openapi: 3.0.1
+info:
+  title: BLPS - Job Vacancy Management API
+  description: |-
+    REST API for job vacancy management system (hh.ru-like).
+
+    ## Features
+    - User registration and JWT authentication
+    - Vacancy management (CRUD operations)
+    - Tariff selection and vacancy publishing (BPMN workflow)
+    - Role-based access control (EMPLOYER, ADMIN)
+
+    ## Workflow (BPMN)
+    1. Create vacancy (DRAFT status)
+    2. Select tariff
+    3. Publish vacancy (PUBLISHED status)
+    4. Archive vacancy when needed (ARCHIVED status)
+  contact:
+    name: BLPS Project
+    email: support@blps.example.com
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
+  version: 1.0.0
+servers:
+- url: http://localhost:8080
+  description: Generated server url
+security:
+- bearerAuth: []
+tags:
+- name: User & Admin
+  description: User profile and admin endpoints
+- name: Authentication
+  description: Authentication and registration endpoints
+- name: Vacancies
+  description: Vacancy management endpoints
+- name: Tariffs
+  description: Tariff management endpoints
+paths:
+  /api/v1/tariffs/{id}:
+    get:
+      tags:
+      - Tariffs
+      summary: Get tariff by ID
+      description: Get tariff details by ID (public)
+      operationId: getTariffById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: Tariff found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TariffResponse"
+        "404":
+          description: Tariff not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags:
+      - Tariffs
+      summary: Update tariff
+      description: Update existing tariff (admin only)
+      operationId: updateTariff
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTariffRequest"
+        required: true
+      responses:
+        "404":
+          description: Tariff not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - missing or invalid token
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - admin role required
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: Tariff updated successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TariffResponse"
+        "400":
+          description: Validation error - invalid request data
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - Tariffs
+      summary: Delete tariff
+      description: Delete tariff by ID (admin only)
+      operationId: deleteTariff
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "404":
+          description: Tariff not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - missing or invalid token
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - admin role required
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "204":
+          description: Tariff deleted successfully
+      security:
+      - bearerAuth: []
+  /api/v1/vacancies:
+    get:
+      tags:
+      - Vacancies
+      summary: Get vacancies
+      description: Get paginated list of vacancies. Use my=true to get only your vacancies
+        (requires auth)
+      operationId: getAllVacancies
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - DRAFT
+          - PUBLISHED
+          - ARCHIVED
+          - CLOSED
+      - name: my
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized - missing or invalid token (when my=true)
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: Vacancies retrieved successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PagedResponseVacancyResponse"
+    post:
+      tags:
+      - Vacancies
+      summary: Create vacancy
+      description: Create a new vacancy draft
+      operationId: createVacancy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVacancyRequest"
+        required: true
+      responses:
+        "201":
+          description: Vacancy created successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/VacancyResponse"
+        "401":
+          description: Unauthorized - missing or invalid token
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: Validation error - invalid request data
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/v1/tariffs:
+    get:
+      tags:
+      - Tariffs
+      summary: Get all tariffs
+      description: Get paginated list of all tariffs (public)
+      operationId: getAllTariffs
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: Tariffs retrieved successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PagedResponseTariffResponse"
+    post:
+      tags:
+      - Tariffs
+      summary: Create tariff
+      description: Create a new tariff (admin only)
+      operationId: createTariff
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTariffRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized - missing or invalid token
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - admin role required
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: Validation error - invalid request data
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "201":
+          description: Tariff created successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TariffResponse"
+      security:
+      - bearerAuth: []
+  /api/v1/auth/register:
+    post:
+      tags:
+      - Authentication
+      summary: Register new user
+      description: "Register a new user account (employer by default, admin if isAdmin=true)"
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+        required: true
+      responses:
+        "201":
+          description: User registered successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: "Validation error - invalid email, password, or user already\
+            \ exists"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/auth/refresh:
+    post:
+      tags:
+      - Authentication
+      summary: Refresh token
+      description: Refresh access token using refresh token
+      operationId: refreshToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenRequest"
+        required: true
+      responses:
+        "200":
+          description: Token refreshed successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error - invalid request format
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - invalid or expired refresh token
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/auth/login:
+    post:
+      tags:
+      - Authentication
+      summary: Login
+      description: Login with email and password
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+        required: true
+      responses:
+        "200":
+          description: Login successful
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error - invalid request format
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - invalid credentials
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/vacancies/{id}:
+    get:
+      tags:
+      - Vacancies
+      summary: Get vacancy by ID
+      description: Get vacancy details by ID (public)
+      operationId: getVacancyById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "404":
+          description: Vacancy not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: Vacancy found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/VacancyResponse"
+    delete:
+      tags:
+      - Vacancies
+      summary: Delete vacancy
+      description: Delete vacancy (owner or admin)
+      operationId: deleteVacancy
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "404":
+          description: Vacancy not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - missing or invalid token
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - you don't have permission to delete this vacancy
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "204":
+          description: Vacancy deleted successfully
+      security:
+      - bearerAuth: []
+    patch:
+      tags:
+      - Vacancies
+      summary: Update vacancy
+      description: Partially update existing vacancy (owner or admin)
+      operationId: updateVacancy
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateVacancyRequest"
+        required: true
+      responses:
+        "404":
+          description: Vacancy not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - missing or invalid token
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - you don't have permission to update this vacancy
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: Vacancy updated successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/VacancyResponse"
+        "400":
+          description: Validation error - invalid request data
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/v1/vacancies/{id}/tariff:
+    patch:
+      tags:
+      - Vacancies
+      summary: Select tariff
+      description: "Select tariff for vacancy (BPMN: Draft -> Payment)"
+      operationId: selectTariff
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: tariffId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "403":
+          description: Forbidden - you don't have permission to modify this vacancy
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: Validation error - invalid tariff or vacancy state
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - missing or invalid token
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: Tariff selected successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/VacancyResponse"
+        "404":
+          description: Vacancy or tariff not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/v1/vacancies/{id}/publish:
+    patch:
+      tags:
+      - Vacancies
+      summary: Publish vacancy
+      description: "Publish vacancy (BPMN: Draft -> Published)"
+      operationId: publishVacancy
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "404":
+          description: Vacancy not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - missing or invalid token
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - you don't have permission to publish this vacancy
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: Vacancy published successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/VacancyResponse"
+        "400":
+          description: Validation error - vacancy must have a tariff selected
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/v1/vacancies/{id}/archive:
+    patch:
+      tags:
+      - Vacancies
+      summary: Archive vacancy
+      description: "Archive vacancy (BPMN: Published -> Archived)"
+      operationId: archiveVacancy
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "404":
+          description: Vacancy not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - missing or invalid token
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: Vacancy archived successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/VacancyResponse"
+        "400":
+          description: Validation error - vacancy must be published to archive
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - you don't have permission to archive this vacancy
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/v1/users:
+    get:
+      tags:
+      - User & Admin
+      summary: Get users
+      description: Get all users (admin only) or current user profile (my=true for
+        any authenticated user)
+      operationId: getUsers
+      parameters:
+      - name: my
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+      responses:
+        "403":
+          description: Forbidden - admin role required (when my=false)
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - missing or invalid token
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: Users retrieved successfully
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserResponse"
+        "404":
+          description: User not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/v1/users/{id}:
+    get:
+      tags:
+      - User & Admin
+      summary: Get user by ID
+      description: Get user profile by ID (public)
+      operationId: getUserById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: User found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "404":
+          description: User not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/users/{userId}:
+    delete:
+      tags:
+      - User & Admin
+      summary: Delete user
+      description: "Delete user and all their vacancies (admin only, cascaded deletion)"
+      operationId: deleteUser
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "401":
+          description: Unauthorized - missing or invalid token
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - admin role required
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "204":
+          description: User deleted successfully
+      security:
+      - bearerAuth: []
+components:
+  schemas:
+    UpdateTariffRequest:
+      type: object
+      properties:
+        name:
+          maxLength: 100
+          minLength: 0
+          type: string
+        price:
+          type: number
+        durationDays:
+          type: integer
+          format: int32
+        description:
+          maxLength: 1000
+          minLength: 0
+          type: string
+    ErrorResponse:
+      required:
+      - error
+      - message
+      - path
+      - status
+      - timestamp
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+          format: int32
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+    TariffResponse:
+      required:
+      - description
+      - durationDays
+      - id
+      - name
+      - price
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        durationDays:
+          type: integer
+          format: int32
+        description:
+          type: string
+    CreateVacancyRequest:
+      required:
+      - additionalSkills
+      - city
+      - description
+      - employmentFormat
+      - employmentType
+      - experienceLevel
+      - title
+      - workFormat
+      - workSchedule
+      type: object
+      properties:
+        title:
+          maxLength: 255
+          minLength: 0
+          type: string
+        description:
+          maxLength: 10000
+          minLength: 0
+          type: string
+        experienceLevel:
+          type: string
+          enum:
+          - NO_EXPERIENCE
+          - ONE_TO_THREE
+          - THREE_TO_SIX
+          - MORE_THAN_SIX
+        salaryFrom:
+          type: number
+        salaryTo:
+          type: number
+        employmentType:
+          type: string
+          enum:
+          - FULL_TIME
+          - PART_TIME
+          - PROJECT
+          - INTERNSHIP
+          - VOLUNTEER
+        workFormat:
+          type: string
+          enum:
+          - REMOTE
+          - OFFICE
+          - HYBRID
+        employmentFormat:
+          type: string
+          enum:
+          - EMPLOYMENT_CONTRACT
+          - CIVIL_CONTRACT
+          - SELF_EMPLOYED
+        workSchedule:
+          type: string
+          enum:
+          - NINE_TO_EIGHTEEN
+          - TEN_TO_NINETEEN
+          - EIGHT_TO_SEVENTEEN
+          - FLEXIBLE
+          - SHIFT
+          - REMOTE_FLEXIBLE
+        city:
+          maxLength: 100
+          minLength: 0
+          type: string
+        address:
+          maxLength: 500
+          minLength: 0
+          type: string
+        companyDescription:
+          maxLength: 5000
+          minLength: 0
+          type: string
+        additionalSkills:
+          maxItems: 50
+          minItems: 0
+          type: array
+          items:
+            type: string
+    VacancyResponse:
+      required:
+      - additionalSkills
+      - city
+      - createdAt
+      - description
+      - employerId
+      - employmentFormat
+      - employmentType
+      - experienceLevel
+      - id
+      - status
+      - title
+      - updatedAt
+      - workFormat
+      - workSchedule
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        experienceLevel:
+          type: string
+          enum:
+          - NO_EXPERIENCE
+          - ONE_TO_THREE
+          - THREE_TO_SIX
+          - MORE_THAN_SIX
+        salaryFrom:
+          type: number
+        salaryTo:
+          type: number
+        employmentType:
+          type: string
+          enum:
+          - FULL_TIME
+          - PART_TIME
+          - PROJECT
+          - INTERNSHIP
+          - VOLUNTEER
+        workFormat:
+          type: string
+          enum:
+          - REMOTE
+          - OFFICE
+          - HYBRID
+        employmentFormat:
+          type: string
+          enum:
+          - EMPLOYMENT_CONTRACT
+          - CIVIL_CONTRACT
+          - SELF_EMPLOYED
+        workSchedule:
+          type: string
+          enum:
+          - NINE_TO_EIGHTEEN
+          - TEN_TO_NINETEEN
+          - EIGHT_TO_SEVENTEEN
+          - FLEXIBLE
+          - SHIFT
+          - REMOTE_FLEXIBLE
+        city:
+          type: string
+        address:
+          type: string
+        companyDescription:
+          type: string
+        additionalSkills:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum:
+          - DRAFT
+          - PUBLISHED
+          - ARCHIVED
+          - CLOSED
+        employerId:
+          type: string
+        tariffId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        publishedAt:
+          type: string
+          format: date-time
+    CreateTariffRequest:
+      required:
+      - description
+      - durationDays
+      - name
+      - price
+      type: object
+      properties:
+        name:
+          maxLength: 100
+          minLength: 0
+          type: string
+        price:
+          type: number
+        durationDays:
+          type: integer
+          format: int32
+        description:
+          maxLength: 1000
+          minLength: 0
+          type: string
+    RegisterRequest:
+      required:
+      - companyName
+      - email
+      - isAdmin
+      - password
+      type: object
+      properties:
+        email:
+          maxLength: 255
+          minLength: 0
+          type: string
+        password:
+          maxLength: 100
+          minLength: 6
+          type: string
+        companyName:
+          maxLength: 255
+          minLength: 0
+          type: string
+        isAdmin:
+          type: boolean
+    AuthResponse:
+      required:
+      - accessToken
+      - email
+      - refreshToken
+      - role
+      - userId
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        userId:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+    RefreshTokenRequest:
+      required:
+      - refreshToken
+      type: object
+      properties:
+        refreshToken:
+          type: string
+    LoginRequest:
+      required:
+      - email
+      - password
+      type: object
+      properties:
+        email:
+          maxLength: 255
+          minLength: 0
+          type: string
+        password:
+          maxLength: 100
+          minLength: 0
+          type: string
+    UpdateVacancyRequest:
+      type: object
+      properties:
+        title:
+          maxLength: 255
+          minLength: 0
+          type: string
+        description:
+          maxLength: 10000
+          minLength: 0
+          type: string
+        experienceLevel:
+          type: string
+          enum:
+          - NO_EXPERIENCE
+          - ONE_TO_THREE
+          - THREE_TO_SIX
+          - MORE_THAN_SIX
+        salaryFrom:
+          type: number
+        salaryTo:
+          type: number
+        employmentType:
+          type: string
+          enum:
+          - FULL_TIME
+          - PART_TIME
+          - PROJECT
+          - INTERNSHIP
+          - VOLUNTEER
+        workFormat:
+          type: string
+          enum:
+          - REMOTE
+          - OFFICE
+          - HYBRID
+        employmentFormat:
+          type: string
+          enum:
+          - EMPLOYMENT_CONTRACT
+          - CIVIL_CONTRACT
+          - SELF_EMPLOYED
+        workSchedule:
+          type: string
+          enum:
+          - NINE_TO_EIGHTEEN
+          - TEN_TO_NINETEEN
+          - EIGHT_TO_SEVENTEEN
+          - FLEXIBLE
+          - SHIFT
+          - REMOTE_FLEXIBLE
+        city:
+          maxLength: 100
+          minLength: 0
+          type: string
+        address:
+          maxLength: 500
+          minLength: 0
+          type: string
+        companyDescription:
+          maxLength: 5000
+          minLength: 0
+          type: string
+        additionalSkills:
+          maxItems: 50
+          minItems: 0
+          type: array
+          items:
+            type: string
+    PagedResponseVacancyResponse:
+      required:
+      - content
+      - page
+      - size
+      - totalElements
+      - totalPages
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/VacancyResponse"
+        page:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+    UserResponse:
+      required:
+      - companyName
+      - email
+      - id
+      - role
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        companyName:
+          type: string
+        role:
+          type: string
+    PagedResponseTariffResponse:
+      required:
+      - content
+      - page
+      - size
+      - totalElements
+      - totalPages
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/TariffResponse"
+        page:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+  securitySchemes:
+    bearerAuth:
+      type: http
+      description: Enter JWT token obtained from /api/v1/auth/login or /api/v1/auth/register
+      scheme: bearer
+      bearerFormat: JWT
