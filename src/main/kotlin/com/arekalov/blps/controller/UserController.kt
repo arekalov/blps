@@ -3,6 +3,7 @@ package com.arekalov.blps.controller
 import com.arekalov.blps.dto.common.ErrorResponse
 import com.arekalov.blps.dto.user.UserResponse
 import com.arekalov.blps.exception.NotFoundException
+import com.arekalov.blps.exception.UnauthorizedException
 import com.arekalov.blps.mapper.toResponse
 import com.arekalov.blps.repository.UserRepository
 import com.arekalov.blps.repository.VacancyRepository
@@ -20,27 +21,30 @@ import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
 @RestController
-@RequestMapping("/api/v1")
-@SecurityRequirement(name = "bearerAuth")
+@RequestMapping("/api/v1/users")
 @Tag(name = "User & Admin", description = "User profile and admin endpoints")
 class UserController(
     private val userRepository: UserRepository,
     private val vacancyRepository: VacancyRepository,
 ) {
 
-    @GetMapping("/users/me")
-    @Operation(summary = "Get current user", description = "Get current authenticated user profile")
+    @GetMapping
+    @Operation(
+        summary = "Get user(s)",
+        description = "Get user by ID or current user profile. Use my=true to get current user (requires auth)",
+    )
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "200", description = "User profile retrieved successfully"),
             ApiResponse(
                 responseCode = "401",
-                description = "Unauthorized - missing or invalid token",
+                description = "Unauthorized - missing or invalid token (when my=true)",
                 content = [Content(schema = Schema(implementation = ErrorResponse::class))],
             ),
             ApiResponse(
@@ -50,17 +54,32 @@ class UserController(
             ),
         ],
     )
-    fun getCurrentUser(authentication: Authentication): UserResponse {
-        val userId = authentication.principal as UUID
+    fun getUser(
+        authentication: Authentication?,
+        @RequestParam(required = false) id: UUID?,
+        @RequestParam(required = false, defaultValue = "false") my: Boolean,
+    ): UserResponse {
+        val userId = when {
+            my -> {
+                if (authentication == null) {
+                    throw UnauthorizedException("Authentication required when my=true")
+                }
+                authentication.principal as UUID
+            }
+            id != null -> id
+            else -> throw IllegalArgumentException("Either 'my=true' or 'id' parameter must be provided")
+        }
+
         val user = userRepository.findById(userId).orElseThrow {
             NotFoundException("User with id $userId not found")
         }
         return user.toResponse()
     }
 
-    @DeleteMapping("/admin/users/{userId}")
+    @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(
         summary = "Delete user",
         description = "Delete user and all their vacancies (admin only, cascaded deletion)",

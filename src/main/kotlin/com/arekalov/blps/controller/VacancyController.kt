@@ -6,6 +6,7 @@ import com.arekalov.blps.dto.common.PagedResponse
 import com.arekalov.blps.dto.vacancy.CreateVacancyRequest
 import com.arekalov.blps.dto.vacancy.UpdateVacancyRequest
 import com.arekalov.blps.dto.vacancy.VacancyResponse
+import com.arekalov.blps.exception.UnauthorizedException
 import com.arekalov.blps.model.enum.UserRole
 import com.arekalov.blps.model.enum.VacancyStatus
 import com.arekalov.blps.service.VacancyService
@@ -43,16 +44,39 @@ class VacancyController(
 ) {
 
     @GetMapping
-    @Operation(summary = "Get all vacancies", description = "Get paginated list of all vacancies (public)")
+    @Operation(
+        summary = "Get vacancies",
+        description = "Get paginated list of vacancies. Use my=true to get only your vacancies (requires auth)",
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Vacancies retrieved successfully"),
+            ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized - missing or invalid token (when my=true)",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+        ],
+    )
     fun getAllVacancies(
+        authentication: Authentication?,
         @RequestParam(required = false) status: VacancyStatus?,
+        @RequestParam(required = false, defaultValue = "false") my: Boolean,
         @PageableDefault(
             size = DEFAULT_PAGE_SIZE,
             sort = ["createdAt"],
             direction = Sort.Direction.DESC,
         ) pageable: Pageable,
     ): PagedResponse<VacancyResponse> {
-        return vacancyService.getAllVacancies(status, pageable)
+        return if (my) {
+            if (authentication == null) {
+                throw UnauthorizedException("Authentication required when my=true")
+            }
+            val userId = authentication.principal as UUID
+            vacancyService.getMyVacancies(userId, status, pageable)
+        } else {
+            vacancyService.getAllVacancies(status, pageable)
+        }
     }
 
     @GetMapping("/{id}")
@@ -69,33 +93,6 @@ class VacancyController(
     )
     fun getVacancyById(@PathVariable id: UUID): VacancyResponse {
         return vacancyService.getVacancyById(id)
-    }
-
-    @GetMapping("/my")
-    @PreAuthorize("isAuthenticated()")
-    @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Get my vacancies", description = "Get paginated list of current user's vacancies")
-    @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "200", description = "Vacancies retrieved successfully"),
-            ApiResponse(
-                responseCode = "401",
-                description = "Unauthorized - missing or invalid token",
-                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-            ),
-        ],
-    )
-    fun getMyVacancies(
-        authentication: Authentication,
-        @RequestParam(required = false) status: VacancyStatus?,
-        @PageableDefault(
-            size = DEFAULT_PAGE_SIZE,
-            sort = ["createdAt"],
-            direction = Sort.Direction.DESC,
-        ) pageable: Pageable,
-    ): PagedResponse<VacancyResponse> {
-        val userId = authentication.principal as UUID
-        return vacancyService.getMyVacancies(userId, status, pageable)
     }
 
     @PostMapping
