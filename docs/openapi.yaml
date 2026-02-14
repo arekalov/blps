@@ -37,73 +37,6 @@ tags:
 - name: Tariffs
   description: Tariff management endpoints
 paths:
-  /api/v1/vacancies/{id}:
-    get:
-      tags:
-      - Vacancies
-      summary: Get vacancy by ID
-      description: Get vacancy details by ID (public)
-      operationId: getVacancyById
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/VacancyResponse"
-    put:
-      tags:
-      - Vacancies
-      summary: Update vacancy
-      description: Update existing vacancy (owner or admin)
-      operationId: updateVacancy
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateVacancyRequest"
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/VacancyResponse"
-      security:
-      - bearerAuth: []
-    delete:
-      tags:
-      - Vacancies
-      summary: Delete vacancy
-      description: Delete vacancy (owner or admin)
-      operationId: deleteVacancy
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-      responses:
-        "204":
-          description: No Content
-      security:
-      - bearerAuth: []
   /api/v1/tariffs/{id}:
     get:
       tags:
@@ -323,6 +256,73 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/AuthResponse"
+  /api/v1/vacancies/{id}:
+    get:
+      tags:
+      - Vacancies
+      summary: Get vacancy by ID
+      description: Get vacancy details by ID (public)
+      operationId: getVacancyById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/VacancyResponse"
+    delete:
+      tags:
+      - Vacancies
+      summary: Delete vacancy
+      description: Delete vacancy (owner or admin)
+      operationId: deleteVacancy
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+      security:
+      - bearerAuth: []
+    patch:
+      tags:
+      - Vacancies
+      summary: Update vacancy
+      description: Partially update existing vacancy (owner or admin)
+      operationId: updateVacancy
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateVacancyRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/VacancyResponse"
+      security:
+      - bearerAuth: []
   /api/v1/vacancies/{id}/tariff:
     patch:
       tags:
@@ -467,7 +467,49 @@ paths:
       - bearerAuth: []
 components:
   schemas:
-    UpdateVacancyRequest:
+    UpdateTariffRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        price:
+          type: number
+        durationDays:
+          type: integer
+          format: int32
+        description:
+          type: string
+    TariffResponse:
+      required:
+      - description
+      - durationDays
+      - id
+      - name
+      - price
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        durationDays:
+          type: integer
+          format: int32
+        description:
+          type: string
+    CreateVacancyRequest:
+      required:
+      - additionalSkills
+      - city
+      - description
+      - employmentFormat
+      - employmentType
+      - experienceLevel
+      - title
+      - workFormat
+      - workSchedule
       type: object
       properties:
         title:
@@ -618,105 +660,6 @@ components:
         publishedAt:
           type: string
           format: date-time
-    UpdateTariffRequest:
-      type: object
-      properties:
-        name:
-          type: string
-        price:
-          type: number
-        durationDays:
-          type: integer
-          format: int32
-        description:
-          type: string
-    TariffResponse:
-      required:
-      - description
-      - durationDays
-      - id
-      - name
-      - price
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        price:
-          type: number
-        durationDays:
-          type: integer
-          format: int32
-        description:
-          type: string
-    CreateVacancyRequest:
-      required:
-      - additionalSkills
-      - city
-      - description
-      - employmentFormat
-      - employmentType
-      - experienceLevel
-      - title
-      - workFormat
-      - workSchedule
-      type: object
-      properties:
-        title:
-          type: string
-        description:
-          type: string
-        experienceLevel:
-          type: string
-          enum:
-          - NO_EXPERIENCE
-          - ONE_TO_THREE
-          - THREE_TO_SIX
-          - MORE_THAN_SIX
-        salaryFrom:
-          type: number
-        salaryTo:
-          type: number
-        employmentType:
-          type: string
-          enum:
-          - FULL_TIME
-          - PART_TIME
-          - PROJECT
-          - INTERNSHIP
-          - VOLUNTEER
-        workFormat:
-          type: string
-          enum:
-          - REMOTE
-          - OFFICE
-          - HYBRID
-        employmentFormat:
-          type: string
-          enum:
-          - EMPLOYMENT_CONTRACT
-          - CIVIL_CONTRACT
-          - SELF_EMPLOYED
-        workSchedule:
-          type: string
-          enum:
-          - NINE_TO_EIGHTEEN
-          - TEN_TO_NINETEEN
-          - EIGHT_TO_SEVENTEEN
-          - FLEXIBLE
-          - SHIFT
-          - REMOTE_FLEXIBLE
-        city:
-          type: string
-        address:
-          type: string
-        companyDescription:
-          type: string
-        additionalSkills:
-          type: array
-          items:
-            type: string
     CreateTariffRequest:
       required:
       - description
@@ -788,6 +731,63 @@ components:
           type: string
         password:
           type: string
+    UpdateVacancyRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        experienceLevel:
+          type: string
+          enum:
+          - NO_EXPERIENCE
+          - ONE_TO_THREE
+          - THREE_TO_SIX
+          - MORE_THAN_SIX
+        salaryFrom:
+          type: number
+        salaryTo:
+          type: number
+        employmentType:
+          type: string
+          enum:
+          - FULL_TIME
+          - PART_TIME
+          - PROJECT
+          - INTERNSHIP
+          - VOLUNTEER
+        workFormat:
+          type: string
+          enum:
+          - REMOTE
+          - OFFICE
+          - HYBRID
+        employmentFormat:
+          type: string
+          enum:
+          - EMPLOYMENT_CONTRACT
+          - CIVIL_CONTRACT
+          - SELF_EMPLOYED
+        workSchedule:
+          type: string
+          enum:
+          - NINE_TO_EIGHTEEN
+          - TEN_TO_NINETEEN
+          - EIGHT_TO_SEVENTEEN
+          - FLEXIBLE
+          - SHIFT
+          - REMOTE_FLEXIBLE
+        city:
+          type: string
+        address:
+          type: string
+        companyDescription:
+          type: string
+        additionalSkills:
+          type: array
+          items:
+            type: string
     Pageable:
       type: object
       properties:
