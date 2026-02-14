@@ -16,7 +16,7 @@ data class Skill(
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: UUID? = null,
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, length = 100)
     val name: String,
 
     @ManyToMany(mappedBy = "additionalSkills")

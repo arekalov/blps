@@ -16,7 +16,7 @@ data class Tariff(
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: UUID? = null,
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     var name: String,
 
     @Column(nullable = false)

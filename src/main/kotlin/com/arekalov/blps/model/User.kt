@@ -21,17 +21,17 @@ data class User(
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: UUID? = null,
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, length = 255)
     val email: String,
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     val passwordHash: String,
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     val companyName: String,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     val role: UserRole = UserRole.EMPLOYER,
 
     @Column(nullable = false, updatable = false)

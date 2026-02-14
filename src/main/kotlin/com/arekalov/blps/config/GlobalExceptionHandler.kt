@@ -5,10 +5,12 @@ import com.arekalov.blps.exception.ForbiddenException
 import com.arekalov.blps.exception.NotFoundException
 import com.arekalov.blps.exception.UnauthorizedException
 import com.arekalov.blps.exception.ValidationException
+import com.fasterxml.jackson.databind.exc.InvalidFormatException
 import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -95,6 +97,37 @@ class GlobalExceptionHandler {
             status = HttpStatus.BAD_REQUEST.value(),
             error = "Validation Error",
             message = errors,
+            path = request.requestURI,
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException::class)
+    fun handleHttpMessageNotReadableException(
+        ex: HttpMessageNotReadableException,
+        request: HttpServletRequest,
+    ): ResponseEntity<ErrorResponse> {
+        val message = when (val cause = ex.cause) {
+            is InvalidFormatException -> {
+                val fieldName = cause.path.joinToString(".") { it.fieldName }
+                val invalidValue = cause.value
+                when {
+                    cause.targetType.isEnum -> {
+                        val enumValues = cause.targetType.enumConstants.joinToString(", ") { it.toString() }
+                        "Invalid value '$invalidValue' for field '$fieldName'. " +
+                            "Allowed values: [$enumValues]"
+                    }
+                    else -> "Invalid value '$invalidValue' for field '$fieldName'"
+                }
+            }
+            else -> "Invalid request body: ${ex.mostSpecificCause.message}"
+        }
+
+        val errorResponse = ErrorResponse(
+            timestamp = LocalDateTime.now(),
+            status = HttpStatus.BAD_REQUEST.value(),
+            error = "Invalid Request Body",
+            message = message,
             path = request.requestURI,
         )
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)

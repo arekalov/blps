@@ -30,14 +30,14 @@ data class Vacancy(
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: UUID? = null,
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     var title: String,
 
     @Column(nullable = false, columnDefinition = "TEXT")
     var description: String,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     var experienceLevel: ExperienceLevel,
 
     var salaryFrom: BigDecimal? = null,
@@ -45,24 +45,25 @@ data class Vacancy(
     var salaryTo: BigDecimal? = null,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     var employmentType: EmploymentType,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     var workFormat: WorkFormat,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     var employmentFormat: EmploymentFormat,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     var workSchedule: WorkSchedule,
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     var city: String,
 
+    @Column(length = 500)
     var address: String? = null,
 
     @Column(columnDefinition = "TEXT")
@@ -77,7 +78,7 @@ data class Vacancy(
     var additionalSkills: MutableList<Skill> = mutableListOf(),
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     var status: VacancyStatus = VacancyStatus.DRAFT,
 
     @ManyToOne(fetch = FetchType.LAZY)
