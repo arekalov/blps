@@ -1,6 +1,6 @@
 package com.arekalov.blps.controller
 
-import com.arekalov.blps.common.PaginationConstants.DEFAULT_PAGE_SIZE
+import com.arekalov.blps.common.validateAndCreatePageable
 import com.arekalov.blps.dto.common.ErrorResponse
 import com.arekalov.blps.dto.common.PagedResponse
 import com.arekalov.blps.dto.vacancy.CreateVacancyRequest
@@ -18,9 +18,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
-import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
@@ -62,12 +60,15 @@ class VacancyController(
         authentication: Authentication?,
         @RequestParam(required = false) status: VacancyStatus?,
         @RequestParam(required = false, defaultValue = "false") my: Boolean,
-        @PageableDefault(
-            size = DEFAULT_PAGE_SIZE,
-            sort = ["createdAt"],
-            direction = Sort.Direction.DESC,
-        ) pageable: Pageable,
+        @RequestParam(required = false) page: Int?,
+        @RequestParam(required = false) size: Int?,
     ): PagedResponse<VacancyResponse> {
+        val pageable = validateAndCreatePageable(
+            page = page,
+            size = size,
+            sort = Sort.by(Sort.Direction.DESC, "createdAt"),
+        )
+
         return if (my) {
             if (authentication == null) {
                 throw UnauthorizedException("Authentication required when my=true")

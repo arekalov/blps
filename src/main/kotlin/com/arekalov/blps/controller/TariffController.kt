@@ -1,6 +1,6 @@
 package com.arekalov.blps.controller
 
-import com.arekalov.blps.common.PaginationConstants.DEFAULT_PAGE_SIZE
+import com.arekalov.blps.common.validateAndCreatePageable
 import com.arekalov.blps.dto.common.ErrorResponse
 import com.arekalov.blps.dto.common.PagedResponse
 import com.arekalov.blps.dto.tariff.CreateTariffRequest
@@ -15,9 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
-import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -27,6 +25,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
@@ -46,12 +45,14 @@ class TariffController(
         ],
     )
     fun getAllTariffs(
-        @PageableDefault(
-            size = DEFAULT_PAGE_SIZE,
-            sort = ["price"],
-            direction = Sort.Direction.ASC,
-        ) pageable: Pageable,
+        @RequestParam(required = false) page: Int?,
+        @RequestParam(required = false) size: Int?,
     ): PagedResponse<TariffResponse> {
+        val pageable = validateAndCreatePageable(
+            page = page,
+            size = size,
+            sort = Sort.by(Sort.Direction.ASC, "price"),
+        )
         return tariffService.getAllTariffs(pageable)
     }
 
