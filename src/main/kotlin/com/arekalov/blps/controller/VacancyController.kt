@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -87,9 +86,9 @@ class VacancyController(
         return vacancyService.createVacancy(userId, request)
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Update vacancy", description = "Update existing vacancy (owner or admin)")
+    @Operation(summary = "Update vacancy", description = "Partially update existing vacancy (owner or admin)")
     fun updateVacancy(
         authentication: Authentication,
         @PathVariable id: UUID,
