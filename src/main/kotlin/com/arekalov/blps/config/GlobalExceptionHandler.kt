@@ -6,6 +6,7 @@ import com.arekalov.blps.exception.NotFoundException
 import com.arekalov.blps.exception.UnauthorizedException
 import com.arekalov.blps.exception.ValidationException
 import com.fasterxml.jackson.databind.exc.InvalidFormatException
+import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -89,14 +90,19 @@ class GlobalExceptionHandler {
         ex: MethodArgumentNotValidException,
         request: HttpServletRequest,
     ): ResponseEntity<ErrorResponse> {
-        val errors = ex.bindingResult.fieldErrors
-            .joinToString(", ") { "${it.field}: ${it.defaultMessage}" }
+        val fieldErrors = ex.bindingResult.fieldErrors
+            .map { "${it.field}: ${it.defaultMessage}" }
+
+        val globalErrors = ex.bindingResult.globalErrors
+            .map { it.defaultMessage ?: "Validation failed" }
+
+        val allErrors = (fieldErrors + globalErrors).joinToString(", ")
 
         val errorResponse = ErrorResponse(
             timestamp = LocalDateTime.now(),
             status = HttpStatus.BAD_REQUEST.value(),
             error = "Validation Error",
-            message = errors,
+            message = allErrors,
             path = request.requestURI,
         )
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
@@ -118,6 +124,16 @@ class GlobalExceptionHandler {
                             "Allowed values: [$enumValues]"
                     }
                     else -> "Invalid value '$invalidValue' for field '$fieldName'"
+                }
+            }
+            is MismatchedInputException -> {
+                val fieldName = cause.path.joinToString(".") { it.fieldName }
+                when {
+                    cause.message?.contains("missing") == true ||
+                        cause.message?.contains("required") == true -> {
+                        "Required field '$fieldName' is missing or null"
+                    }
+                    else -> "Invalid value for field '$fieldName'"
                 }
             }
             else -> "Invalid request body: ${ex.mostSpecificCause.message}"

@@ -5,10 +5,13 @@ import com.arekalov.blps.model.enum.EmploymentType
 import com.arekalov.blps.model.enum.ExperienceLevel
 import com.arekalov.blps.model.enum.WorkFormat
 import com.arekalov.blps.model.enum.WorkSchedule
+import com.arekalov.blps.validation.SalaryRange
+import com.arekalov.blps.validation.ValidSalaryRange
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.Size
 import java.math.BigDecimal
 
+@ValidSalaryRange
 data class UpdateVacancyRequest(
     @field:Size(max = 255, message = "Title must not exceed 255 characters")
     val title: String? = null,
@@ -16,9 +19,9 @@ data class UpdateVacancyRequest(
     val description: String? = null,
     val experienceLevel: ExperienceLevel? = null,
     @field:Positive(message = "Salary from must be positive")
-    val salaryFrom: BigDecimal? = null,
+    override val salaryFrom: BigDecimal? = null,
     @field:Positive(message = "Salary to must be positive")
-    val salaryTo: BigDecimal? = null,
+    override val salaryTo: BigDecimal? = null,
     val employmentType: EmploymentType? = null,
     val workFormat: WorkFormat? = null,
     val employmentFormat: EmploymentFormat? = null,
@@ -36,4 +39,4 @@ data class UpdateVacancyRequest(
             message = "Skill name must not exceed 100 characters",
         ) String,
         >? = null,
-)
+) : SalaryRange
