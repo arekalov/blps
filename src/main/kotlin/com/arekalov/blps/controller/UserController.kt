@@ -2,8 +2,8 @@ package com.arekalov.blps.controller
 
 import com.arekalov.blps.dto.common.ErrorResponse
 import com.arekalov.blps.dto.user.UserResponse
+import com.arekalov.blps.exception.ForbiddenException
 import com.arekalov.blps.exception.NotFoundException
-import com.arekalov.blps.exception.UnauthorizedException
 import com.arekalov.blps.mapper.toResponse
 import com.arekalov.blps.repository.UserRepository
 import com.arekalov.blps.repository.VacancyRepository
@@ -35,16 +35,22 @@ class UserController(
 ) {
 
     @GetMapping
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(
-        summary = "Get user(s)",
-        description = "Get user by ID or current user profile. Use my=true to get current user (requires auth)",
+        summary = "Get users",
+        description = "Get all users (admin only) or current user profile (my=true for any authenticated user)",
     )
     @ApiResponses(
         value = [
-            ApiResponse(responseCode = "200", description = "User profile retrieved successfully"),
+            ApiResponse(responseCode = "200", description = "Users retrieved successfully"),
             ApiResponse(
                 responseCode = "401",
-                description = "Unauthorized - missing or invalid token (when my=true)",
+                description = "Unauthorized - missing or invalid token",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "403",
+                description = "Forbidden - admin role required (when my=false)",
                 content = [Content(schema = Schema(implementation = ErrorResponse::class))],
             ),
             ApiResponse(
@@ -54,24 +60,45 @@ class UserController(
             ),
         ],
     )
-    fun getUser(
-        authentication: Authentication?,
-        @RequestParam(required = false) id: UUID?,
+    fun getUsers(
+        authentication: Authentication,
         @RequestParam(required = false, defaultValue = "false") my: Boolean,
-    ): UserResponse {
-        val userId = when {
-            my -> {
-                if (authentication == null) {
-                    throw UnauthorizedException("Authentication required when my=true")
-                }
-                authentication.principal as UUID
+    ): List<UserResponse> {
+        if (my) {
+            val userId = authentication.principal as UUID
+            val user = userRepository.findById(userId).orElseThrow {
+                NotFoundException("User with id $userId not found")
             }
-            id != null -> id
-            else -> throw IllegalArgumentException("Either 'my=true' or 'id' parameter must be provided")
+            return listOf(user.toResponse())
+        } else {
+            val authorities = authentication.authorities.map { it.authority }
+            if (!authorities.contains("ROLE_ADMIN")) {
+                throw ForbiddenException(
+                    "Admin role required to view all users. Use my=true to get your profile",
+                )
+            }
+            return userRepository.findAll().map { it.toResponse() }
         }
+    }
 
-        val user = userRepository.findById(userId).orElseThrow {
-            NotFoundException("User with id $userId not found")
+    @GetMapping("/{id}")
+    @Operation(
+        summary = "Get user by ID",
+        description = "Get user profile by ID (public)",
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "User found"),
+            ApiResponse(
+                responseCode = "404",
+                description = "User not found",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+        ],
+    )
+    fun getUserById(@PathVariable id: UUID): UserResponse {
+        val user = userRepository.findById(id).orElseThrow {
+            NotFoundException("User with id $id not found")
         }
         return user.toResponse()
     }

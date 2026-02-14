@@ -14,6 +14,7 @@ import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import java.time.LocalDateTime
 
 @RestControllerAdvice
@@ -142,6 +143,44 @@ class GlobalExceptionHandler {
             path = request.requestURI,
         )
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException::class)
+    fun handleMethodArgumentTypeMismatchException(
+        ex: MethodArgumentTypeMismatchException,
+        request: HttpServletRequest,
+    ): ResponseEntity<ErrorResponse> {
+        val message = when {
+            request.requestURI.contains("/my") ->
+                "Endpoint '/my' has been removed. Use '?my=true' query parameter instead. " +
+                    "Example: GET ${request.requestURI.replace("/my", "")}?my=true"
+            else ->
+                "Invalid parameter '${ex.name}': expected ${ex.requiredType?.simpleName}, got '${ex.value}'"
+        }
+
+        val errorResponse = ErrorResponse(
+            timestamp = LocalDateTime.now(),
+            status = HttpStatus.BAD_REQUEST.value(),
+            error = "Invalid Parameter",
+            message = message,
+            path = request.requestURI,
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
+    }
+
+    @ExceptionHandler(org.springframework.web.servlet.NoHandlerFoundException::class)
+    fun handleNoHandlerFoundException(
+        ex: org.springframework.web.servlet.NoHandlerFoundException,
+        request: HttpServletRequest,
+    ): ResponseEntity<ErrorResponse> {
+        val errorResponse = ErrorResponse(
+            timestamp = LocalDateTime.now(),
+            status = HttpStatus.NOT_FOUND.value(),
+            error = "Not Found",
+            message = "Endpoint not found: ${ex.httpMethod} ${ex.requestURL}",
+            path = request.requestURI,
+        )
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse)
     }
 
     @ExceptionHandler(Exception::class)

@@ -6,6 +6,13 @@ spring:
   profiles:
     active: dev
   
+  # Включаем выброс исключения для несуществующих эндпоинтов
+  web:
+    resources:
+      add-mappings: false
+  mvc:
+    throw-exception-if-no-handler-found: true
+  
   # Общие настройки JPA
   jpa:
     hibernate:

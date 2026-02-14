@@ -40,6 +40,11 @@ class TariffController(
 
     @GetMapping
     @Operation(summary = "Get all tariffs", description = "Get paginated list of all tariffs (public)")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Tariffs retrieved successfully"),
+        ],
+    )
     fun getAllTariffs(
         @PageableDefault(
             size = DEFAULT_PAGE_SIZE,

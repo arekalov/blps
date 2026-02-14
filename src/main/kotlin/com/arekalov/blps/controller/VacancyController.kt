@@ -197,6 +197,31 @@ class VacancyController(
     @PatchMapping("/{id}/tariff")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Select tariff", description = "Select tariff for vacancy (BPMN: Draft -> Payment)")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Tariff selected successfully"),
+            ApiResponse(
+                responseCode = "400",
+                description = "Validation error - invalid tariff or vacancy state",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized - missing or invalid token",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "403",
+                description = "Forbidden - you don't have permission to modify this vacancy",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "Vacancy or tariff not found",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+        ],
+    )
     fun selectTariff(
         authentication: Authentication,
         @PathVariable id: UUID,
@@ -247,6 +272,31 @@ class VacancyController(
     @PatchMapping("/{id}/archive")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Archive vacancy", description = "Archive vacancy (BPMN: Published -> Archived)")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Vacancy archived successfully"),
+            ApiResponse(
+                responseCode = "400",
+                description = "Validation error - vacancy must be published to archive",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized - missing or invalid token",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "403",
+                description = "Forbidden - you don't have permission to archive this vacancy",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "Vacancy not found",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
+        ],
+    )
     fun archiveVacancy(
         authentication: Authentication,
         @PathVariable id: UUID,

@@ -17,6 +17,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 class SecurityConfig(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
+    private val customAuthenticationEntryPoint: CustomAuthenticationEntryPoint,
+    private val customAccessDeniedHandler: CustomAccessDeniedHandler,
 ) {
 
     @Bean
@@ -46,6 +48,11 @@ class SecurityConfig(
                     .requestMatchers(HttpMethod.GET, "/api/v1/tariffs/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/vacancies", "/api/v1/vacancies/{id}").permitAll()
                     .anyRequest().authenticated()
+            }
+            .exceptionHandling { exceptions ->
+                exceptions
+                    .authenticationEntryPoint(customAuthenticationEntryPoint)
+                    .accessDeniedHandler(customAccessDeniedHandler)
             }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
 
