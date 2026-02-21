@@ -20,3 +20,34 @@
 4. Спецификация REST API для всех публичных интерфейсов разработанного приложения.
 5. Исходный код системы или ссылка на репозиторий с исходным кодом.
 6. Выводы по работе.
+
+## Инструкция по развертыванию
+
+### Локально
+
+1. Запустите приложение (использует Neon DB):
+```bash
+./gradlew bootRun --args='--spring.profiles.active=dev'
+```
+
+2. Откройте Swagger UI: http://localhost:8080/swagger-ui.html
+
+### На Гелиосе
+
+1. Настройте SSH в `~/.ssh/config`:
+```
+Host ifmo
+    HostName se.ifmo.ru
+    User sXXXXXX
+    Port 2222
+```
+
+2. Настройте `deployment/application-prod.yaml` с credentials для STUDS БД
+
+3. Запустите деплой:
+```bash
+./deployment/deploy_and_start.sh
+```
+
+4. Приложение доступно на: http://localhost:8080
+
