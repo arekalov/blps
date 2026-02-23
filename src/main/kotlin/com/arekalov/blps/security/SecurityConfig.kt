@@ -62,9 +62,21 @@ class SecurityConfig(
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers("/api/v1/auth/**").permitAll()
-                    .requestMatchers("/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v1/tariffs/**").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v1/vacancies", "/api/v1/vacancies/{id}").permitAll()
+                    .requestMatchers(
+                        "/v3/api-docs/**",
+                        "/v3/api-docs.yaml",
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                    ).permitAll()
+                    .requestMatchers(
+                        HttpMethod.GET,
+                        "/api/v1/tariffs/**",
+                    ).permitAll()
+                    .requestMatchers(
+                        HttpMethod.GET,
+                        "/api/v1/vacancies",
+                        "/api/v1/vacancies/{id}",
+                    ).permitAll()
                     .anyRequest().authenticated()
             }
             .exceptionHandling { exceptions ->
