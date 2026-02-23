@@ -1,8 +1,13 @@
 package com.arekalov.blps.security
 
+import com.arekalov.blps.jaas.BlpsJaasConfiguration
+import com.arekalov.blps.jaas.RolePrincipalAuthorityGranter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.ProviderManager
+import org.springframework.security.authentication.jaas.DefaultJaasAuthenticationProvider
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -10,19 +15,33 @@ import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 class SecurityConfig(
-    private val jwtAuthenticationFilter: JwtAuthenticationFilter,
     private val customAuthenticationEntryPoint: CustomAuthenticationEntryPoint,
     private val customAccessDeniedHandler: CustomAccessDeniedHandler,
 ) {
 
     @Bean
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
+
+    @Bean
+    fun blpsJaasConfiguration(): BlpsJaasConfiguration = BlpsJaasConfiguration()
+
+    @Bean
+    fun jaasAuthenticationProvider(blpsJaasConfiguration: BlpsJaasConfiguration): DefaultJaasAuthenticationProvider {
+        val provider = DefaultJaasAuthenticationProvider()
+        provider.setConfiguration(blpsJaasConfiguration)
+        provider.setLoginContextName(BlpsJaasConfiguration.LOGIN_CONTEXT_NAME)
+        provider.setAuthorityGranters(arrayOf(RolePrincipalAuthorityGranter()))
+        return provider
+    }
+
+    @Bean
+    fun authenticationManager(jaasAuthenticationProvider: DefaultJaasAuthenticationProvider): AuthenticationManager =
+        ProviderManager(jaasAuthenticationProvider)
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -53,7 +72,7 @@ class SecurityConfig(
                     .authenticationEntryPoint(customAuthenticationEntryPoint)
                     .accessDeniedHandler(customAccessDeniedHandler)
             }
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+            .httpBasic { }
 
         return http.build()
     }

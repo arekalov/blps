@@ -26,7 +26,7 @@ class CustomAuthenticationEntryPoint(
         val handler = try {
             handlerMapping.getHandler(request)
         } catch (e: IllegalStateException) {
-            logger.debug("Failed to get handler for ${request.requestURI}", e)
+            logger.debug("No handler for {}", request.requestURI, e)
             null
         }
 

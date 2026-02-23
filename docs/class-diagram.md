@@ -7,9 +7,7 @@ classDiagram
     %% ============================================
     class AuthController {
         -AuthService authService
-        +register(RegisterRequest) AuthResponse
-        +login(LoginRequest) AuthResponse
-        +refreshToken(RefreshTokenRequest) AuthResponse
+        +register(RegisterRequest) UserResponse
     }
 
     class VacancyController {
@@ -48,10 +46,7 @@ classDiagram
     class AuthService {
         -UserRepository userRepository
         -PasswordEncoder passwordEncoder
-        -JwtTokenProvider jwtTokenProvider
-        +register(RegisterRequest) AuthResponse
-        +login(LoginRequest) AuthResponse
-        +refreshToken(String) AuthResponse
+        +register(RegisterRequest) UserResponse
     }
 
     class VacancyService {
@@ -168,23 +163,6 @@ classDiagram
         +String email
         +String password
         +String companyName
-    }
-
-    class LoginRequest {
-        +String email
-        +String password
-    }
-
-    class RefreshTokenRequest {
-        +String refreshToken
-    }
-
-    class AuthResponse {
-        +String accessToken
-        +String refreshToken
-        +String userId
-        +String email
-        +String role
     }
 
     %% ============================================
@@ -307,7 +285,6 @@ classDiagram
     class UserMapper {
         <<extension functions>>
         +User.toResponse() UserResponse
-        +User.toAuthResponse(accessToken, refreshToken) AuthResponse
         +RegisterRequest.toEntity(encodedPassword) User
     }
 
@@ -421,30 +398,10 @@ classDiagram
     %% ============================================
     %% SECURITY LAYER
     %% ============================================
-    class JwtTokenProvider {
-        -String jwtSecret
-        -Long jwtExpiration
-        -SecretKey key
-        +generateAccessToken(userId, role) String
-        +generateRefreshToken(userId) String
-        +getUserIdFromToken(token) UUID
-        +getRoleFromToken(token) String
-        +validateToken(token) Boolean
-        -getClaims(token) Claims
-    }
-
-    class JwtAuthenticationFilter {
-        -JwtTokenProvider jwtTokenProvider
-        -UserRepository userRepository
-        -Logger logger
-        +doFilterInternal(request, response, chain) void
-        -extractToken(request) String?
-    }
-
     class SecurityConfig {
-        -JwtAuthenticationFilter jwtAuthenticationFilter
         +securityFilterChain(http) SecurityFilterChain
         +passwordEncoder() PasswordEncoder
+        +jaasAuthenticationProvider() DefaultJaasAuthenticationProvider
     }
 
     %% ============================================
@@ -472,7 +429,6 @@ classDiagram
     %% RELATIONSHIPS - Services to Repositories
     %% ============================================
     AuthService --> UserRepository : uses
-    AuthService --> JwtTokenProvider : uses
     VacancyService --> VacancyRepository : uses
     VacancyService --> UserRepository : uses
     VacancyService --> TariffRepository : uses
@@ -509,9 +465,7 @@ classDiagram
     %% RELATIONSHIPS - Controllers to DTOs
     %% ============================================
     AuthController ..> RegisterRequest : uses
-    AuthController ..> LoginRequest : uses
-    AuthController ..> RefreshTokenRequest : uses
-    AuthController ..> AuthResponse : returns
+    AuthController ..> UserResponse : returns
     
     VacancyController ..> CreateVacancyRequest : uses
     VacancyController ..> UpdateVacancyRequest : uses
@@ -529,8 +483,7 @@ classDiagram
     %% RELATIONSHIPS - Services to DTOs
     %% ============================================
     AuthService ..> RegisterRequest : uses
-    AuthService ..> LoginRequest : uses
-    AuthService ..> AuthResponse : returns
+    AuthService ..> UserResponse : returns
     
     VacancyService ..> CreateVacancyRequest : uses
     VacancyService ..> UpdateVacancyRequest : uses
@@ -548,7 +501,6 @@ classDiagram
     UserMapper ..> User : converts
     UserMapper ..> RegisterRequest : converts
     UserMapper ..> UserResponse : converts
-    UserMapper ..> AuthResponse : converts
     
     VacancyMapper ..> Vacancy : converts
     VacancyMapper ..> CreateVacancyRequest : converts
@@ -572,10 +524,6 @@ classDiagram
     %% ============================================
     %% RELATIONSHIPS - Security
     %% ============================================
-    JwtAuthenticationFilter --> JwtTokenProvider : uses
-    JwtAuthenticationFilter --> UserRepository : uses
-    SecurityConfig --> JwtAuthenticationFilter : configures
-    AuthService --> JwtTokenProvider : uses
 
     %% ============================================
     %% RELATIONSHIPS - Exception Handling
@@ -610,7 +558,7 @@ classDiagram
 - **UserController**: User profile and admin operations
 
 ### 📙 Service Layer
-- **AuthService**: Authentication logic, JWT token generation
+- **AuthService**: User registration
 - **VacancyService**: Vacancy business logic, BPMN process implementation
 - **TariffService**: Tariff business logic
 
@@ -638,9 +586,7 @@ classDiagram
 - **PageMapper**: Page ↔ PagedResponse conversions
 
 ### 🔐 Security Layer
-- **JwtTokenProvider**: JWT token generation and validation
-- **JwtAuthenticationFilter**: JWT authentication filter
-- **SecurityConfig**: Spring Security configuration
+- **SecurityConfig**: Spring Security, HTTP Basic, JAAS
 
 ### ⚠️ Exception Layer
 - **Custom Exceptions**: NotFoundException, ValidationException, UnauthorizedException, ForbiddenException

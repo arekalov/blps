@@ -3,7 +3,9 @@ package com.arekalov.blps.controller
 import com.arekalov.blps.dto.common.ErrorResponse
 import com.arekalov.blps.dto.user.UpdateUserRequest
 import com.arekalov.blps.dto.user.UserResponse
-import com.arekalov.blps.model.enum.UserRole
+import com.arekalov.blps.exception.UnauthorizedException
+import com.arekalov.blps.security.getCurrentUserId
+import com.arekalov.blps.security.getCurrentUserRole
 import com.arekalov.blps.service.UserService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -35,7 +37,7 @@ class UserController(
 ) {
 
     @GetMapping
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirement(name = "basicAuth")
     @Operation(
         summary = "Get users",
         description = "Get all users (admin only) or current user profile (my=true for any authenticated user)",
@@ -64,14 +66,15 @@ class UserController(
         authentication: Authentication,
         @RequestParam(required = false, defaultValue = "false") my: Boolean,
     ): List<UserResponse> {
-        val actorUserId = authentication.principal as UUID
-        val actorRole = getUserRole(authentication)
+        val actorUserId = getCurrentUserId(authentication)
+            ?: throw UnauthorizedException("Authentication required")
+        val actorRole = getCurrentUserRole(authentication)
         return userService.getUsers(my, actorUserId, actorRole)
     }
 
     @PatchMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirement(name = "basicAuth")
     @Operation(
         summary = "Update user",
         description = "Employer can update only their own profile (except role). " +
@@ -107,8 +110,9 @@ class UserController(
         @PathVariable id: UUID,
         @Valid @RequestBody request: UpdateUserRequest,
     ): UserResponse {
-        val actorUserId = authentication.principal as UUID
-        val actorRole = getUserRole(authentication)
+        val actorUserId = getCurrentUserId(authentication)
+            ?: throw UnauthorizedException("Authentication required")
+        val actorRole = getCurrentUserRole(authentication)
         return userService.updateUser(actorUserId, actorRole, id, request)
     }
 
@@ -134,7 +138,7 @@ class UserController(
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN')")
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirement(name = "basicAuth")
     @Operation(
         summary = "Delete user",
         description = "Delete user and all their vacancies (admin only, cascaded deletion)",
@@ -161,13 +165,5 @@ class UserController(
     )
     fun deleteUser(@PathVariable userId: UUID) {
         userService.deleteUser(userId)
-    }
-
-    private fun getUserRole(authentication: Authentication): UserRole {
-        val authorities = authentication.authorities.map { it.authority }
-        return when {
-            authorities.contains("ROLE_ADMIN") -> UserRole.ADMIN
-            else -> UserRole.EMPLOYER
-        }
     }
 }

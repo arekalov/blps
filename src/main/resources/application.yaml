@@ -38,10 +38,6 @@ server:
     include-message: always
     include-binding-errors: always
 
-# JWT настройки (общие)
-jwt:
-  expiration: 86400000  # 24 часа
-
 # OpenAPI настройки (общие)
 springdoc:
   api-docs:
