@@ -19,12 +19,10 @@ class TariffService(
     private val tariffRepository: TariffRepository,
 ) {
 
-    @Transactional(readOnly = true)
     fun getAllTariffs(pageable: Pageable): PagedResponse<TariffResponse> {
         return tariffRepository.findAll(pageable).toPagedResponse { it.toResponse() }
     }
 
-    @Transactional(readOnly = true)
     fun getTariffById(id: UUID): TariffResponse {
         val tariff = tariffRepository.findById(id).orElseThrow {
             NotFoundException("Tariff with id $id not found")

@@ -22,7 +22,6 @@ class UserService(
     private val passwordEncoder: PasswordEncoder,
 ) {
 
-    @Transactional(readOnly = true)
     fun getUsers(my: Boolean, actorUserId: UUID, actorRole: UserRole): List<UserResponse> {
         if (my) {
             val user = userRepository.findById(actorUserId).orElseThrow {
@@ -39,7 +38,6 @@ class UserService(
         }
     }
 
-    @Transactional(readOnly = true)
     fun getUserById(id: UUID): UserResponse {
         val user = userRepository.findById(id).orElseThrow {
             NotFoundException("User with id $id not found")

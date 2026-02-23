@@ -31,7 +31,6 @@ class VacancyService(
     private val skillRepository: SkillRepository,
 ) {
 
-    @Transactional(readOnly = true)
     fun getAllVacancies(status: VacancyStatus?, pageable: Pageable): PagedResponse<VacancyResponse> {
         val vacancies = if (status != null) {
             vacancyRepository.findByStatus(status, pageable)
@@ -41,7 +40,6 @@ class VacancyService(
         return vacancies.toPagedResponse { it.toResponse() }
     }
 
-    @Transactional(readOnly = true)
     fun getVacancyById(id: UUID): VacancyResponse {
         val vacancy = vacancyRepository.findById(id).orElseThrow {
             NotFoundException("Vacancy with id $id not found")
@@ -49,7 +47,6 @@ class VacancyService(
         return vacancy.toResponse()
     }
 
-    @Transactional(readOnly = true)
     fun getMyVacancies(userId: UUID, status: VacancyStatus?, pageable: Pageable): PagedResponse<VacancyResponse> {
         val vacancies = if (status != null) {
             vacancyRepository.findByEmployerIdAndStatus(userId, status, pageable)
