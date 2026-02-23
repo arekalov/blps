@@ -18,7 +18,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import org.springframework.context.annotation.Profile
 import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -38,7 +37,6 @@ import java.util.UUID
 @RestController
 @RequestMapping("/api/v1/vacancies")
 @Tag(name = "Vacancies", description = "Vacancy management endpoints")
-@Profile
 class VacancyController(
     private val vacancyService: VacancyService,
 ) {

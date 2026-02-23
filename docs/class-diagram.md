@@ -168,7 +168,6 @@ classDiagram
         +String email
         +String password
         +String companyName
-        +Boolean isAdmin
     }
 
     class LoginRequest {

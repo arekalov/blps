@@ -1,6 +1,7 @@
 package com.arekalov.blps.repository
 
 import com.arekalov.blps.model.User
+import com.arekalov.blps.model.enum.UserRole
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.util.UUID
@@ -9,4 +10,5 @@ import java.util.UUID
 interface UserRepository : JpaRepository<User, UUID> {
     fun findByEmail(email: String): User?
     fun existsByEmail(email: String): Boolean
+    fun existsByRole(role: UserRole): Boolean
 }

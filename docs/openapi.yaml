@@ -96,18 +96,18 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Forbidden - admin role required
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
         "200":
           description: Tariff updated successfully
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/TariffResponse"
+        "403":
+          description: Forbidden - admin role required
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "400":
           description: Validation error - invalid request data
           content:
@@ -306,7 +306,7 @@ paths:
       tags:
       - Authentication
       summary: Register new user
-      description: "Register a new user account (employer by default, admin if isAdmin=true)"
+      description: Register a new user account (role is always EMPLOYER).
       operationId: register
       requestBody:
         content:
@@ -348,14 +348,14 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/AuthResponse"
-        "400":
-          description: Validation error - invalid request format
+        "401":
+          description: Unauthorized - invalid or expired refresh token
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Unauthorized - invalid or expired refresh token
+        "400":
+          description: Validation error - invalid request format
           content:
             '*/*':
               schema:
@@ -433,14 +433,14 @@ paths:
           type: string
           format: uuid
       responses:
-        "404":
-          description: Vacancy not found
+        "401":
+          description: Unauthorized - missing or invalid token
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Unauthorized - missing or invalid token
+        "404":
+          description: Vacancy not found
           content:
             '*/*':
               schema:
@@ -475,14 +475,14 @@ paths:
               $ref: "#/components/schemas/UpdateVacancyRequest"
         required: true
       responses:
-        "404":
-          description: Vacancy not found
+        "401":
+          description: Unauthorized - missing or invalid token
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Unauthorized - missing or invalid token
+        "404":
+          description: Vacancy not found
           content:
             '*/*':
               schema:
@@ -575,8 +575,8 @@ paths:
           type: string
           format: uuid
       responses:
-        "404":
-          description: Vacancy not found
+        "403":
+          description: Forbidden - you don't have permission to publish this vacancy
           content:
             '*/*':
               schema:
@@ -587,8 +587,14 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Forbidden - you don't have permission to publish this vacancy
+        "404":
+          description: Vacancy not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: Validation error - vacancy must have a tariff selected
           content:
             '*/*':
               schema:
@@ -599,12 +605,6 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/VacancyResponse"
-        "400":
-          description: Validation error - vacancy must have a tariff selected
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
       security:
       - bearerAuth: []
   /api/v1/vacancies/{id}/archive:
@@ -622,14 +622,14 @@ paths:
           type: string
           format: uuid
       responses:
-        "404":
-          description: Vacancy not found
+        "401":
+          description: Unauthorized - missing or invalid token
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Unauthorized - missing or invalid token
+        "404":
+          description: Vacancy not found
           content:
             '*/*':
               schema:
@@ -640,14 +640,94 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/VacancyResponse"
+        "403":
+          description: Forbidden - you don't have permission to archive this vacancy
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "400":
           description: Validation error - vacancy must be published to archive
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/v1/users/{id}:
+    get:
+      tags:
+      - User & Admin
+      summary: Get user by ID
+      description: Get user profile by ID (public)
+      operationId: getUserById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: User found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "404":
+          description: User not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      tags:
+      - User & Admin
+      summary: Update user
+      description: Employer can update only their own profile (except role). Admin
+        can update any user and change role.
+      operationId: updateUser
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized - missing or invalid token
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
-          description: Forbidden - you don't have permission to archive this vacancy
+          description: Forbidden - employer cannot update another user or change role
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: User updated successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "404":
+          description: User not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: Validation error - invalid request data or email already exists
           content:
             '*/*':
               schema:
@@ -698,33 +778,6 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
       security:
       - bearerAuth: []
-  /api/v1/users/{id}:
-    get:
-      tags:
-      - User & Admin
-      summary: Get user by ID
-      description: Get user profile by ID (public)
-      operationId: getUserById
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-      responses:
-        "200":
-          description: User found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/UserResponse"
-        "404":
-          description: User not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/users/{userId}:
     delete:
       tags:
@@ -1019,7 +1072,6 @@ components:
       required:
       - companyName
       - email
-      - isAdmin
       - password
       type: object
       properties:
@@ -1035,8 +1087,6 @@ components:
           maxLength: 255
           minLength: 0
           type: string
-        isAdmin:
-          type: boolean
     AuthResponse:
       required:
       - accessToken
@@ -1146,6 +1196,42 @@ components:
           type: array
           items:
             type: string
+    UpdateUserRequest:
+      type: object
+      properties:
+        email:
+          maxLength: 255
+          minLength: 0
+          type: string
+        password:
+          maxLength: 100
+          minLength: 6
+          type: string
+        companyName:
+          maxLength: 255
+          minLength: 0
+          type: string
+        role:
+          type: string
+          enum:
+          - EMPLOYER
+          - ADMIN
+    UserResponse:
+      required:
+      - companyName
+      - email
+      - id
+      - role
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        companyName:
+          type: string
+        role:
+          type: string
     PagedResponseVacancyResponse:
       required:
       - content
@@ -1171,22 +1257,6 @@ components:
         totalPages:
           type: integer
           format: int32
-    UserResponse:
-      required:
-      - companyName
-      - email
-      - id
-      - role
-      type: object
-      properties:
-        id:
-          type: string
-        email:
-          type: string
-        companyName:
-          type: string
-        role:
-          type: string
     PagedResponseTariffResponse:
       required:
       - content

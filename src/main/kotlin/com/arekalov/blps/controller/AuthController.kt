@@ -31,7 +31,7 @@ class AuthController(
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(
         summary = "Register new user",
-        description = "Register a new user account (employer by default, admin if isAdmin=true)",
+        description = "Register a new user account (role is always EMPLOYER).",
     )
     @ApiResponses(
         value = [
