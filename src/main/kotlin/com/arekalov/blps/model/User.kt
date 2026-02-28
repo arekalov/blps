@@ -24,17 +24,17 @@ data class User(
     @Column(unique = true, nullable = false, length = 255)
     val email: String,
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false, length = 255, name = "password_hash")
     val passwordHash: String,
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false, length = 255, name = "company_name")
     val companyName: String,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
     val role: UserRole = UserRole.EMPLOYER,
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false, name = "created_at")
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
     @OneToMany(mappedBy = "employer", cascade = [CascadeType.ALL], orphanRemoval = true)

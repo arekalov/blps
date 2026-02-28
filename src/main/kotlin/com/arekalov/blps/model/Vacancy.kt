@@ -37,27 +37,29 @@ data class Vacancy(
     var description: String,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 50, name = "experience_level")
     var experienceLevel: ExperienceLevel,
 
+    @Column(name = "salary_from")
     var salaryFrom: BigDecimal? = null,
 
+    @Column(name = "salary_to")
     var salaryTo: BigDecimal? = null,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 50, name = "employment_type")
     var employmentType: EmploymentType,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 50, name = "work_format")
     var workFormat: WorkFormat,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 50, name = "employment_format")
     var employmentFormat: EmploymentFormat,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 50, name = "work_schedule")
     var workSchedule: WorkSchedule,
 
     @Column(nullable = false, length = 100)
@@ -66,7 +68,7 @@ data class Vacancy(
     @Column(length = 500)
     var address: String? = null,
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", name = "company_description")
     var companyDescription: String? = null,
 
     @ManyToMany
@@ -89,11 +91,12 @@ data class Vacancy(
     @JoinColumn(name = "tariff_id")
     var tariff: Tariff? = null,
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false, name = "created_at")
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "updated_at")
     var updatedAt: LocalDateTime = LocalDateTime.now(),
 
+    @Column(name = "published_at")
     var publishedAt: LocalDateTime? = null,
 )
