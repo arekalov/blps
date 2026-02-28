@@ -14,16 +14,13 @@ spring:
       max-lifetime: 1800000
   
   jpa:
-    show-sql: false
+    show-sql: true
     properties:
       hibernate:
-        format_sql: false
+        format_sql: true
 
 server:
   port: 8080
-
-jwt:
-  secret: blps-jwt-secret-key-dev-environment-not-for-production-use
 
 springdoc:
   swagger-ui:
@@ -33,5 +30,13 @@ logging:
   level:
     root: INFO
     com.arekalov.blps: DEBUG
-    org.springframework.web: INFO
-    org.hibernate: WARN
+    org.springframework.web: DEBUG
+    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.security.authentication: TRACE
+    org.springframework.security.web: DEBUG
+    org.hibernate: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

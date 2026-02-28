@@ -7,9 +7,7 @@ classDiagram
     %% ============================================
     class AuthController {
         -AuthService authService
-        +register(RegisterRequest) AuthResponse
-        +login(LoginRequest) AuthResponse
-        +refreshToken(RefreshTokenRequest) AuthResponse
+        +register(RegisterRequest) UserResponse
     }
 
     class VacancyController {
@@ -48,10 +46,7 @@ classDiagram
     class AuthService {
         -UserRepository userRepository
         -PasswordEncoder passwordEncoder
-        -JwtTokenProvider jwtTokenProvider
-        +register(RegisterRequest) AuthResponse
-        +login(LoginRequest) AuthResponse
-        +refreshToken(String) AuthResponse
+        +register(RegisterRequest) UserResponse
     }
 
     class VacancyService {
@@ -168,24 +163,6 @@ classDiagram
         +String email
         +String password
         +String companyName
-        +Boolean isAdmin
-    }
-
-    class LoginRequest {
-        +String email
-        +String password
-    }
-
-    class RefreshTokenRequest {
-        +String refreshToken
-    }
-
-    class AuthResponse {
-        +String accessToken
-        +String refreshToken
-        +String userId
-        +String email
-        +String role
     }
 
     %% ============================================
@@ -308,7 +285,6 @@ classDiagram
     class UserMapper {
         <<extension functions>>
         +User.toResponse() UserResponse
-        +User.toAuthResponse(accessToken, refreshToken) AuthResponse
         +RegisterRequest.toEntity(encodedPassword) User
     }
 
@@ -349,10 +325,9 @@ classDiagram
     class ExperienceLevel {
         <<enumeration>>
         NO_EXPERIENCE
-        UP_TO_ONE
         ONE_TO_THREE
         THREE_TO_SIX
-        SIX_PLUS
+        MORE_THAN_SIX
     }
 
     class EmploymentType {
@@ -374,17 +349,18 @@ classDiagram
     class EmploymentFormat {
         <<enumeration>>
         EMPLOYMENT_CONTRACT
-        CONTRACT
-        GIG
+        CIVIL_CONTRACT
+        SELF_EMPLOYED
     }
 
     class WorkSchedule {
         <<enumeration>>
-        FULL_DAY
-        SHIFT
+        NINE_TO_EIGHTEEN
+        TEN_TO_NINETEEN
+        EIGHT_TO_SEVENTEEN
         FLEXIBLE
-        REMOTE_WORK
-        FLY_IN_FLY_OUT
+        SHIFT
+        REMOTE_FLEXIBLE
     }
 
     %% ============================================
@@ -422,30 +398,10 @@ classDiagram
     %% ============================================
     %% SECURITY LAYER
     %% ============================================
-    class JwtTokenProvider {
-        -String jwtSecret
-        -Long jwtExpiration
-        -SecretKey key
-        +generateAccessToken(userId, role) String
-        +generateRefreshToken(userId) String
-        +getUserIdFromToken(token) UUID
-        +getRoleFromToken(token) String
-        +validateToken(token) Boolean
-        -getClaims(token) Claims
-    }
-
-    class JwtAuthenticationFilter {
-        -JwtTokenProvider jwtTokenProvider
-        -UserRepository userRepository
-        -Logger logger
-        +doFilterInternal(request, response, chain) void
-        -extractToken(request) String?
-    }
-
     class SecurityConfig {
-        -JwtAuthenticationFilter jwtAuthenticationFilter
         +securityFilterChain(http) SecurityFilterChain
         +passwordEncoder() PasswordEncoder
+        +jaasAuthenticationProvider() DefaultJaasAuthenticationProvider
     }
 
     %% ============================================
@@ -473,7 +429,6 @@ classDiagram
     %% RELATIONSHIPS - Services to Repositories
     %% ============================================
     AuthService --> UserRepository : uses
-    AuthService --> JwtTokenProvider : uses
     VacancyService --> VacancyRepository : uses
     VacancyService --> UserRepository : uses
     VacancyService --> TariffRepository : uses
@@ -510,9 +465,7 @@ classDiagram
     %% RELATIONSHIPS - Controllers to DTOs
     %% ============================================
     AuthController ..> RegisterRequest : uses
-    AuthController ..> LoginRequest : uses
-    AuthController ..> RefreshTokenRequest : uses
-    AuthController ..> AuthResponse : returns
+    AuthController ..> UserResponse : returns
     
     VacancyController ..> CreateVacancyRequest : uses
     VacancyController ..> UpdateVacancyRequest : uses
@@ -530,8 +483,7 @@ classDiagram
     %% RELATIONSHIPS - Services to DTOs
     %% ============================================
     AuthService ..> RegisterRequest : uses
-    AuthService ..> LoginRequest : uses
-    AuthService ..> AuthResponse : returns
+    AuthService ..> UserResponse : returns
     
     VacancyService ..> CreateVacancyRequest : uses
     VacancyService ..> UpdateVacancyRequest : uses
@@ -549,7 +501,6 @@ classDiagram
     UserMapper ..> User : converts
     UserMapper ..> RegisterRequest : converts
     UserMapper ..> UserResponse : converts
-    UserMapper ..> AuthResponse : converts
     
     VacancyMapper ..> Vacancy : converts
     VacancyMapper ..> CreateVacancyRequest : converts
@@ -573,10 +524,6 @@ classDiagram
     %% ============================================
     %% RELATIONSHIPS - Security
     %% ============================================
-    JwtAuthenticationFilter --> JwtTokenProvider : uses
-    JwtAuthenticationFilter --> UserRepository : uses
-    SecurityConfig --> JwtAuthenticationFilter : configures
-    AuthService --> JwtTokenProvider : uses
 
     %% ============================================
     %% RELATIONSHIPS - Exception Handling
@@ -601,52 +548,3 @@ classDiagram
     VacancyController ..> PaginationConstants : uses
     TariffController ..> PaginationConstants : uses
 ```
-
-## Component Legend
-
-### 📘 Controller Layer
-- **AuthController**: Authentication and registration endpoints
-- **VacancyController**: Vacancy CRUD and BPMN workflow operations
-- **TariffController**: Tariff management endpoints
-- **UserController**: User profile and admin operations
-
-### 📙 Service Layer
-- **AuthService**: Authentication logic, JWT token generation
-- **VacancyService**: Vacancy business logic, BPMN process implementation
-- **TariffService**: Tariff business logic
-
-### 📕 Repository Layer
-- **UserRepository**: User data access
-- **VacancyRepository**: Vacancy data access with custom queries
-- **TariffRepository**: Tariff data access
-- **SkillRepository**: Skill data access
-
-### 📗 Entity Layer
-- **User**: Employer/Admin entity
-- **Vacancy**: Job vacancy entity
-- **Tariff**: Publication tariff entity
-- **Skill**: Skill entity for vacancy requirements
-
-### 📔 DTO Layer
-- **Request DTOs**: Input validation
-- **Response DTOs**: Output formatting
-- **Common DTOs**: PagedResponse, ErrorResponse
-
-### 🔧 Mapper Layer
-- **UserMapper**: User ↔ DTO conversions
-- **VacancyMapper**: Vacancy ↔ DTO conversions
-- **TariffMapper**: Tariff ↔ DTO conversions
-- **PageMapper**: Page ↔ PagedResponse conversions
-
-### 🔐 Security Layer
-- **JwtTokenProvider**: JWT token generation and validation
-- **JwtAuthenticationFilter**: JWT authentication filter
-- **SecurityConfig**: Spring Security configuration
-
-### ⚠️ Exception Layer
-- **Custom Exceptions**: NotFoundException, ValidationException, UnauthorizedException, ForbiddenException
-- **GlobalExceptionHandler**: Centralized exception handling
-
-### ⚙️ Config Layer
-- **OpenApiConfig**: Swagger/OpenAPI configuration
-- **PaginationConstants**: Shared constants

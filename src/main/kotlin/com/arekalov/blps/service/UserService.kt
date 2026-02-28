@@ -1,0 +1,101 @@
+package com.arekalov.blps.service
+
+import com.arekalov.blps.dto.user.UpdateUserRequest
+import com.arekalov.blps.dto.user.UserResponse
+import com.arekalov.blps.exception.ForbiddenException
+import com.arekalov.blps.exception.NotFoundException
+import com.arekalov.blps.exception.ValidationException
+import com.arekalov.blps.mapper.toResponse
+import com.arekalov.blps.model.User
+import com.arekalov.blps.model.enum.UserRole
+import com.arekalov.blps.repository.UserRepository
+import com.arekalov.blps.repository.VacancyRepository
+import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
+
+@Service
+class UserService(
+    private val userRepository: UserRepository,
+    private val vacancyRepository: VacancyRepository,
+    private val passwordEncoder: PasswordEncoder,
+) {
+
+    fun getUsers(my: Boolean, actorUserId: UUID, actorRole: UserRole): List<UserResponse> {
+        if (my) {
+            val user = userRepository.findById(actorUserId).orElseThrow {
+                NotFoundException("User with id $actorUserId not found")
+            }
+            return listOf(user.toResponse())
+        } else {
+            if (actorRole != UserRole.ADMIN) {
+                throw ForbiddenException(
+                    "Admin role required to view all users. Use my=true to get your profile",
+                )
+            }
+            return userRepository.findAll().map { it.toResponse() }
+        }
+    }
+
+    fun getUserById(id: UUID): UserResponse {
+        val user = userRepository.findById(id).orElseThrow {
+            NotFoundException("User with id $id not found")
+        }
+        return user.toResponse()
+    }
+
+    @Transactional
+    fun updateUser(
+        actorUserId: UUID,
+        actorRole: UserRole,
+        targetUserId: UUID,
+        request: UpdateUserRequest,
+    ): UserResponse {
+        val user = userRepository.findById(targetUserId).orElseThrow {
+            NotFoundException("User with id $targetUserId not found")
+        }
+
+        when (actorRole) {
+            UserRole.EMPLOYER -> {
+                if (actorUserId != targetUserId) {
+                    throw ForbiddenException("You can only update your own profile")
+                }
+                if (request.role != null) {
+                    throw ForbiddenException("You cannot change your role")
+                }
+            }
+            UserRole.ADMIN -> {}
+        }
+
+        val newEmail = request.email ?: user.email
+        if (newEmail != user.email && userRepository.existsByEmail(newEmail)) {
+            throw ValidationException("User with email $newEmail already exists")
+        }
+
+        val newPasswordHash = request.password?.let { passwordEncoder.encode(it) } ?: user.passwordHash
+        val newCompanyName = request.companyName ?: user.companyName
+        val newRole = request.role ?: user.role
+
+        val updated = User(
+            id = user.id,
+            email = newEmail,
+            passwordHash = newPasswordHash,
+            companyName = newCompanyName,
+            role = newRole,
+            createdAt = user.createdAt,
+            vacancies = user.vacancies,
+        )
+        val saved = userRepository.save(updated)
+        return saved.toResponse()
+    }
+
+    @Transactional
+    fun deleteUser(userId: UUID) {
+        val user = userRepository.findById(userId).orElseThrow {
+            NotFoundException("User with id $userId not found")
+        }
+        vacancyRepository.deleteAll(vacancyRepository.findByEmployerId(user.id!!))
+        userRepository.delete(user)
+    }
+}

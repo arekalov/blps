@@ -6,6 +6,10 @@ spring:
   profiles:
     active: dev
   
+  # DataSource configuration for WildFly JNDI
+  datasource:
+    jndi-name: java:jboss/datasources/BlpsDS
+  
   # Включаем выброс исключения для несуществующих эндпоинтов
   web:
     resources:
@@ -13,7 +17,7 @@ spring:
   mvc:
     throw-exception-if-no-handler-found: true
   
-  # Общие настройки JPA
+  # JPA настройки для WildFly JTA
   jpa:
     hibernate:
       ddl-auto: validate
@@ -22,6 +26,9 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
           time_zone: UTC
+        transaction:
+          jta:
+            platform: org.hibernate.engine.transaction.jta.platform.internal.JBossAppServerJtaPlatform
   
   # Flyway настройки
   flyway:
@@ -38,10 +45,6 @@ server:
     include-message: always
     include-binding-errors: always
 
-# JWT настройки (общие)
-jwt:
-  expiration: 86400000  # 24 часа
-
 # OpenAPI настройки (общие)
 springdoc:
   api-docs:
@@ -55,3 +58,10 @@ springdoc:
 logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+
+blps:
+  bootstrap:
+    admin-email: admin@ya.ru
+    admin-password: admin
+    admin-company-name: Admin Company

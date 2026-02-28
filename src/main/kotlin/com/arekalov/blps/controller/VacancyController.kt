@@ -7,8 +7,9 @@ import com.arekalov.blps.dto.vacancy.CreateVacancyRequest
 import com.arekalov.blps.dto.vacancy.UpdateVacancyRequest
 import com.arekalov.blps.dto.vacancy.VacancyResponse
 import com.arekalov.blps.exception.UnauthorizedException
-import com.arekalov.blps.model.enum.UserRole
 import com.arekalov.blps.model.enum.VacancyStatus
+import com.arekalov.blps.security.getCurrentUserId
+import com.arekalov.blps.security.getCurrentUserRole
 import com.arekalov.blps.service.VacancyService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -18,7 +19,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import org.springframework.context.annotation.Profile
 import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -38,7 +38,6 @@ import java.util.UUID
 @RestController
 @RequestMapping("/api/v1/vacancies")
 @Tag(name = "Vacancies", description = "Vacancy management endpoints")
-@Profile
 class VacancyController(
     private val vacancyService: VacancyService,
 ) {
@@ -72,10 +71,8 @@ class VacancyController(
         )
 
         return if (my) {
-            if (authentication == null) {
-                throw UnauthorizedException("Authentication required when my=true")
-            }
-            val userId = authentication.principal as UUID
+            val userId = getCurrentUserId(authentication)
+                ?: throw UnauthorizedException("Authentication required when my=true")
             vacancyService.getMyVacancies(userId, status, pageable)
         } else {
             vacancyService.getAllVacancies(status, pageable)
@@ -101,7 +98,7 @@ class VacancyController(
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     @ResponseStatus(HttpStatus.CREATED)
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirement(name = "basicAuth")
     @Operation(summary = "Create vacancy", description = "Create a new vacancy draft")
     @ApiResponses(
         value = [
@@ -122,12 +119,13 @@ class VacancyController(
         authentication: Authentication,
         @Valid @RequestBody request: CreateVacancyRequest,
     ): VacancyResponse {
-        val userId = authentication.principal as UUID
+        val userId = getCurrentUserId(authentication)
+            ?: throw UnauthorizedException("Authentication required")
         return vacancyService.createVacancy(userId, request)
     }
 
     @PatchMapping("/{id}")
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirement(name = "basicAuth")
     @Operation(summary = "Update vacancy", description = "Partially update existing vacancy (owner or admin)")
     @ApiResponses(
         value = [
@@ -159,14 +157,15 @@ class VacancyController(
         @PathVariable id: UUID,
         @Valid @RequestBody request: UpdateVacancyRequest,
     ): VacancyResponse {
-        val userId = authentication.principal as UUID
-        val userRole = getUserRole(authentication)
+        val userId = getCurrentUserId(authentication)
+            ?: throw UnauthorizedException("Authentication required")
+        val userRole = getCurrentUserRole(authentication)
         return vacancyService.updateVacancy(userId, id, userRole, request)
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirement(name = "basicAuth")
     @Operation(summary = "Delete vacancy", description = "Delete vacancy (owner or admin)")
     @ApiResponses(
         value = [
@@ -192,13 +191,14 @@ class VacancyController(
         authentication: Authentication,
         @PathVariable id: UUID,
     ) {
-        val userId = authentication.principal as UUID
-        val userRole = getUserRole(authentication)
+        val userId = getCurrentUserId(authentication)
+            ?: throw UnauthorizedException("Authentication required")
+        val userRole = getCurrentUserRole(authentication)
         vacancyService.deleteVacancy(userId, id, userRole)
     }
 
     @PatchMapping("/{id}/tariff")
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirement(name = "basicAuth")
     @Operation(summary = "Select tariff", description = "Select tariff for vacancy (BPMN: Draft -> Payment)")
     @ApiResponses(
         value = [
@@ -230,13 +230,14 @@ class VacancyController(
         @PathVariable id: UUID,
         @RequestParam tariffId: UUID,
     ): VacancyResponse {
-        val userId = authentication.principal as UUID
-        val userRole = getUserRole(authentication)
+        val userId = getCurrentUserId(authentication)
+            ?: throw UnauthorizedException("Authentication required")
+        val userRole = getCurrentUserRole(authentication)
         return vacancyService.selectTariff(userId, id, tariffId, userRole)
     }
 
     @PatchMapping("/{id}/publish")
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirement(name = "basicAuth")
     @Operation(summary = "Publish vacancy", description = "Publish vacancy (BPMN: Draft -> Published)")
     @ApiResponses(
         value = [
@@ -267,13 +268,14 @@ class VacancyController(
         authentication: Authentication,
         @PathVariable id: UUID,
     ): VacancyResponse {
-        val userId = authentication.principal as UUID
-        val userRole = getUserRole(authentication)
+        val userId = getCurrentUserId(authentication)
+            ?: throw UnauthorizedException("Authentication required")
+        val userRole = getCurrentUserRole(authentication)
         return vacancyService.publishVacancy(userId, id, userRole)
     }
 
     @PatchMapping("/{id}/archive")
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirement(name = "basicAuth")
     @Operation(summary = "Archive vacancy", description = "Archive vacancy (BPMN: Published -> Archived)")
     @ApiResponses(
         value = [
@@ -304,17 +306,9 @@ class VacancyController(
         authentication: Authentication,
         @PathVariable id: UUID,
     ): VacancyResponse {
-        val userId = authentication.principal as UUID
-        val userRole = getUserRole(authentication)
+        val userId = getCurrentUserId(authentication)
+            ?: throw UnauthorizedException("Authentication required")
+        val userRole = getCurrentUserRole(authentication)
         return vacancyService.archiveVacancy(userId, id, userRole)
-    }
-
-    private fun getUserRole(authentication: Authentication): UserRole {
-        val authorities = authentication.authorities.map { it.authority }
-        return when {
-            authorities.contains("ROLE_ADMIN") -> UserRole.ADMIN
-            authorities.contains("ROLE_EMPLOYER") -> UserRole.EMPLOYER
-            else -> UserRole.EMPLOYER
-        }
     }
 }

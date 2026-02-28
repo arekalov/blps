@@ -22,7 +22,7 @@ data class Tariff(
     @Column(nullable = false)
     var price: BigDecimal,
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "duration_days")
     var durationDays: Int,
 
     @Column(columnDefinition = "TEXT")

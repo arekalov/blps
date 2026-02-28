@@ -75,7 +75,7 @@ class TariffController(
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN')")
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirement(name = "basicAuth")
     @Operation(summary = "Create tariff", description = "Create a new tariff (admin only)")
     @ApiResponses(
         value = [
@@ -103,7 +103,7 @@ class TariffController(
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirement(name = "basicAuth")
     @Operation(summary = "Update tariff", description = "Update existing tariff (admin only)")
     @ApiResponses(
         value = [
@@ -140,7 +140,7 @@ class TariffController(
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN')")
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirement(name = "basicAuth")
     @Operation(summary = "Delete tariff", description = "Delete tariff by ID (admin only)")
     @ApiResponses(
         value = [

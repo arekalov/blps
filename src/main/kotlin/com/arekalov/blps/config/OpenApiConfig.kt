@@ -25,7 +25,7 @@ class OpenApiConfig {
                         REST API for job vacancy management system (hh.ru-like).
                         
                         ## Features
-                        - User registration and JWT authentication
+                        - User registration and HTTP Basic authentication
                         - Vacancy management (CRUD operations)
                         - Tariff selection and vacancy publishing (BPMN workflow)
                         - Role-based access control (EMPLOYER, ADMIN)
@@ -51,14 +51,13 @@ class OpenApiConfig {
             .components(
                 Components()
                     .addSecuritySchemes(
-                        "bearerAuth",
+                        "basicAuth",
                         SecurityScheme()
                             .type(SecurityScheme.Type.HTTP)
-                            .scheme("bearer")
-                            .bearerFormat("JWT")
-                            .description("Enter JWT token obtained from /api/v1/auth/login or /api/v1/auth/register"),
+                            .scheme("basic")
+                            .description("HTTP Basic: email and password"),
                     ),
             )
-            .addSecurityItem(SecurityRequirement().addList("bearerAuth"))
+            .addSecurityItem(SecurityRequirement().addList("basicAuth"))
     }
 }
