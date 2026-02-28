@@ -325,10 +325,9 @@ classDiagram
     class ExperienceLevel {
         <<enumeration>>
         NO_EXPERIENCE
-        UP_TO_ONE
         ONE_TO_THREE
         THREE_TO_SIX
-        SIX_PLUS
+        MORE_THAN_SIX
     }
 
     class EmploymentType {
@@ -350,17 +349,18 @@ classDiagram
     class EmploymentFormat {
         <<enumeration>>
         EMPLOYMENT_CONTRACT
-        CONTRACT
-        GIG
+        CIVIL_CONTRACT
+        SELF_EMPLOYED
     }
 
     class WorkSchedule {
         <<enumeration>>
-        FULL_DAY
-        SHIFT
+        NINE_TO_EIGHTEEN
+        TEN_TO_NINETEEN
+        EIGHT_TO_SEVENTEEN
         FLEXIBLE
-        REMOTE_WORK
-        FLY_IN_FLY_OUT
+        SHIFT
+        REMOTE_FLEXIBLE
     }
 
     %% ============================================
