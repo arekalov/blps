@@ -56,17 +56,7 @@ class UserService(
             NotFoundException("User with id $targetUserId not found")
         }
 
-        when (actorRole) {
-            UserRole.EMPLOYER -> {
-                if (actorUserId != targetUserId) {
-                    throw ForbiddenException("You can only update your own profile")
-                }
-                if (request.role != null) {
-                    throw ForbiddenException("You cannot change your role")
-                }
-            }
-            UserRole.ADMIN -> {}
-        }
+        validateUpdatePermissions(actorUserId, actorRole, targetUserId, request)
 
         val newEmail = request.email ?: user.email
         if (newEmail != user.email && userRepository.existsByEmail(newEmail)) {
@@ -88,6 +78,25 @@ class UserService(
         )
         val saved = userRepository.save(updated)
         return saved.toResponse()
+    }
+
+    private fun validateUpdatePermissions(
+        actorUserId: UUID,
+        actorRole: UserRole,
+        targetUserId: UUID,
+        request: UpdateUserRequest,
+    ) {
+        when (actorRole) {
+            UserRole.EMPLOYER, UserRole.MODERATOR -> {
+                if (actorUserId != targetUserId) {
+                    throw ForbiddenException("You can only update your own profile")
+                }
+                if (request.role != null) {
+                    throw ForbiddenException("You cannot change your role")
+                }
+            }
+            UserRole.ADMIN -> {}
+        }
     }
 
     @Transactional
