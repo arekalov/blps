@@ -14,4 +14,5 @@ interface VacancyRepository : JpaRepository<Vacancy, UUID> {
     fun findByEmployerId(employerId: UUID): List<Vacancy>
     fun findByStatus(status: VacancyStatus, pageable: Pageable): Page<Vacancy>
     fun findByEmployerIdAndStatus(employerId: UUID, status: VacancyStatus, pageable: Pageable): Page<Vacancy>
+    fun countByStatus(status: VacancyStatus): Long
 }
