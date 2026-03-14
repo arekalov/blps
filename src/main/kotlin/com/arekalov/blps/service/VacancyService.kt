@@ -147,12 +147,11 @@ class VacancyService(
             throw ValidationException("Cannot publish vacancy without a tariff")
         }
 
-        vacancy.status = VacancyStatus.PUBLISHED
-        vacancy.publishedAt = LocalDateTime.now()
+        vacancy.status = VacancyStatus.PENDING_MODERATION
         vacancy.updatedAt = LocalDateTime.now()
 
-        val publishedVacancy = vacancyRepository.save(vacancy)
-        return publishedVacancy.toResponse()
+        val pendingVacancy = vacancyRepository.save(vacancy)
+        return pendingVacancy.toResponse()
     }
 
     @Transactional

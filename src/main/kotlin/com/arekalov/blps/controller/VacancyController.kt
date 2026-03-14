@@ -44,7 +44,7 @@ class VacancyController(
 
     @GetMapping
     @Operation(
-        summary = "Get vacancies",
+        summary = "[PUBLIC/EMPLOYER/MODERATOR/ADMIN] Get vacancies",
         description = "Get paginated list of vacancies. Use my=true to get only your vacancies (requires auth)",
     )
     @ApiResponses(
@@ -80,7 +80,7 @@ class VacancyController(
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Get vacancy by ID", description = "Get vacancy details by ID (public)")
+    @Operation(summary = "[PUBLIC] Get vacancy by ID", description = "Get vacancy details by ID (public)")
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "200", description = "Vacancy found"),
@@ -99,7 +99,7 @@ class VacancyController(
     @PreAuthorize("isAuthenticated()")
     @ResponseStatus(HttpStatus.CREATED)
     @SecurityRequirement(name = "basicAuth")
-    @Operation(summary = "Create vacancy", description = "Create a new vacancy draft")
+    @Operation(summary = "[EMPLOYER, MODERATOR, ADMIN] Create vacancy", description = "Create a new vacancy draft")
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "201", description = "Vacancy created successfully"),
@@ -126,7 +126,10 @@ class VacancyController(
 
     @PatchMapping("/{id}")
     @SecurityRequirement(name = "basicAuth")
-    @Operation(summary = "Update vacancy", description = "Partially update existing vacancy (owner or admin)")
+    @Operation(
+        summary = "[OWNER, ADMIN] Update vacancy",
+        description = "Partially update existing vacancy (owner or admin)",
+    )
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "200", description = "Vacancy updated successfully"),
@@ -166,7 +169,7 @@ class VacancyController(
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @SecurityRequirement(name = "basicAuth")
-    @Operation(summary = "Delete vacancy", description = "Delete vacancy (owner or admin)")
+    @Operation(summary = "[OWNER, ADMIN] Delete vacancy", description = "Delete vacancy (owner or admin)")
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "204", description = "Vacancy deleted successfully"),
@@ -199,7 +202,10 @@ class VacancyController(
 
     @PatchMapping("/{id}/tariff")
     @SecurityRequirement(name = "basicAuth")
-    @Operation(summary = "Select tariff", description = "Select tariff for vacancy (BPMN: Draft -> Payment)")
+    @Operation(
+        summary = "[OWNER, ADMIN] Select tariff",
+        description = "Select tariff for vacancy (BPMN: Draft -> Payment)",
+    )
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "200", description = "Tariff selected successfully"),
@@ -238,7 +244,10 @@ class VacancyController(
 
     @PatchMapping("/{id}/publish")
     @SecurityRequirement(name = "basicAuth")
-    @Operation(summary = "Publish vacancy", description = "Publish vacancy (BPMN: Draft -> Published)")
+    @Operation(
+        summary = "[OWNER, ADMIN] Submit for moderation",
+        description = "Submit vacancy for moderation (BPMN: Draft -> Pending Moderation)",
+    )
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "200", description = "Vacancy published successfully"),
@@ -276,7 +285,10 @@ class VacancyController(
 
     @PatchMapping("/{id}/archive")
     @SecurityRequirement(name = "basicAuth")
-    @Operation(summary = "Archive vacancy", description = "Archive vacancy (BPMN: Published -> Archived)")
+    @Operation(
+        summary = "[OWNER, ADMIN] Archive vacancy",
+        description = "Archive vacancy (BPMN: Published -> Archived)",
+    )
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "200", description = "Vacancy archived successfully"),

@@ -38,7 +38,7 @@ class TariffController(
 ) {
 
     @GetMapping
-    @Operation(summary = "Get all tariffs", description = "Get paginated list of all tariffs (public)")
+    @Operation(summary = "[PUBLIC] Get all tariffs", description = "Get paginated list of all tariffs (public)")
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "200", description = "Tariffs retrieved successfully"),
@@ -57,7 +57,7 @@ class TariffController(
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Get tariff by ID", description = "Get tariff details by ID (public)")
+    @Operation(summary = "[PUBLIC] Get tariff by ID", description = "Get tariff details by ID (public)")
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "200", description = "Tariff found"),
@@ -76,7 +76,7 @@ class TariffController(
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "basicAuth")
-    @Operation(summary = "Create tariff", description = "Create a new tariff (admin only)")
+    @Operation(summary = "[ADMIN] Create tariff", description = "Create a new tariff (admin only)")
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "201", description = "Tariff created successfully"),
@@ -104,7 +104,7 @@ class TariffController(
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "basicAuth")
-    @Operation(summary = "Update tariff", description = "Update existing tariff (admin only)")
+    @Operation(summary = "[ADMIN] Update tariff", description = "Update existing tariff (admin only)")
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "200", description = "Tariff updated successfully"),
@@ -141,7 +141,7 @@ class TariffController(
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "basicAuth")
-    @Operation(summary = "Delete tariff", description = "Delete tariff by ID (admin only)")
+    @Operation(summary = "[ADMIN] Delete tariff", description = "Delete tariff by ID (admin only)")
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "204", description = "Tariff deleted successfully"),
