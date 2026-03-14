@@ -30,17 +30,17 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/moderation")
-@Tag(name = "Moderation", description = "Vacancy moderation endpoints (moderator only)")
+@Tag(name = "Moderation", description = "Vacancy moderation endpoints (moderator and admin)")
 class ModerationController(
     private val moderationService: ModerationService,
 ) {
 
     @GetMapping("/pending")
-    @PreAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN')")
     @SecurityRequirement(name = "basicAuth")
     @Operation(
-        summary = "[MODERATOR] Get pending vacancies",
-        description = "Get paginated list of vacancies awaiting moderation (moderator only)",
+        summary = "[MODERATOR, ADMIN] Get pending vacancies",
+        description = "Get paginated list of vacancies awaiting moderation (moderator and admin)",
     )
     @ApiResponses(
         value = [
@@ -70,11 +70,11 @@ class ModerationController(
     }
 
     @PostMapping("/{vacancyId}/approve")
-    @PreAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN')")
     @SecurityRequirement(name = "basicAuth")
     @Operation(
-        summary = "[MODERATOR] Approve vacancy",
-        description = "Approve vacancy and publish it (moderator only). Creates tariff usage history record.",
+        summary = "[MODERATOR, ADMIN] Approve vacancy",
+        description = "Approve vacancy and publish it (moderator and admin). Creates tariff usage history record.",
     )
     @ApiResponses(
         value = [
@@ -111,11 +111,11 @@ class ModerationController(
     }
 
     @PostMapping("/{vacancyId}/reject")
-    @PreAuthorize("hasRole('MODERATOR')")
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN')")
     @SecurityRequirement(name = "basicAuth")
     @Operation(
-        summary = "[MODERATOR] Reject vacancy",
-        description = "Reject vacancy with a reason (moderator only). Vacancy status will be set to REJECTED.",
+        summary = "[MODERATOR, ADMIN] Reject vacancy",
+        description = "Reject vacancy with a reason (moderator and admin). Vacancy status will be set to REJECTED.",
     )
     @ApiResponses(
         value = [
