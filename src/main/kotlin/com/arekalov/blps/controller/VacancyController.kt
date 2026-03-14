@@ -96,10 +96,10 @@ class VacancyController(
     }
 
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('EMPLOYER') or hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     @SecurityRequirement(name = "basicAuth")
-    @Operation(summary = "[EMPLOYER, MODERATOR, ADMIN] Create vacancy", description = "Create a new vacancy draft")
+    @Operation(summary = "[EMPLOYER, ADMIN] Create vacancy", description = "Create a new vacancy draft")
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "201", description = "Vacancy created successfully"),

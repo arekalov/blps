@@ -9,7 +9,7 @@
 | -------------------------------------- | ------ | --------- | --------- | ----- |
 | `GET /api/v1/vacancies`                | ✅      | ✅         | ✅         | ✅     |
 | `GET /api/v1/vacancies/{id}`           | ✅      | ✅         | ✅         | ✅     |
-| `POST /api/v1/vacancies`               | ❌      | ✅         | ✅         | ✅     |
+| `POST /api/v1/vacancies`               | ❌      | ✅         | ❌         | ✅     |
 | `PATCH /api/v1/vacancies/{id}`         | ❌      | ✅ (owner) | ❌         | ✅     |
 | `DELETE /api/v1/vacancies/{id}`        | ❌      | ✅ (owner) | ❌         | ✅     |
 | `PATCH /api/v1/vacancies/{id}/tariff`  | ❌      | ✅ (owner) | ❌         | ✅     |
