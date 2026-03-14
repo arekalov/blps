@@ -31,7 +31,7 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/users")
-@Tag(name = "User & Admin", description = "User profile and admin endpoints")
+@Tag(name = "Users", description = "User profile and admin endpoints")
 class UserController(
     private val userService: UserService,
 ) {
@@ -39,7 +39,7 @@ class UserController(
     @GetMapping
     @SecurityRequirement(name = "basicAuth")
     @Operation(
-        summary = "Get users",
+        summary = "[EMPLOYER/MODERATOR/ADMIN] Get users",
         description = "Get all users (admin only) or current user profile (my=true for any authenticated user)",
     )
     @ApiResponses(
@@ -76,8 +76,8 @@ class UserController(
     @PreAuthorize("isAuthenticated()")
     @SecurityRequirement(name = "basicAuth")
     @Operation(
-        summary = "Update user",
-        description = "Employer can update only their own profile (except role). " +
+        summary = "[OWNER, ADMIN] Update user",
+        description = "Employer/Moderator can update only their own profile (except role). " +
             "Admin can update any user and change role.",
     )
     @ApiResponses(
@@ -118,7 +118,7 @@ class UserController(
 
     @GetMapping("/{id}")
     @Operation(
-        summary = "Get user by ID",
+        summary = "[PUBLIC] Get user by ID",
         description = "Get user profile by ID (public)",
     )
     @ApiResponses(
@@ -140,7 +140,7 @@ class UserController(
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "basicAuth")
     @Operation(
-        summary = "Delete user",
+        summary = "[ADMIN] Delete user",
         description = "Delete user and all their vacancies (admin only, cascaded deletion)",
     )
     @ApiResponses(

@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Configuration
 class OpenApiConfig {
 
     @Bean
+    @Suppress("LongMethod")
     fun customOpenAPI(): OpenAPI {
         return OpenAPI()
             .info(
@@ -22,19 +23,46 @@ class OpenApiConfig {
                     .version("1.0.0")
                     .description(
                         """
-                        REST API for job vacancy management system (hh.ru-like).
+                        REST API for job vacancy management system (hh.ru-like) with moderation workflow.
                         
                         ## Features
                         - User registration and HTTP Basic authentication
                         - Vacancy management (CRUD operations)
                         - Tariff selection and vacancy publishing (BPMN workflow)
-                        - Role-based access control (EMPLOYER, ADMIN)
+                        - Vacancy moderation system
+                        - Tariff usage statistics and history
+                        - Role-based access control (EMPLOYER, MODERATOR, ADMIN)
+                        
+                        ## User Roles
+                        
+                        ### EMPLOYER
+                        - Create, edit, and delete own vacancies
+                        - Select tariff for vacancies
+                        - Submit vacancies for moderation
+                        - View own vacancy statistics
+                        - Update own profile
+                        
+                        ### MODERATOR
+                        - View all pending vacancies
+                        - Approve or reject vacancies with reason
+                        - View tariff usage statistics
+                        - View moderation history
+                        - Update own profile
+                        
+                        ### ADMIN
+                        - All EMPLOYER and MODERATOR permissions
+                        - Manage users (view, update, delete)
+                        - Manage tariffs (create, update, delete)
+                        - Full access to all system resources
                         
                         ## Workflow (BPMN)
-                        1. Create vacancy (DRAFT status)
-                        2. Select tariff
-                        3. Publish vacancy (PUBLISHED status)
-                        4. Archive vacancy when needed (ARCHIVED status)
+                        1. Employer creates vacancy (DRAFT status)
+                        2. Employer selects tariff
+                        3. Employer submits for publication (PENDING_MODERATION status)
+                        4. Moderator reviews vacancy
+                        5. Moderator approves (PUBLISHED) or rejects (REJECTED) with reason
+                        6. If approved: vacancy published + tariff usage recorded in history
+                        7. Employer can archive published vacancy (ARCHIVED status)
                         """.trimIndent(),
                     )
                     .contact(

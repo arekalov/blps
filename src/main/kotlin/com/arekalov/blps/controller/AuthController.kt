@@ -28,7 +28,7 @@ class AuthController(
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(
-        summary = "Register new user",
+        summary = "[PUBLIC] Register new user",
         description = "Create a new user (role EMPLOYER). Auth: HTTP Basic with email and password.",
     )
     @ApiResponses(

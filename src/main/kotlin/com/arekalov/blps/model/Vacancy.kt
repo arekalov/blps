@@ -91,6 +91,16 @@ data class Vacancy(
     @JoinColumn(name = "tariff_id")
     var tariff: Tariff? = null,
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "moderator_id")
+    var moderator: User? = null,
+
+    @Column(name = "moderated_at")
+    var moderatedAt: LocalDateTime? = null,
+
+    @Column(columnDefinition = "TEXT", name = "rejection_reason")
+    var rejectionReason: String? = null,
+
     @Column(nullable = false, updatable = false, name = "created_at")
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
