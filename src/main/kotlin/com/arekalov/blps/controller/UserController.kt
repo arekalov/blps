@@ -165,11 +165,16 @@ class UserController(
     @SecurityRequirement(name = "basicAuth")
     @Operation(
         summary = "[ADMIN] Delete user",
-        description = "Delete user and all their vacancies (admin only, cascaded deletion)",
+        description = "Delete user and all their vacancies (admin only, cascaded deletion). Cannot delete yourself.",
     )
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "204", description = "User deleted successfully"),
+            ApiResponse(
+                responseCode = "400",
+                description = "Validation error - cannot delete yourself",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
             ApiResponse(
                 responseCode = "401",
                 description = "Unauthorized - missing or invalid token",
@@ -187,7 +192,12 @@ class UserController(
             ),
         ],
     )
-    fun deleteUser(@PathVariable userId: UUID) {
-        userService.deleteUser(userId)
+    fun deleteUser(
+        authentication: Authentication,
+        @PathVariable userId: UUID,
+    ) {
+        val currentUserId = getCurrentUserId(authentication)
+            ?: throw UnauthorizedException("Authentication required")
+        userService.deleteUser(currentUserId, userId)
     }
 }

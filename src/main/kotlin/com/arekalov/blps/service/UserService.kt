@@ -121,9 +121,13 @@ class UserService(
     }
 
     @Transactional
-    fun deleteUser(userId: UUID) {
-        val user = userRepository.findById(userId).orElseThrow {
-            NotFoundException("User with id $userId not found")
+    fun deleteUser(currentUserId: UUID, targetUserId: UUID) {
+        if (currentUserId == targetUserId) {
+            throw ValidationException("You cannot delete yourself")
+        }
+
+        val user = userRepository.findById(targetUserId).orElseThrow {
+            NotFoundException("User with id $targetUserId not found")
         }
         vacancyRepository.deleteAll(vacancyRepository.findByEmployerId(user.id!!))
         userRepository.delete(user)
