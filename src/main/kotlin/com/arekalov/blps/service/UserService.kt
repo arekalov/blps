@@ -1,15 +1,18 @@
 package com.arekalov.blps.service
 
+import com.arekalov.blps.dto.common.PagedResponse
 import com.arekalov.blps.dto.user.UpdateUserRequest
 import com.arekalov.blps.dto.user.UserResponse
 import com.arekalov.blps.exception.ForbiddenException
 import com.arekalov.blps.exception.NotFoundException
 import com.arekalov.blps.exception.ValidationException
+import com.arekalov.blps.mapper.toPagedResponse
 import com.arekalov.blps.mapper.toResponse
 import com.arekalov.blps.model.User
 import com.arekalov.blps.model.enum.UserRole
 import com.arekalov.blps.repository.UserRepository
 import com.arekalov.blps.repository.VacancyRepository
+import org.springframework.data.domain.Pageable
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -22,20 +25,9 @@ class UserService(
     private val passwordEncoder: PasswordEncoder,
 ) {
 
-    fun getUsers(my: Boolean, actorUserId: UUID, actorRole: UserRole): List<UserResponse> {
-        if (my) {
-            val user = userRepository.findById(actorUserId).orElseThrow {
-                NotFoundException("User with id $actorUserId not found")
-            }
-            return listOf(user.toResponse())
-        } else {
-            if (actorRole != UserRole.ADMIN) {
-                throw ForbiddenException(
-                    "Admin role required to view all users. Use my=true to get your profile",
-                )
-            }
-            return userRepository.findAll().map { it.toResponse() }
-        }
+    fun getAllUsers(pageable: Pageable): PagedResponse<UserResponse> {
+        val page = userRepository.findAll(pageable)
+        return page.toPagedResponse { it.toResponse() }
     }
 
     fun getUserById(id: UUID): UserResponse {
