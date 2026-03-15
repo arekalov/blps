@@ -6,6 +6,8 @@ import com.arekalov.blps.dto.common.PagedResponse
 import com.arekalov.blps.dto.moderation.RejectVacancyRequest
 import com.arekalov.blps.dto.vacancy.VacancyResponse
 import com.arekalov.blps.exception.UnauthorizedException
+import com.arekalov.blps.exception.ValidationException
+import com.arekalov.blps.model.enum.ModerationAction
 import com.arekalov.blps.security.getCurrentUserId
 import com.arekalov.blps.service.ModerationService
 import io.swagger.v3.oas.annotations.Operation
@@ -69,19 +71,21 @@ class ModerationController(
         return moderationService.getPendingVacancies(pageable)
     }
 
-    @PostMapping("/{vacancyId}/approve")
+    @PostMapping("/{vacancyId}/moderate")
     @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN')")
     @SecurityRequirement(name = "basicAuth")
     @Operation(
-        summary = "[MODERATOR, ADMIN] Approve vacancy",
-        description = "Approve vacancy and publish it (moderator and admin). Creates tariff usage history record.",
+        summary = "[MODERATOR, ADMIN] Moderate vacancy",
+        description = "Approve or reject vacancy (moderator and admin). " +
+            "Use action=APPROVE to approve and publish, action=REJECT to reject with reason.",
     )
     @ApiResponses(
         value = [
-            ApiResponse(responseCode = "200", description = "Vacancy approved and published successfully"),
+            ApiResponse(responseCode = "200", description = "Vacancy moderated successfully"),
             ApiResponse(
                 responseCode = "400",
-                description = "Validation error - vacancy must be in PENDING_MODERATION status and have a tariff",
+                description = "Validation error - vacancy must be in PENDING_MODERATION status, " +
+                    "reason required for REJECT action",
                 content = [Content(schema = Schema(implementation = ErrorResponse::class))],
             ),
             ApiResponse(
@@ -101,54 +105,29 @@ class ModerationController(
             ),
         ],
     )
-    fun approveVacancy(
+    @Suppress("SwallowedException")
+    fun moderateVacancy(
         authentication: Authentication,
         @PathVariable vacancyId: UUID,
+        @RequestParam action: String,
+        @Valid @RequestBody(required = false) request: RejectVacancyRequest?,
     ): VacancyResponse {
         val moderatorId = getCurrentUserId(authentication)
             ?: throw UnauthorizedException("Authentication required")
-        return moderationService.approveVacancy(moderatorId, vacancyId)
-    }
 
-    @PostMapping("/{vacancyId}/reject")
-    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN')")
-    @SecurityRequirement(name = "basicAuth")
-    @Operation(
-        summary = "[MODERATOR, ADMIN] Reject vacancy",
-        description = "Reject vacancy with a reason (moderator and admin). Vacancy status will be set to REJECTED.",
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "200", description = "Vacancy rejected successfully"),
-            ApiResponse(
-                responseCode = "400",
-                description = "Validation error - vacancy must be in PENDING_MODERATION status and reason is required",
-                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-            ),
-            ApiResponse(
-                responseCode = "401",
-                description = "Unauthorized - missing or invalid credentials",
-                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-            ),
-            ApiResponse(
-                responseCode = "403",
-                description = "Forbidden - moderator role required",
-                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-            ),
-            ApiResponse(
-                responseCode = "404",
-                description = "Vacancy not found",
-                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-            ),
-        ],
-    )
-    fun rejectVacancy(
-        authentication: Authentication,
-        @PathVariable vacancyId: UUID,
-        @Valid @RequestBody request: RejectVacancyRequest,
-    ): VacancyResponse {
-        val moderatorId = getCurrentUserId(authentication)
-            ?: throw UnauthorizedException("Authentication required")
-        return moderationService.rejectVacancy(moderatorId, vacancyId, request.reason)
+        val moderationAction = try {
+            ModerationAction.valueOf(action.uppercase())
+        } catch (e: IllegalArgumentException) {
+            throw ValidationException("Invalid action: $action. Must be APPROVE or REJECT")
+        }
+
+        return when (moderationAction) {
+            ModerationAction.APPROVE -> moderationService.approveVacancy(moderatorId, vacancyId)
+            ModerationAction.REJECT -> {
+                val reason = request?.reason
+                    ?: throw ValidationException("Rejection reason is required for REJECT action")
+                moderationService.rejectVacancy(moderatorId, vacancyId, reason)
+            }
+        }
     }
 }

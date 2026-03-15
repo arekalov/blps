@@ -60,3 +60,4 @@ echo "=========================================="
 
 # Создаем SSH туннель с проброской порта и выводом логов
 ssh -L 8080:localhost:23561 ${REMOTE_HOST} "tail -f ${REMOTE_WILDFLY_PATH}/standalone/log/server.log"
+# ssh -L 8080:localhost:23561 ifmo

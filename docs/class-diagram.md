@@ -1,51 +1,3 @@
-## Бизнес логика программных систем
-### ЛР 1
-Рекалов Артём Олегович, поток 1.5, группа P3309
-Кирячек Тимофей Алексеевич, поток 1.5, группа P3309
-
-Вариант 2815
-
----
-
-## 1. Текст задания
-
-![](images/var.png)
-
-Описать бизнес-процесс в соответствии с нотацией BPMN 2.0, после чего реализовать его в виде приложения на базе Spring Boot.
-
-**Порядок выполнения работы:**
-1. Выбрать один из бизнес-процессов, реализуемых сайтом из варианта задания.
-2. Утвердить выбранный бизнес-процесс у преподавателя.
-3. Специфицировать модель реализуемого бизнес-процесса в соответствии с требованиями BPMN 2.0.
-4. Разработать приложение на базе Spring Boot, реализующее описанный на предыдущем шаге бизнес-процесс. Приложение должно использовать СУБД PostgreSQL для хранения данных, для всех публичных интерфейсов должны быть разработаны REST API.
-5. Разработать набор curl-скриптов, либо набор запросов для REST клиента Insomnia для тестирования публичных интерфейсов разработанного программного модуля. Запросы Insomnia оформить в виде файла экспорта.
-6. Развернуть разработанное приложение на сервере helios.
-
-**Содержание отчёта:**
-1. Текст задания.
-2. Модель потока управления для автоматизируемого бизнес-процесса.
-3. UML-диаграммы классов и пакетов разработанного приложения.
-4. Спецификация REST API для всех публичных интерфейсов разработанного приложения.
-5. Исходный код системы или ссылка на репозиторий с исходным кодом.
-6. Выводы по работе.
-
-## 2. Модель потока управления для автоматизируемого бизнес-процесса.
-Процесс публикации вакансии на hh.ru:
-1. Авторизация/Регистрация пользователя
-![](images/1.png)
-2. Начало создания новой вакансии
-![](images/2.png)
-3. Ввод основной информации о вакансии (опыт, специализация и тд)
-![](images/3.png)
-4. Ввод необязательной информации о вакансии (навыки, формат работы)
-![](images/4.png)
-5. Выбор тарифа публикации
-![](images/5.png)
-
-Построенная bpmn модель:
-![](images/diagram.svg)
-
-## 3. UML-диаграммы классов и пакетов разработанного приложения.
 ```mermaid
 classDiagram
     %% ============================================
@@ -86,6 +38,19 @@ classDiagram
         +deleteUser(userId) void
     }
 
+    class ModerationController {
+        -ModerationService moderationService
+        +getPendingVacancies(pageable) PagedResponse~VacancyResponse~
+        +approveVacancy(auth, vacancyId) VacancyResponse
+        +rejectVacancy(auth, vacancyId, request) VacancyResponse
+    }
+
+    class TariffStatisticsController {
+        -TariffStatisticsService statisticsService
+        +getTariffStatistics(tariffId) TariffStatisticsResponse
+        +getTariffHistory(tariffId, pageable) PagedResponse~TariffUsageHistoryResponse~
+    }
+
     %% ============================================
     %% SERVICE LAYER
     %% ============================================
@@ -123,6 +88,23 @@ classDiagram
         +deleteTariff(id) void
     }
 
+    class ModerationService {
+        -VacancyRepository vacancyRepository
+        -TariffUsageHistoryRepository historyRepository
+        -UserRepository userRepository
+        +getPendingVacancies(pageable) PagedResponse~VacancyResponse~
+        +getPendingVacanciesCount() Long
+        +approveVacancy(moderatorId, vacancyId) VacancyResponse
+        +rejectVacancy(moderatorId, vacancyId, reason) VacancyResponse
+    }
+
+    class TariffStatisticsService {
+        -TariffUsageHistoryRepository historyRepository
+        -TariffRepository tariffRepository
+        +getTariffStatistics(tariffId) TariffStatisticsResponse
+        +getTariffUsageHistory(tariffId, pageable) PagedResponse~TariffUsageHistoryResponse~
+    }
+
     %% ============================================
     %% REPOSITORY LAYER
     %% ============================================
@@ -139,6 +121,7 @@ classDiagram
         +findByEmployerId(employerId) List~Vacancy~
         +findByStatus(status, pageable) Page~Vacancy~
         +findByEmployerIdAndStatus(employerId, status, pageable) Page~Vacancy~
+        +countByStatus(status) Long
     }
 
     class TariffRepository {
@@ -150,6 +133,15 @@ classDiagram
     class SkillRepository {
         <<interface>>
         +findByNameIn(names) List~Skill~
+    }
+
+    class TariffUsageHistoryRepository {
+        <<interface>>
+        +findByTariffId(tariffId, pageable) Page~TariffUsageHistory~
+        +findByEmployerId(employerId, pageable) Page~TariffUsageHistory~
+        +findByModeratorId(moderatorId, pageable) Page~TariffUsageHistory~
+        +countByTariffId(tariffId) Long
+        +sumPriceByTariffId(tariffId) BigDecimal
     }
 
     %% ============================================
@@ -183,6 +175,9 @@ classDiagram
         -VacancyStatus status
         -User employer
         -Tariff tariff
+        -User moderator
+        -LocalDateTime moderatedAt
+        -String rejectionReason
         -LocalDateTime createdAt
         -LocalDateTime updatedAt
         -LocalDateTime publishedAt
@@ -200,6 +195,17 @@ classDiagram
         -UUID id
         -String name
         -List~Vacancy~ vacancies
+    }
+
+    class TariffUsageHistory {
+        -UUID id
+        -Vacancy vacancy
+        -Tariff tariff
+        -User employer
+        -User moderator
+        -BigDecimal price
+        -Int durationDays
+        -LocalDateTime publishedAt
     }
 
     %% ============================================
@@ -276,6 +282,9 @@ classDiagram
         +String employerCompanyName
         +String tariffId
         +String tariffName
+        +String moderatorId
+        +LocalDateTime moderatedAt
+        +String rejectionReason
         +LocalDateTime createdAt
         +LocalDateTime updatedAt
         +LocalDateTime publishedAt
@@ -304,6 +313,38 @@ classDiagram
         +BigDecimal price
         +Int durationDays
         +String description
+    }
+
+    %% ============================================
+    %% DTO LAYER - MODERATION
+    %% ============================================
+    class RejectVacancyRequest {
+        +String reason
+    }
+
+    %% ============================================
+    %% DTO LAYER - STATISTICS
+    %% ============================================
+    class TariffStatisticsResponse {
+        +String tariffId
+        +String tariffName
+        +Long usageCount
+        +BigDecimal totalRevenue
+    }
+
+    class TariffUsageHistoryResponse {
+        +String id
+        +String vacancyId
+        +String vacancyTitle
+        +String tariffId
+        +String tariffName
+        +String employerId
+        +String employerCompanyName
+        +String moderatorId
+        +String moderatorEmail
+        +BigDecimal price
+        +Int durationDays
+        +LocalDateTime publishedAt
     }
 
     %% ============================================
@@ -357,12 +398,15 @@ classDiagram
     class UserRole {
         <<enumeration>>
         EMPLOYER
+        MODERATOR
         ADMIN
     }
 
     class VacancyStatus {
         <<enumeration>>
         DRAFT
+        PENDING_MODERATION
+        REJECTED
         PUBLISHED
         ARCHIVED
         CLOSED
@@ -469,6 +513,8 @@ classDiagram
     TariffController --> TariffService : uses
     UserController --> UserRepository : uses
     UserController --> VacancyRepository : uses
+    ModerationController --> ModerationService : uses
+    TariffStatisticsController --> TariffStatisticsService : uses
 
     %% ============================================
     %% RELATIONSHIPS - Services to Repositories
@@ -480,6 +526,11 @@ classDiagram
     VacancyService --> TariffRepository : uses
     VacancyService --> SkillRepository : uses
     TariffService --> TariffRepository : uses
+    ModerationService --> VacancyRepository : uses
+    ModerationService --> TariffUsageHistoryRepository : uses
+    ModerationService --> UserRepository : uses
+    TariffStatisticsService --> TariffUsageHistoryRepository : uses
+    TariffStatisticsService --> TariffRepository : uses
 
     %% ============================================
     %% RELATIONSHIPS - Repositories to Entities
@@ -488,13 +539,19 @@ classDiagram
     VacancyRepository --> Vacancy : manages
     TariffRepository --> Tariff : manages
     SkillRepository --> Skill : manages
+    TariffUsageHistoryRepository --> TariffUsageHistory : manages
 
     %% ============================================
     %% RELATIONSHIPS - Entities to Entities
     %% ============================================
     User "1" --> "0..*" Vacancy : employer
+    User "1" --> "0..*" Vacancy : moderator
     Tariff "1" --> "0..*" Vacancy : tariff
     Vacancy "0..*" --> "0..*" Skill : additionalSkills
+    TariffUsageHistory "0..*" --> "1" Vacancy : tracks
+    TariffUsageHistory "0..*" --> "1" Tariff : used
+    TariffUsageHistory "0..*" --> "1" User : employer
+    TariffUsageHistory "0..*" --> "1" User : moderator
 
     %% ============================================
     %% RELATIONSHIPS - Entities to Enums
@@ -524,6 +581,14 @@ classDiagram
     TariffController ..> PagedResponse : returns
     
     UserController ..> UserResponse : returns
+    
+    ModerationController ..> VacancyResponse : returns
+    ModerationController ..> RejectVacancyRequest : uses
+    ModerationController ..> PagedResponse : returns
+    
+    TariffStatisticsController ..> TariffStatisticsResponse : returns
+    TariffStatisticsController ..> TariffUsageHistoryResponse : returns
+    TariffStatisticsController ..> PagedResponse : returns
 
     %% ============================================
     %% RELATIONSHIPS - Services to DTOs
@@ -540,6 +605,13 @@ classDiagram
     TariffService ..> UpdateTariffRequest : uses
     TariffService ..> TariffResponse : returns
     TariffService ..> PagedResponse : returns
+    
+    ModerationService ..> VacancyResponse : returns
+    ModerationService ..> PagedResponse : returns
+    
+    TariffStatisticsService ..> TariffStatisticsResponse : returns
+    TariffStatisticsService ..> TariffUsageHistoryResponse : returns
+    TariffStatisticsService ..> PagedResponse : returns
 
     %% ============================================
     %% RELATIONSHIPS - Mappers
@@ -566,6 +638,9 @@ classDiagram
     VacancyService ..> PageMapper : uses
     TariffService ..> TariffMapper : uses
     TariffService ..> PageMapper : uses
+    ModerationService ..> VacancyMapper : uses
+    ModerationService ..> PageMapper : uses
+    TariffStatisticsService ..> PageMapper : uses
 
     %% ============================================
     %% RELATIONSHIPS - Security
@@ -594,65 +669,3 @@ classDiagram
     VacancyController ..> PaginationConstants : uses
     TariffController ..> PaginationConstants : uses
 ```
-
-## 4. Спецификация REST API для всех публичных интерфейсов разработанного приложения.
-Swagger доступен на https://arekalov.github.io/blps/
-
-## 5. Исходный код системы или ссылка на репозиторий с исходным кодом.
-Er-диаграмма бд
-```mermaid
-erDiagram
-    USERS ||--o{ VACANCIES : "employer_id"
-    TARIFFS ||--o{ VACANCIES : "tariff_id"
-    VACANCIES }o--o{ SKILLS : "vacancy_skills"
-
-    USERS {
-        uuid id PK
-        varchar email UK
-        varchar password_hash
-        varchar company_name
-        varchar role
-        timestamp created_at
-    }
-
-    VACANCIES {
-        uuid id PK
-        uuid employer_id FK
-        uuid tariff_id FK
-        varchar title
-        text description
-        varchar experience_level
-        decimal salary_from
-        decimal salary_to
-        varchar employment_type
-        varchar work_format
-        varchar employment_format
-        varchar work_schedule
-        varchar city
-        varchar address
-        text company_description
-        varchar status
-        timestamp created_at
-        timestamp updated_at
-        timestamp published_at
-    }
-
-    TARIFFS {
-        uuid id PK
-        varchar name
-        decimal price
-        int duration_days
-        text description
-    }
-
-    SKILLS {
-        uuid id PK
-        varchar name UK
-    }
-```
-
-Исходный код находится в репозитории https://github.com/arekalov/blps
-
-## 6. Выводы по работе.
-
-В ходе выполнения лабораторной работы был изучен процесс разработки бизнес-приложений от моделирования до развертывания. Разработана BPMN 2.0 модель бизнес-процесса подачи объявлений на hh.ru, спроектирована и реализована многоуровневая архитектура приложения на базе Spring Boot с использованием PostgreSQL для хранения данных. Созданы REST API для публичных интерфейсов системы, что обеспечивает универсальность доступа к функциональности. Получены практические навыки тестирования веб-сервисов и развертывания приложений на сервере, что является важной частью жизненного цикла разработки программного обеспечения.

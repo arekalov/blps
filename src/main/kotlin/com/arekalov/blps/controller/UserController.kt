@@ -1,6 +1,8 @@
 package com.arekalov.blps.controller
 
+import com.arekalov.blps.common.validateAndCreatePageable
 import com.arekalov.blps.dto.common.ErrorResponse
+import com.arekalov.blps.dto.common.PagedResponse
 import com.arekalov.blps.dto.user.UpdateUserRequest
 import com.arekalov.blps.dto.user.UserResponse
 import com.arekalov.blps.exception.UnauthorizedException
@@ -37,22 +39,48 @@ class UserController(
 ) {
 
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     @SecurityRequirement(name = "basicAuth")
     @Operation(
         summary = "[EMPLOYER/MODERATOR/ADMIN] Get users",
-        description = "Get all users (admin only) or current user profile (my=true for any authenticated user)",
+        description = "Get paginated list of all users (admin only when my=false) or current user (when my=true)",
     )
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "200", description = "Users retrieved successfully"),
             ApiResponse(
                 responseCode = "401",
-                description = "Unauthorized - missing or invalid token",
+                description = "Unauthorized - missing or invalid credentials",
                 content = [Content(schema = Schema(implementation = ErrorResponse::class))],
             ),
+        ],
+    )
+    fun getAllUsers(
+        authentication: Authentication,
+        @RequestParam(required = false, defaultValue = "false") my: Boolean,
+        @RequestParam(required = false) page: Int?,
+        @RequestParam(required = false) size: Int?,
+    ): PagedResponse<UserResponse> {
+        val userId = getCurrentUserId(authentication)
+            ?: throw UnauthorizedException("Authentication required")
+        val userRole = getCurrentUserRole(authentication)
+        val pageable = validateAndCreatePageable(page, size)
+        return userService.getAllUsers(userId, userRole, my, pageable)
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    @SecurityRequirement(name = "basicAuth")
+    @Operation(
+        summary = "[EMPLOYER/MODERATOR/ADMIN] Get current user",
+        description = "Get current authenticated user profile",
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Current user retrieved successfully"),
             ApiResponse(
-                responseCode = "403",
-                description = "Forbidden - admin role required (when my=false)",
+                responseCode = "401",
+                description = "Unauthorized - missing or invalid credentials",
                 content = [Content(schema = Schema(implementation = ErrorResponse::class))],
             ),
             ApiResponse(
@@ -62,14 +90,10 @@ class UserController(
             ),
         ],
     )
-    fun getUsers(
-        authentication: Authentication,
-        @RequestParam(required = false, defaultValue = "false") my: Boolean,
-    ): List<UserResponse> {
-        val actorUserId = getCurrentUserId(authentication)
+    fun getCurrentUser(authentication: Authentication): UserResponse {
+        val userId = getCurrentUserId(authentication)
             ?: throw UnauthorizedException("Authentication required")
-        val actorRole = getCurrentUserRole(authentication)
-        return userService.getUsers(my, actorUserId, actorRole)
+        return userService.getUserById(userId)
     }
 
     @PatchMapping("/{id}")
@@ -141,11 +165,16 @@ class UserController(
     @SecurityRequirement(name = "basicAuth")
     @Operation(
         summary = "[ADMIN] Delete user",
-        description = "Delete user and all their vacancies (admin only, cascaded deletion)",
+        description = "Delete user and all their vacancies (admin only, cascaded deletion). Cannot delete yourself.",
     )
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "204", description = "User deleted successfully"),
+            ApiResponse(
+                responseCode = "400",
+                description = "Validation error - cannot delete yourself",
+                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+            ),
             ApiResponse(
                 responseCode = "401",
                 description = "Unauthorized - missing or invalid token",
@@ -163,7 +192,12 @@ class UserController(
             ),
         ],
     )
-    fun deleteUser(@PathVariable userId: UUID) {
-        userService.deleteUser(userId)
+    fun deleteUser(
+        authentication: Authentication,
+        @PathVariable userId: UUID,
+    ) {
+        val currentUserId = getCurrentUserId(authentication)
+            ?: throw UnauthorizedException("Authentication required")
+        userService.deleteUser(currentUserId, userId)
     }
 }

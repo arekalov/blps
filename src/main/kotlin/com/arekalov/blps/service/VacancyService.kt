@@ -164,6 +164,10 @@ class VacancyService(
             throw ForbiddenException("You don't have permission to archive this vacancy")
         }
 
+        if (vacancy.status == VacancyStatus.ARCHIVED) {
+            throw ValidationException("Vacancy is already archived")
+        }
+
         vacancy.status = VacancyStatus.ARCHIVED
         vacancy.updatedAt = LocalDateTime.now()
 
