@@ -39,11 +39,11 @@ class UserController(
 ) {
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @SecurityRequirement(name = "basicAuth")
     @Operation(
-        summary = "[ADMIN] Get all users",
-        description = "Get paginated list of all users (admin only)",
+        summary = "[EMPLOYER/MODERATOR/ADMIN] Get users",
+        description = "Get paginated list of all users (admin only when my=false) or current user (when my=true)",
     )
     @ApiResponses(
         value = [
@@ -53,19 +53,19 @@ class UserController(
                 description = "Unauthorized - missing or invalid credentials",
                 content = [Content(schema = Schema(implementation = ErrorResponse::class))],
             ),
-            ApiResponse(
-                responseCode = "403",
-                description = "Forbidden - admin role required",
-                content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-            ),
         ],
     )
     fun getAllUsers(
+        authentication: Authentication,
+        @RequestParam(required = false, defaultValue = "false") my: Boolean,
         @RequestParam(required = false) page: Int?,
         @RequestParam(required = false) size: Int?,
     ): PagedResponse<UserResponse> {
+        val userId = getCurrentUserId(authentication)
+            ?: throw UnauthorizedException("Authentication required")
+        val userRole = getCurrentUserRole(authentication)
         val pageable = validateAndCreatePageable(page, size)
-        return userService.getAllUsers(pageable)
+        return userService.getAllUsers(userId, userRole, my, pageable)
     }
 
     @GetMapping("/me")

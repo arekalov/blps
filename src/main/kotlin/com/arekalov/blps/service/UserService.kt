@@ -25,9 +25,38 @@ class UserService(
     private val passwordEncoder: PasswordEncoder,
 ) {
 
-    fun getAllUsers(pageable: Pageable): PagedResponse<UserResponse> {
-        val page = userRepository.findAll(pageable)
-        return page.toPagedResponse { it.toResponse() }
+    fun getAllUsers(userId: UUID, userRole: UserRole, my: Boolean, pageable: Pageable): PagedResponse<UserResponse> {
+        if (my) {
+            val user = userRepository.findById(userId).orElseThrow {
+                NotFoundException("User with id $userId not found")
+            }
+            return PagedResponse(
+                content = listOf(user.toResponse()),
+                page = 0,
+                size = 1,
+                totalElements = 1,
+                totalPages = 1,
+            )
+        }
+
+        return when (userRole) {
+            UserRole.ADMIN -> {
+                val page = userRepository.findAll(pageable)
+                page.toPagedResponse { it.toResponse() }
+            }
+            UserRole.EMPLOYER, UserRole.MODERATOR -> {
+                val user = userRepository.findById(userId).orElseThrow {
+                    NotFoundException("User with id $userId not found")
+                }
+                PagedResponse(
+                    content = listOf(user.toResponse()),
+                    page = 0,
+                    size = 1,
+                    totalElements = 1,
+                    totalPages = 1,
+                )
+            }
+        }
     }
 
     fun getUserById(id: UUID): UserResponse {
