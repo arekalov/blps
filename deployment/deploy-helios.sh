@@ -8,13 +8,13 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 REMOTE_HOST="ifmo"
 REMOTE_BLPS_DIR="~/blps"
 REMOTE_SCRIPT_PATH="~/blps/remote-deploy.sh"
-LOCAL_JAR="build/libs/blps.jar"
+LOCAL_JAR="main-service/build/libs/blps.jar"
 
 echo "=========================================="
-echo "=== Локальная сборка JAR ==="
+echo "=== Локальная сборка JAR (main-service) ==="
 echo "=========================================="
 cd "$PROJECT_ROOT"
-./gradlew clean bootJar
+./gradlew clean :main-service:bootJar
 
 echo ""
 echo "=========================================="

@@ -1,0 +1,78 @@
+# Development Profile - для локальной разработки с Neon DB
+#
+# Подробные логи: см. logging.level ниже. HTTP access log Tomcat:
+#   ${user.dir}/build/tomcat-work/access-logs/blps-access*.log
+
+spring:
+  output:
+    ansi:
+      enabled: always
+
+  datasource:
+    url: jdbc:postgresql://ep-cold-pond-aiwpwa1w-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require
+    username: neondb_owner
+    password: npg_yASDEsN1vxF8
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 8080
+  tomcat:
+    basedir: ${user.dir}/build/tomcat-work
+    accesslog:
+      enabled: true
+      buffered: false
+      rotate: false
+      directory: access-logs
+      prefix: blps-access
+      suffix: .log
+      pattern: '%h %l %u %t "%r" %s %b %D'
+
+springdoc:
+  swagger-ui:
+    enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.arekalov.blps: DEBUG
+    # Spring Web / MVC
+    org.springframework.web: DEBUG
+    org.springframework.web.servlet: DEBUG
+    org.springframework.web.servlet.DispatcherServlet: DEBUG
+    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
+    org.springframework.web.filter: DEBUG
+    # Транзакции и JPA / JDBC
+    org.springframework.transaction: DEBUG
+    org.springframework.orm.jpa: DEBUG
+    org.springframework.jdbc.core: DEBUG
+    org.springframework.jdbc.datasource: DEBUG
+    # Пул соединений
+    com.zaxxer.hikari: DEBUG
+    com.zaxxer.hikari.pool: DEBUG
+    # Security
+    org.springframework.security: DEBUG
+    org.springframework.security.authentication: TRACE
+    org.springframework.security.web: DEBUG
+    # Hibernate: SQL + параметры (Hibernate 6: bind; старый пакет — на всякий случай)
+    org.hibernate: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    # Миграции
+    org.flywaydb: DEBUG
+    org.flywaydb.core: DEBUG
+  pattern:
+    # %F:%L — файл и строка (удобно искать место лога; небольшой оверхед)
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{48}] [%F:%L] - %msg%n"

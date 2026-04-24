@@ -6,10 +6,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-echo "Сборка blps.jar..."
-./gradlew bootJar
+echo "Сборка blps.jar (main-service)..."
+./gradlew :main-service:bootJar
 
-JAR="$PROJECT_ROOT/build/libs/blps.jar"
+JAR="$PROJECT_ROOT/main-service/build/libs/blps.jar"
 if [ ! -f "$JAR" ]; then
   echo "Ошибка: не найден $JAR" >&2
   exit 1
