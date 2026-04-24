@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
+# Локальный запуск Spring Boot JAR (раньше: сборка WAR и WildFly).
 set -e
 
-# Получить абсолютный путь к корню проекта (родительская директория от deployment/)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-
-echo "Building WAR..."
 cd "$PROJECT_ROOT"
-./gradlew bootWar
 
-echo "Stopping WildFly..."
-pkill -f "jboss-modules.jar" 2>/dev/null || true
-sleep 2
+echo "Сборка blps.jar..."
+./gradlew bootJar
 
-echo "Copying WAR..."
-cp "$PROJECT_ROOT/build/libs/blps.war" $WILDFLY_HOME/standalone/deployments/
+JAR="$PROJECT_ROOT/build/libs/blps.jar"
+if [ ! -f "$JAR" ]; then
+  echo "Ошибка: не найден $JAR" >&2
+  exit 1
+fi
 
-echo "Starting WildFly..."
-trap "pkill -f 'jboss-modules.jar'; exit 0" INT TERM
+echo "Запуск: java -jar $JAR"
+echo "  Профиль: задайте SPRING_PROFILES_ACTIVE при необходимости (по умолчанию из application.yaml)."
+trap 'echo ""; echo "Остановка (Ctrl+C)..."; exit 0' INT TERM
 
-$WILDFLY_HOME/bin/standalone.sh
+exec java -jar "$JAR" "$@"

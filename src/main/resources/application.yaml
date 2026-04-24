@@ -5,11 +5,7 @@ spring:
   # Профиль по умолчанию для локальной разработки
   profiles:
     active: dev
-  
-  # DataSource configuration for WildFly JNDI
-  datasource:
-    jndi-name: java:jboss/datasources/BlpsDS
-  
+
   # Включаем выброс исключения для несуществующих эндпоинтов
   web:
     resources:
@@ -17,8 +13,9 @@ spring:
   mvc:
     throw-exception-if-no-handler-found: true
   
-  # JPA настройки для WildFly JTA
   jpa:
+    # Явное значение убирает предупреждение Spring Boot о дефолте true (OSIV)
+    open-in-view: true
     hibernate:
       ddl-auto: validate
     properties:
@@ -26,10 +23,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
           time_zone: UTC
-        transaction:
-          jta:
-            platform: org.hibernate.engine.transaction.jta.platform.internal.JBossAppServerJtaPlatform
-  
+
   # Flyway настройки
   flyway:
     enabled: true
@@ -37,8 +31,10 @@ spring:
     locations: classpath:db/migration
     validate-on-migrate: true
 
-# Настройки сервера
+# Настройки сервера (контекст /blps как при деплое blps.war на WildFly)
 server:
+  servlet:
+    context-path: /blps
   compression:
     enabled: true
   error:

@@ -2,67 +2,59 @@
 
 echo "=== Генерация OpenAPI спецификации ==="
 
-PORT=8080
-API_DOCS_URL="http://localhost:$PORT/blps/v3/api-docs.yaml"
+set -e
+
+PORT="${PORT:-8080}"
+API_DOCS_URL="http://localhost:${PORT}/blps/v3/api-docs.yaml"
 OUTPUT_FILE="docs/openapi.yaml"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$PROJECT_ROOT"
 
-# Проверка переменной окружения WILDFLY_HOME
-if [ -z "$WILDFLY_HOME" ]; then
-    echo "❌ Переменная WILDFLY_HOME не установлена!"
-    echo "   Установите её: export WILDFLY_HOME=/path/to/wildfly"
+echo "Сборка JAR..."
+./gradlew bootJar --no-daemon -q
+
+JAR_PATH="build/libs/blps.jar"
+if [ ! -f "$JAR_PATH" ]; then
+    echo "❌ JAR не найден: $JAR_PATH"
     exit 1
 fi
 
-if [ ! -d "$WILDFLY_HOME" ]; then
-    echo "❌ Директория WildFly не найдена: $WILDFLY_HOME"
+echo "✅ JAR собран: $JAR_PATH"
+
+if curl -sf "$API_DOCS_URL" >/dev/null 2>&1; then
+    echo "⚠️  На порту $PORT уже отвечает приложение. Остановите его или задайте PORT=..."
     exit 1
 fi
 
-echo "Сборка WAR..."
-./gradlew bootWar --no-daemon -q
-if [ $? -ne 0 ]; then
-    echo "❌ Ошибка сборки!"
-    exit 1
-fi
+echo "Запуск приложения (java -jar)..."
+java -jar "$JAR_PATH" > /tmp/openapi-blps.log 2>&1 &
+APP_PID=$!
+echo "✅ Процесс Spring Boot (PID: $APP_PID)"
 
-WAR_PATH="build/libs/blps.war"
-if [ ! -f "$WAR_PATH" ]; then
-    echo "❌ WAR файл не найден!"
-    exit 1
-fi
+cleanup() {
+    echo ""
+    echo "Остановка приложения..."
+    kill "$APP_PID" 2>/dev/null || true
+    wait "$APP_PID" 2>/dev/null || true
+    echo "✅ Приложение остановлено"
+}
+trap cleanup EXIT
 
-echo "✅ WAR собран: $WAR_PATH"
-
-echo "Остановка WildFly (если запущен)..."
-pkill -9 -f "jboss-modules.jar" 2>/dev/null || true
-sleep 3
-
-echo "Очистка старых deployment файлов..."
-rm -f $WILDFLY_HOME/standalone/deployments/blps.war.* 2>/dev/null || true
-
-echo "Копирование WAR в WildFly..."
-cp "$WAR_PATH" $WILDFLY_HOME/standalone/deployments/
-
-echo "Запуск WildFly..."
-$WILDFLY_HOME/bin/standalone.sh > /tmp/openapi-wildfly.log 2>&1 &
-WILDFLY_PID=$!
-echo "✅ WildFly запущен (PID: $WILDFLY_PID)"
-
-echo "Ожидание запуска WildFly и деплоя приложения..."
-for i in {1..120}; do
-    if curl -s "$API_DOCS_URL" > /dev/null 2>&1; then
+echo "Ожидание готовности API..."
+for i in $(seq 1 120); do
+    if curl -sf "$API_DOCS_URL" >/dev/null 2>&1; then
         echo "✅ Приложение готово!"
         break
     fi
-    if ! kill -0 $WILDFLY_PID 2>/dev/null; then
-        echo "❌ WildFly упал! Последние 50 строк лога:"
-        tail -n 50 /tmp/openapi-wildfly.log
+    if ! kill -0 "$APP_PID" 2>/dev/null; then
+        echo "❌ Процесс упал. Последние 50 строк лога:"
+        tail -n 50 /tmp/openapi-blps.log
         exit 1
     fi
-    if [ $i -eq 120 ]; then
-        echo "❌ Приложение не запустилось за 120 секунд. Последние 100 строк лога:"
-        tail -n 100 /tmp/openapi-wildfly.log
-        kill $WILDFLY_PID 2>/dev/null
+    if [ "$i" -eq 120 ]; then
+        echo "❌ Таймаут ожидания. Последние 100 строк лога:"
+        tail -n 100 /tmp/openapi-blps.log
         exit 1
     fi
     sleep 1
@@ -72,19 +64,9 @@ echo ""
 
 echo "Скачивание OpenAPI спецификации..."
 mkdir -p docs
-curl -s "$API_DOCS_URL" -o "$OUTPUT_FILE"
-if [ $? -ne 0 ]; then
-    echo "❌ Ошибка скачивания!"
-    kill $WILDFLY_PID 2>/dev/null
-    exit 1
-fi
+curl -sf "$API_DOCS_URL" -o "$OUTPUT_FILE"
 
 echo "✅ Спецификация сохранена в $OUTPUT_FILE"
-
-echo "Остановка WildFly..."
-kill $WILDFLY_PID 2>/dev/null
-wait $WILDFLY_PID 2>/dev/null
-echo "✅ WildFly остановлен"
 
 echo ""
 echo "=== Первые 20 строк сгенерированного файла ==="
@@ -92,7 +74,3 @@ head -n 20 "$OUTPUT_FILE"
 
 echo ""
 echo "✅ Готово! Файл $OUTPUT_FILE обновлен"
-echo "   Теперь можно закоммитить изменения:"
-echo "   git add $OUTPUT_FILE"
-echo "   git commit -m 'docs: update OpenAPI specification'"
-echo "   git push"
