@@ -84,6 +84,10 @@ class VacancyService(
             throw ForbiddenException("You don't have permission to update this vacancy")
         }
 
+        if (vacancy.status == VacancyStatus.SUBMISSION_PENDING) {
+            throw ValidationException("Vacancy is being submitted for moderation and cannot be edited")
+        }
+
         applyVacancyUpdates(vacancy, request)
         vacancy.updatedAt = LocalDateTime.now()
 
@@ -99,6 +103,10 @@ class VacancyService(
 
         if (userRole != UserRole.ADMIN && vacancy.employer.id != userId) {
             throw ForbiddenException("You don't have permission to delete this vacancy")
+        }
+
+        if (vacancy.status == VacancyStatus.SUBMISSION_PENDING) {
+            throw ValidationException("Vacancy is being submitted for moderation and cannot be deleted")
         }
 
         vacancyRepository.delete(vacancy)
@@ -140,14 +148,14 @@ class VacancyService(
         }
 
         if (vacancy.status != VacancyStatus.DRAFT) {
-            throw ValidationException("Vacancy is already published or archived")
+            throw ValidationException("Only draft vacancies can be submitted for moderation")
         }
 
         if (vacancy.tariff == null) {
             throw ValidationException("Cannot publish vacancy without a tariff")
         }
 
-        vacancy.status = VacancyStatus.PENDING_MODERATION
+        vacancy.status = VacancyStatus.SUBMISSION_PENDING
         vacancy.updatedAt = LocalDateTime.now()
 
         val pendingVacancy = vacancyRepository.save(vacancy)
@@ -166,6 +174,10 @@ class VacancyService(
 
         if (vacancy.status == VacancyStatus.ARCHIVED) {
             throw ValidationException("Vacancy is already archived")
+        }
+
+        if (vacancy.status != VacancyStatus.PUBLISHED) {
+            throw ValidationException("Only published vacancies can be archived manually")
         }
 
         vacancy.status = VacancyStatus.ARCHIVED

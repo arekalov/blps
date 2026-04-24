@@ -8,9 +8,9 @@
 
 - [x] **L первой:** JAR, embedded Tomcat, datasource из `dev` / env, убрать JNDI и `JBossAppServerJtaPlatform`; `bootRun` с dev БД
 - [x] **A:** согласовано — см. [`docs/LAB3_STAGE2_TEACHER_CHECKLIST.md`](docs/LAB3_STAGE2_TEACHER_CHECKLIST.md): **явный `KafkaProducer`**, без упрощённого publish; остальное как в плане
-- [ ] **B:** `settings.gradle.kts`, `main-service` + `worker-service` JAR, без `common` — копии entity/repo/enum в worker
-- [ ] **C:** `VacancyStatus` + Flyway V6 CHECK + правила для `SUBMISSION_PENDING` + репозиторий для архивации
-- [ ] **D:** `docker-compose` только ZK+Kafka; топик; `KafkaAdmin` / `NewTopic`; `SPRING_KAFKA_BOOTSTRAP_SERVERS`
+- [x] **B:** `settings.gradle.kts`, `main-service` + `worker-service` JAR, без `common` — копии entity/repo/enum в worker
+- [x] **C:** `VacancyStatus` + Flyway V6 CHECK + правила для `SUBMISSION_PENDING` + репозиторий для архивации
+- [x] **D (инфра):** [`docker-compose.yml`](docker-compose.yml) — ZK + Kafka + init топика `vacancy.submitted-for-moderation`; в `application-dev` обоих модулей — `spring.kafka.bootstrap-servers` (дефолт `localhost:9092`). Опционально позже: `KafkaAdmin` / `NewTopic` в Java (дублирование create — безвредно)
 - [ ] **E:** Producer, DTO, `publishVacancy`, AFTER_COMMIT, контроллер 202, ошибки send
 - [ ] **F:** `@KafkaListener`, идемпотентность, `SUBMISSION_PENDING` → `PENDING_MODERATION`
 - [ ] **G:** `@EnableScheduling`, cron, архив `PUBLISHED` по `publishedAt` + `durationDays`
@@ -21,7 +21,7 @@
 
 ---
 
-Опора на код: [`VacancyService.publishVacancy`](src/main/kotlin/com/arekalov/blps/service/VacancyService.kt), [`VacancyController`](src/main/kotlin/com/arekalov/blps/controller/VacancyController.kt), [`VacancyStatus`](src/main/kotlin/com/arekalov/blps/model/enum/VacancyStatus.kt), Flyway [`V3__...`](src/main/resources/db/migration/V3__fix_vacancies_status_check_constraint.sql), [`Tariff.durationDays`](src/main/kotlin/com/arekalov/blps/model/Tariff.kt). Концепция: [`docs/LAB3_IMPLEMENTATION_PLAN.md`](docs/LAB3_IMPLEMENTATION_PLAN.md).
+Опора на код: [`VacancyService.publishVacancy`](main-service/src/main/kotlin/com/arekalov/blps/service/VacancyService.kt), [`VacancyController`](main-service/src/main/kotlin/com/arekalov/blps/controller/VacancyController.kt), [`VacancyStatus`](main-service/src/main/kotlin/com/arekalov/blps/model/enum/VacancyStatus.kt), Flyway [`V3__...`](main-service/src/main/resources/db/migration/V3__fix_vacancies_status_check_constraint.sql), [`Tariff.durationDays`](main-service/src/main/kotlin/com/arekalov/blps/model/Tariff.kt). Концепция: [`docs/LAB3_IMPLEMENTATION_PLAN.md`](docs/LAB3_IMPLEMENTATION_PLAN.md).
 
 **Порядок фаз:** (1) **L** — выход с WildFly, БД как в **`dev`** (секреты → env, не в git). (2) **B** — multi-module без `common`. (3) **C–J**. Модуль **`common` не использовать**.
 
@@ -48,7 +48,7 @@ flowchart LR
 Итог в [`docs/LAB3_STAGE2_TEACHER_CHECKLIST.md`](docs/LAB3_STAGE2_TEACHER_CHECKLIST.md):
 
 - **Промежуточный статус** + **202** на publish; **одна БД**; без упрощённого сценария publish.
-- **Формула архивации:** `publishedAt + durationDays` (как в плане), сверка с [`ModerationService.approveVacancy`](src/main/kotlin/com/arekalov/blps/service/ModerationService.kt).
+- **Формула архивации:** `publishedAt + durationDays` (как в плане), сверка с [`ModerationService.approveVacancy`](main-service/src/main/kotlin/com/arekalov/blps/service/ModerationService.kt).
 - **Producer:** в коде — **явный** `KafkaProducer` + `ProducerRecord`.
 - **WildFly:** JAR (фаза L) согласован в рамках чеклиста.
 

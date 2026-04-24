@@ -52,3 +52,21 @@
 ---
 
 Текст задания для лабораторной работы №2 сохранён в [`docs/ASSIGNMENT-LAB2.md`](docs/ASSIGNMENT-LAB2.md).
+
+### Локальный Kafka (лаба №3)
+
+**Вариант A — только брокер (приложения на хосте через Gradle):**
+
+1. `docker compose up -d zookeeper kafka kafka-init` — или старый compose без сервисов приложений: поднимутся только ZK, Kafka и топик.
+2. Профиль **`dev`**: `spring.kafka.bootstrap-servers` по умолчанию `localhost:9092`.
+3. `./gradlew :main-service:bootRun` и `./gradlew :worker-service:bootRun` (или `./gradlew bootRun` для main).
+
+**Вариант B — всё в Docker (Kafka + main + worker):**
+
+```bash
+docker compose up -d --build
+```
+
+Первый запуск собирает JAR внутри образов (долго). API: `http://localhost:8080/blps/swagger-ui.html`. Нужен Docker Compose с поддержкой `condition: service_completed_successfully` (Compose V2).
+
+Остановка: `docker compose down`. Пример переменных для БД вне JAR: [`.env.docker.example`](.env.docker.example).

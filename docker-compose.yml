@@ -1,0 +1,93 @@
+# Полный локальный стек: ZooKeeper + Kafka + топик + main-service + worker-service.
+#
+# Запуск (первый раз долго — сборка JAR внутри образов):
+#   docker compose up -d --build
+#
+# Main API: http://localhost:8080/blps/swagger-ui.html
+# БД: из профиля dev в JAR (Neon) или переопределите через env / .env.docker (см. .env.docker.example).
+#
+# С хоста к Kafka: localhost:9092. Из контейнеров приложений: kafka:29092 (INTERNAL).
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.3
+    hostname: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.3
+    hostname: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9092
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server kafka:29092 >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+      start_period: 25s
+
+  kafka-init:
+    image: confluentinc/cp-kafka:7.5.3
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: ["/bin/bash", "-c"]
+    command: |
+      set -e
+      echo "Waiting for Kafka..."
+      for i in $$(seq 1 60); do
+        if kafka-topics --bootstrap-server kafka:29092 --list >/dev/null 2>&1; then
+          echo "Kafka is up."
+          break
+        fi
+        sleep 2
+      done
+      kafka-topics --bootstrap-server kafka:29092 \
+        --create --if-not-exists \
+        --topic vacancy.submitted-for-moderation \
+        --partitions 3 \
+        --replication-factor 1
+      echo "Topic vacancy.submitted-for-moderation ready."
+
+  main-service:
+    build:
+      context: .
+      dockerfile: main-service/Dockerfile
+    hostname: main-service
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+
+  worker-service:
+    build:
+      context: .
+      dockerfile: worker-service/Dockerfile
+    hostname: worker-service
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
