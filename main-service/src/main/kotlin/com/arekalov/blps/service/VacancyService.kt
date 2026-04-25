@@ -15,6 +15,7 @@ import com.arekalov.blps.model.enum.UserRole
 import com.arekalov.blps.model.enum.VacancyStatus
 import com.arekalov.blps.repository.SkillRepository
 import com.arekalov.blps.repository.TariffRepository
+import com.arekalov.blps.repository.TariffUsageHistoryRepository
 import com.arekalov.blps.repository.UserRepository
 import com.arekalov.blps.kafka.event.VacancySubmittedForModerationCommitted
 import com.arekalov.blps.repository.VacancyRepository
@@ -32,6 +33,7 @@ class VacancyService(
     private val userRepository: UserRepository,
     private val tariffRepository: TariffRepository,
     private val skillRepository: SkillRepository,
+    private val tariffUsageHistoryRepository: TariffUsageHistoryRepository,
     private val eventPublisher: ApplicationEventPublisher,
 ) {
 
@@ -113,6 +115,7 @@ class VacancyService(
             throw ValidationException("Vacancy is being submitted for moderation and cannot be deleted")
         }
 
+        tariffUsageHistoryRepository.deleteByVacancy_Id(vacancy.id!!)
         vacancyRepository.delete(vacancy)
     }
 
