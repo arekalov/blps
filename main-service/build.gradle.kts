@@ -31,6 +31,8 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
+	implementation("org.apache.kafka:kafka-clients")
+
 	detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.8")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")

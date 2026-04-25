@@ -16,10 +16,13 @@ import com.arekalov.blps.model.enum.VacancyStatus
 import com.arekalov.blps.repository.SkillRepository
 import com.arekalov.blps.repository.TariffRepository
 import com.arekalov.blps.repository.UserRepository
+import com.arekalov.blps.kafka.event.VacancySubmittedForModerationCommitted
 import com.arekalov.blps.repository.VacancyRepository
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.Instant
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -29,6 +32,7 @@ class VacancyService(
     private val userRepository: UserRepository,
     private val tariffRepository: TariffRepository,
     private val skillRepository: SkillRepository,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
 
     fun getAllVacancies(status: VacancyStatus?, pageable: Pageable): PagedResponse<VacancyResponse> {
@@ -159,6 +163,16 @@ class VacancyService(
         vacancy.updatedAt = LocalDateTime.now()
 
         val pendingVacancy = vacancyRepository.save(vacancy)
+        val eventId = UUID.randomUUID()
+        val occurredAt = Instant.now()
+        eventPublisher.publishEvent(
+            VacancySubmittedForModerationCommitted(
+                eventId = eventId,
+                vacancyId = pendingVacancy.id!!,
+                employerId = requireNotNull(pendingVacancy.employer.id) { "employer id required after save" },
+                occurredAt = occurredAt,
+            ),
+        )
         return pendingVacancy.toResponse()
     }
 
