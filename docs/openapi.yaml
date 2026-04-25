@@ -115,14 +115,8 @@ paths:
               $ref: "#/components/schemas/UpdateTariffRequest"
         required: true
       responses:
-        "400":
-          description: Validation error - invalid request data
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "404":
-          description: Tariff not found
+        "401":
+          description: Unauthorized - missing or invalid token
           content:
             '*/*':
               schema:
@@ -133,14 +127,20 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: Validation error - invalid request data
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "200":
           description: Tariff updated successfully
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/TariffResponse"
-        "401":
-          description: Unauthorized - missing or invalid token
+        "404":
+          description: Tariff not found
           content:
             '*/*':
               schema:
@@ -161,8 +161,8 @@ paths:
           type: string
           format: uuid
       responses:
-        "404":
-          description: Tariff not found
+        "401":
+          description: Unauthorized - missing or invalid token
           content:
             '*/*':
               schema:
@@ -173,8 +173,8 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Unauthorized - missing or invalid token
+        "404":
+          description: Tariff not found
           content:
             '*/*':
               schema:
@@ -199,6 +199,7 @@ paths:
           type: string
           enum:
           - DRAFT
+          - SUBMISSION_PENDING
           - PENDING_MODERATION
           - REJECTED
           - PUBLISHED
@@ -223,18 +224,18 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized - missing or invalid token (when my=true)
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
         "200":
           description: Vacancies retrieved successfully
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/PagedResponseVacancyResponse"
+        "401":
+          description: Unauthorized - missing or invalid token (when my=true)
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     post:
       tags:
       - Vacancies
@@ -248,12 +249,6 @@ paths:
               $ref: "#/components/schemas/CreateVacancyRequest"
         required: true
       responses:
-        "400":
-          description: Validation error - invalid request data
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
         "201":
           description: Vacancy created successfully
           content:
@@ -262,6 +257,12 @@ paths:
                 $ref: "#/components/schemas/VacancyResponse"
         "401":
           description: Unauthorized - missing or invalid token
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: Validation error - invalid request data
           content:
             '*/*':
               schema:
@@ -308,8 +309,8 @@ paths:
               $ref: "#/components/schemas/CreateTariffRequest"
         required: true
       responses:
-        "400":
-          description: Validation error - invalid request data
+        "401":
+          description: Unauthorized - missing or invalid token
           content:
             '*/*':
               schema:
@@ -320,8 +321,8 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Unauthorized - missing or invalid token
+        "400":
+          description: Validation error - invalid request data
           content:
             '*/*':
               schema:
@@ -366,15 +367,8 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/VacancyResponse"
-        "400":
-          description: "Validation error - vacancy must be in PENDING_MODERATION status,\
-            \ reason required for REJECT action"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Forbidden - moderator role required
+        "401":
+          description: Unauthorized - missing or invalid credentials
           content:
             '*/*':
               schema:
@@ -385,8 +379,15 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Unauthorized - missing or invalid credentials
+        "403":
+          description: Forbidden - moderator role required
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: "Validation error - vacancy must be in PENDING_MODERATION status,\
+            \ reason required for REJECT action"
           content:
             '*/*':
               schema:
@@ -408,12 +409,6 @@ paths:
               $ref: "#/components/schemas/RegisterRequest"
         required: true
       responses:
-        "201":
-          description: User registered successfully
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/UserResponse"
         "400":
           description: "Validation error - invalid email, password, or user already\
             \ exists"
@@ -421,6 +416,12 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "201":
+          description: User registered successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
   /api/v1/vacancies/{id}:
     get:
       tags:
@@ -462,26 +463,26 @@ paths:
           type: string
           format: uuid
       responses:
-        "401":
-          description: Unauthorized - missing or invalid token
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Forbidden - you don't have permission to delete this vacancy
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "204":
-          description: Vacancy deleted successfully
+        "401":
+          description: Unauthorized - missing or invalid token
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Vacancy not found
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "204":
+          description: Vacancy deleted successfully
       security:
       - basicAuth: []
     patch:
@@ -504,20 +505,20 @@ paths:
               $ref: "#/components/schemas/UpdateVacancyRequest"
         required: true
       responses:
-        "400":
-          description: Validation error - invalid request data
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized - missing or invalid token
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Forbidden - you don't have permission to update this vacancy
+        "404":
+          description: Vacancy not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: Validation error - invalid request data
           content:
             '*/*':
               schema:
@@ -528,8 +529,8 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/VacancyResponse"
-        "404":
-          description: Vacancy not found
+        "403":
+          description: Forbidden - you don't have permission to update this vacancy
           content:
             '*/*':
               schema:
@@ -557,6 +558,18 @@ paths:
           type: string
           format: uuid
       responses:
+        "404":
+          description: Vacancy or tariff not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - missing or invalid token
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "400":
           description: Validation error - invalid tariff or vacancy state
           content:
@@ -575,18 +588,6 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/VacancyResponse"
-        "401":
-          description: Unauthorized - missing or invalid token
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "404":
-          description: Vacancy or tariff not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
       security:
       - basicAuth: []
   /api/v1/vacancies/{id}/publish:
@@ -604,12 +605,19 @@ paths:
           type: string
           format: uuid
       responses:
-        "403":
-          description: Forbidden - you don't have permission to publish this vacancy
+        "400":
+          description: Validation error - vacancy must have a tariff selected
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "202":
+          description: Vacancy saved as submission pending; moderation enqueue is
+            asynchronous via Kafka
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/VacancyResponse"
         "401":
           description: Unauthorized - missing or invalid token
           content:
@@ -622,14 +630,8 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "200":
-          description: Vacancy published successfully
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/VacancyResponse"
-        "400":
-          description: Validation error - vacancy must have a tariff selected
+        "403":
+          description: Forbidden - you don't have permission to publish this vacancy
           content:
             '*/*':
               schema:
@@ -651,14 +653,20 @@ paths:
           type: string
           format: uuid
       responses:
-        "400":
-          description: Validation error - vacancy must be published to archive
+        "401":
+          description: Unauthorized - missing or invalid token
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Unauthorized - missing or invalid token
+        "403":
+          description: Forbidden - you don't have permission to archive this vacancy
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Vacancy not found
           content:
             '*/*':
               schema:
@@ -669,14 +677,8 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/VacancyResponse"
-        "404":
-          description: Vacancy not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Forbidden - you don't have permission to archive this vacancy
+        "400":
+          description: Validation error - vacancy must be published to archive
           content:
             '*/*':
               schema:
@@ -698,18 +700,18 @@ paths:
           type: string
           format: uuid
       responses:
-        "200":
-          description: User found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/UserResponse"
         "404":
           description: User not found
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: User found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
     patch:
       tags:
       - Users
@@ -731,14 +733,8 @@ paths:
               $ref: "#/components/schemas/UpdateUserRequest"
         required: true
       responses:
-        "400":
-          description: Validation error - invalid request data or email already exists
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Unauthorized - missing or invalid token
+        "403":
+          description: Forbidden - employer cannot update another user or change role
           content:
             '*/*':
               schema:
@@ -749,14 +745,20 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - missing or invalid token
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "200":
           description: User updated successfully
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/UserResponse"
-        "403":
-          description: Forbidden - employer cannot update another user or change role
+        "400":
+          description: Validation error - invalid request data or email already exists
           content:
             '*/*':
               schema:
@@ -791,18 +793,18 @@ paths:
           type: integer
           format: int32
       responses:
-        "200":
-          description: Users retrieved successfully
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/PagedResponseUserResponse"
         "401":
           description: Unauthorized - missing or invalid credentials
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: Users retrieved successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PagedResponseUserResponse"
       security:
       - basicAuth: []
   /api/v1/users/me:
@@ -813,6 +815,12 @@ paths:
       description: Get current authenticated user profile
       operationId: getCurrentUser
       responses:
+        "401":
+          description: Unauthorized - missing or invalid credentials
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "200":
           description: Current user retrieved successfully
           content:
@@ -821,12 +829,6 @@ paths:
                 $ref: "#/components/schemas/UserResponse"
         "404":
           description: User not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Unauthorized - missing or invalid credentials
           content:
             '*/*':
               schema:
@@ -848,8 +850,8 @@ paths:
           type: string
           format: uuid
       responses:
-        "404":
-          description: Tariff not found
+        "401":
+          description: Unauthorized - missing or invalid credentials
           content:
             '*/*':
               schema:
@@ -866,8 +868,8 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Unauthorized - missing or invalid credentials
+        "404":
+          description: Tariff not found
           content:
             '*/*':
               schema:
@@ -901,8 +903,14 @@ paths:
           type: integer
           format: int32
       responses:
-        "404":
-          description: Tariff not found
+        "401":
+          description: Unauthorized - missing or invalid credentials
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - admin or moderator role required
           content:
             '*/*':
               schema:
@@ -913,14 +921,8 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/PagedResponseTariffUsageHistoryResponse"
-        "403":
-          description: Forbidden - admin or moderator role required
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Unauthorized - missing or invalid credentials
+        "404":
+          description: Tariff not found
           content:
             '*/*':
               schema:
@@ -949,6 +951,12 @@ paths:
           type: integer
           format: int32
       responses:
+        "401":
+          description: Unauthorized - missing or invalid credentials
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "200":
           description: Pending vacancies retrieved successfully
           content:
@@ -957,12 +965,6 @@ paths:
                 $ref: "#/components/schemas/PagedResponseVacancyResponse"
         "403":
           description: Forbidden - moderator role required
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Unauthorized - missing or invalid credentials
           content:
             '*/*':
               schema:
@@ -985,14 +987,8 @@ paths:
           type: string
           format: uuid
       responses:
-        "400":
-          description: Validation error - cannot delete yourself
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Forbidden - admin role required
+        "404":
+          description: User not found
           content:
             '*/*':
               schema:
@@ -1003,8 +999,14 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "404":
-          description: User not found
+        "403":
+          description: Forbidden - admin role required
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: Validation error - cannot delete yourself
           content:
             '*/*':
               schema:
@@ -1229,6 +1231,7 @@ components:
           type: string
           enum:
           - DRAFT
+          - SUBMISSION_PENDING
           - PENDING_MODERATION
           - REJECTED
           - PUBLISHED

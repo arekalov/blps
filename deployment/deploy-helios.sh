@@ -1,63 +1,52 @@
 #!/usr/bin/env bash
+# Сборка JAR и копирование на удалённый хост (без WildFly).
 set -e
 
-# Получить абсолютный путь к корню проекта
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Конфигурация
 REMOTE_HOST="ifmo"
-REMOTE_WILDFLY_PATH="~/blps/wildfly-39.0.1.Final"
+REMOTE_BLPS_DIR="~/blps"
 REMOTE_SCRIPT_PATH="~/blps/remote-deploy.sh"
-LOCAL_WAR="build/libs/blps.war"
+LOCAL_JAR="main-service/build/libs/blps.jar"
 
 echo "=========================================="
-echo "=== Локальная сборка WAR файла ==="
+echo "=== Локальная сборка JAR (main-service) ==="
 echo "=========================================="
 cd "$PROJECT_ROOT"
-./gradlew clean bootWar
+./gradlew clean :main-service:bootJar
 
 echo ""
 echo "=========================================="
-echo "=== Копирование файлов на Helios ==="
+echo "=== Копирование на Helios ==="
 echo "=========================================="
 
-echo "1. Копируем WAR файл..."
-scp "$PROJECT_ROOT/$LOCAL_WAR" "${REMOTE_HOST}:${REMOTE_WILDFLY_PATH}/standalone/deployments/blps.war"
+echo "1. Копируем JAR..."
+scp "$PROJECT_ROOT/$LOCAL_JAR" "${REMOTE_HOST}:${REMOTE_BLPS_DIR}/blps.jar"
 
 echo ""
 echo "2. Копируем скрипт деплоя..."
 scp "$SCRIPT_DIR/remote-deploy.sh" "${REMOTE_HOST}:${REMOTE_SCRIPT_PATH}"
 
 echo ""
-echo "3. Делаем скрипт исполняемым..."
-ssh ${REMOTE_HOST} "chmod +x ${REMOTE_SCRIPT_PATH}"
+echo "3. Права на скрипт..."
+ssh "${REMOTE_HOST}" "chmod +x ${REMOTE_SCRIPT_PATH}"
 
 echo ""
 echo "=========================================="
-echo "=== Запуск удаленного скрипта деплоя ==="
-echo "=========================================="
-echo ""
-
-# Запускаем удаленный скрипт
-ssh ${REMOTE_HOST} "bash ${REMOTE_SCRIPT_PATH}"
-
-echo ""
-echo ""
-echo "=========================================="
-echo "=== DEPLOYMENT ЗАВЕРШЕН! ==="
-echo "=========================================="
-echo ""
-echo "Настраиваем port forwarding и подключаемся к логам..."
-echo "Port forwarding: localhost:8080 -> helios:23561"
-echo "Приложение будет доступно по адресу: http://localhost:8080/blps/"
-echo ""
-echo "Нажмите Ctrl+C для выхода"
-echo ""
-echo "=========================================="
-echo "ЛОГИ СЕРВЕРА (real-time):"
+echo "=== Удалённый деплой ==="
 echo "=========================================="
 
-# Создаем SSH туннель с проброской порта и выводом логов
-ssh -L 8080:localhost:23561 ${REMOTE_HOST} "tail -f ${REMOTE_WILDFLY_PATH}/standalone/log/server.log"
-# ssh -L 8080:localhost:23561 ifmo
+ssh "${REMOTE_HOST}" "bash ${REMOTE_SCRIPT_PATH}"
+
+echo ""
+echo "=========================================="
+echo "=== DEPLOYMENT ЗАВЕРШЁН ==="
+echo "=========================================="
+echo ""
+echo "Логи приложения на сервере: ~/blps/app.log"
+echo "Порт приложения (prod): 23561 — см. application-prod.yaml"
+echo "Контекст: /blps — http://localhost:8080/blps/ при пробросе порта"
+echo ""
+echo "Проброс порта и логи (пример):"
+echo "  ssh -L 8080:localhost:23561 ${REMOTE_HOST} tail -f ~/blps/app.log"

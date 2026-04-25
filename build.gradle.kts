@@ -1,94 +1,45 @@
+import org.gradle.api.tasks.TaskProvider
+
 plugins {
-	kotlin("jvm") version "2.0.21"
-	kotlin("plugin.spring") version "2.0.21"
-	kotlin("plugin.jpa") version "2.0.21"
-	id("org.springframework.boot") version "3.3.5"
-	id("io.spring.dependency-management") version "1.1.7"
-	id("io.gitlab.arturbosch.detekt") version "1.23.8"
-	war
+	base
+	kotlin("jvm") apply false
+	kotlin("plugin.spring") apply false
+	kotlin("plugin.jpa") apply false
+	id("org.springframework.boot") apply false
+	id("io.spring.dependency-management") apply false
+	id("io.gitlab.arturbosch.detekt") apply false
 }
 
-group = "com.arekalov"
-version = "0.0.1-SNAPSHOT"
-description = "Blps lab project"
-
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
+subprojects {
+	group = "com.arekalov"
+	version = "0.0.1-SNAPSHOT"
+	repositories {
+		mavenCentral()
 	}
 }
 
-repositories {
-	mavenCentral()
-}
-
-dependencies {
-	implementation("org.springframework.boot:spring-boot-starter-web") {
-		exclude(group = "org.springframework.boot", module = "spring-boot-starter-tomcat")
-	}
-	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-	implementation("org.springframework.boot:spring-boot-starter-validation")
-	implementation("org.springframework.boot:spring-boot-starter-security")
-	
-	providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
-	compileOnly("jakarta.servlet:jakarta.servlet-api:6.0.0")
-	
-	runtimeOnly("org.postgresql:postgresql")
-	
-	implementation("org.flywaydb:flyway-core")
-	implementation("org.flywaydb:flyway-database-postgresql")
-	
-	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
-	
-	implementation("org.jetbrains.kotlin:kotlin-reflect")
-	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-	
-	detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.8")
-	
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict")
-    }
-}
-
-tasks.withType<Test> {
-	useJUnitPlatform()
-}
-
-detekt {
-	buildUponDefaultConfig = true
-	allRules = false
-	config.setFrom("$projectDir/detekt.yml")
-}
-
-tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
-	reports {
-		html.required.set(true)
-		html.outputLocation.set(file("build/reports/detekt/detekt.html"))
-		txt.required.set(true)
-		txt.outputLocation.set(file("build/reports/detekt/detekt.txt"))
-		xml.required.set(false)
-		sarif.required.set(false)
-		md.required.set(false)
-	}
-	jvmTarget = "17"
+tasks.register("detekt") {
+	dependsOn(
+		project(":main-service").tasks.named("detekt"),
+		project(":worker-service").tasks.named("detekt"),
+	)
 }
 
 tasks.named("check") {
-	setDependsOn(dependsOn.filterNot { (it as? TaskProvider<*>)?.name == "detekt" })
+	dependsOn(subprojects.map { it.tasks.named("check") })
 }
 
 tasks.register<Exec>("generateOpenApi") {
 	group = "documentation"
-	description = "Generate OpenAPI specification from running application"
+	description = "Generate OpenAPI specification from running application (main-service)"
+	workingDir(rootDir)
 	commandLine("bash", "scripts/generate-openapi.sh")
 }
 
-tasks.named<org.springframework.boot.gradle.tasks.bundling.BootWar>("bootWar") {
-	archiveFileName.set("blps.war")
+tasks.register("bootRun") {
+	dependsOn(":main-service:bootRun")
+}
+
+tasks.register("bootJar") {
+	dependsOn(":main-service:bootJar", ":worker-service:bootJar")
 }

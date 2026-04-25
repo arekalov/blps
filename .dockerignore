@@ -1,0 +1,11 @@
+.git
+.github
+.idea
+.cursor
+**/.gradle
+**/build
+**/out
+**/*.iml
+**/.kotlin
+**/tomcat-work
+**/access-logs
