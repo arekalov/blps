@@ -2,6 +2,7 @@ package com.arekalov.blps.service
 
 import com.arekalov.blps.dto.common.PagedResponse
 import com.arekalov.blps.dto.vacancy.VacancyResponse
+import com.arekalov.blps.eis.event.VacancyPublishedForBitrixCommitted
 import com.arekalov.blps.exception.NotFoundException
 import com.arekalov.blps.exception.ValidationException
 import com.arekalov.blps.mapper.toPagedResponse
@@ -11,6 +12,7 @@ import com.arekalov.blps.model.enum.VacancyStatus
 import com.arekalov.blps.repository.TariffUsageHistoryRepository
 import com.arekalov.blps.repository.UserRepository
 import com.arekalov.blps.repository.VacancyRepository
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -22,6 +24,7 @@ class ModerationService(
     private val vacancyRepository: VacancyRepository,
     private val userRepository: UserRepository,
     private val tariffUsageHistoryRepository: TariffUsageHistoryRepository,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
 
     fun getPendingVacancies(pageable: Pageable): PagedResponse<VacancyResponse> {
@@ -69,6 +72,18 @@ class ModerationService(
                 ?: throw IllegalStateException("Published vacancy must have publishedAt"),
         )
         tariffUsageHistoryRepository.save(usageHistory)
+
+        val vacancyId = publishedVacancy.id
+            ?: throw IllegalStateException("Published vacancy id required")
+        eventPublisher.publishEvent(
+            VacancyPublishedForBitrixCommitted(
+                vacancyId = vacancyId,
+                title = publishedVacancy.title,
+                employerCompanyName = publishedVacancy.employer.companyName,
+                tariffName = tariff.name,
+                tariffDurationDays = tariff.durationDays,
+            ),
+        )
 
         return publishedVacancy.toResponse()
     }

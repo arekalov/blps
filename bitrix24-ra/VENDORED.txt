@@ -1,0 +1,3 @@
+Исходный код JCA Resource Adapter (outbound) для Bitrix24 REST, вендорен в репозиторий lab1 для автономной сборки Docker без клонирования внешних репозиториев.
+Базовая версия: https://github.com/2BuRy1/blps_labs/tree/lab3/bitrix24-ra (ветка lab3).
+Адаптер пишут разработчики: Bitrix24 не поставляет .rar, это ваша/учебная реализация по JCA, вызывающая REST по вебхуку.

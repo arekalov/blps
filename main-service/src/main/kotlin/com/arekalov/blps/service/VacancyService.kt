@@ -7,6 +7,7 @@ import com.arekalov.blps.dto.vacancy.VacancyResponse
 import com.arekalov.blps.exception.ForbiddenException
 import com.arekalov.blps.exception.NotFoundException
 import com.arekalov.blps.exception.ValidationException
+import com.arekalov.blps.kafka.event.VacancySubmittedForModerationCommitted
 import com.arekalov.blps.mapper.toEntity
 import com.arekalov.blps.mapper.toPagedResponse
 import com.arekalov.blps.mapper.toResponse
@@ -17,7 +18,6 @@ import com.arekalov.blps.repository.SkillRepository
 import com.arekalov.blps.repository.TariffRepository
 import com.arekalov.blps.repository.TariffUsageHistoryRepository
 import com.arekalov.blps.repository.UserRepository
-import com.arekalov.blps.kafka.event.VacancySubmittedForModerationCommitted
 import com.arekalov.blps.repository.VacancyRepository
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.Pageable

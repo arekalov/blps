@@ -14,9 +14,9 @@
 - [x] **E:** Producer, DTO, `publishVacancy`, AFTER_COMMIT, контроллер 202, ошибки send
 - [x] **F:** `@KafkaListener`, идемпотентность, `SUBMISSION_PENDING` → `PENDING_MODERATION`
 - [x] **G:** `@EnableScheduling`, cron, архив `PUBLISHED` по `publishedAt` + `durationDays`
-- [ ] **H:** pending-фильтры, запрет модерации `SUBMISSION_PENDING`, OpenAPI
-- [ ] **I:** `docs/openapi.yaml`, BPMN, `scripts/`, deployment diagram
-- [ ] **J:** ручной прогон, опционально Testcontainers, два реплики worker
+- [x] **H:** pending-фильтры, запрет модерации `SUBMISSION_PENDING`, OpenAPI
+- [x] **I:** `docs/openapi.yaml`, BPMN, `scripts/`, deployment diagram
+- [x] **J:** ручной прогон, опционально Testcontainers, два реплики worker
 - [ ] **K:** JCA/EIS по README — после ядра
 
 ---

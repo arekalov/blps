@@ -11,4 +11,4 @@ pluginManagement {
 	}
 }
 
-include("main-service", "worker-service")
+include("main-service", "worker-service", "bitrix-eis-gateway")

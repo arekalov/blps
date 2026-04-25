@@ -12,11 +12,6 @@ class VacancyExpirationArchivingService(
     private val clock: Clock,
 ) {
 
-    /**
-     * Помечает как ARCHIVED все PUBLISHED, у которых истёк срок по тарифу:
-     * `published_at + duration_days` (см. [VacancyRepository.archivePublishedExpiredBefore]).
-     * [Clock] — зона JVM по умолчанию (как у `publishedAt` при одобрении), не UTC в изоляции.
-     */
     @Transactional
     fun archiveExpiredPublishedVacancies(): Int {
         val now = LocalDateTime.now(clock)

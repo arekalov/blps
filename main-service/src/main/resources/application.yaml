@@ -82,3 +82,18 @@ blps:
     admin-email: admin@ya.ru
     admin-password: admin
     admin-company-name: Admin Company
+  eis:
+    bitrix-jca:
+      enabled: true
+      # Только URL HTTP-шлюза на WildFly (WAR eis + RAR), не вебхук Bitrix. Вебхук — env BITRIX_WEBHOOK_BASE_URL в контейнере WildFly.
+      gateway-base-url: ${BLPS_EIS_BITRIX_JCA_GATEWAY_BASE_URL:}
+      crm-deal-add-path: /eis/crm.deal.add
+      vacancy-api-public-base-url: ${BLPS_EIS_BITRIX_JCA_VACANCY_API_PUBLIC_BASE_URL:http://localhost:8080}
+      vacancy-api-path-prefix: /blps/api/v1/vacancies
+      deal-category-id: ${BLPS_EIS_BITRIX_JCA_DEAL_CATEGORY_ID:}
+      initial-stage-id: ${BLPS_EIS_BITRIX_JCA_INITIAL_STAGE_ID:}
+      vacancy-id-field-code: ${BLPS_EIS_BITRIX_JCA_VACANCY_ID_FIELD_CODE:UF_CRM_BLPS_VACANCY_ID}
+      vacancy-url-field-code: ${BLPS_EIS_BITRIX_JCA_VACANCY_URL_FIELD_CODE:UF_CRM_BLPS_VACANCY_URL}
+      employer-field-code: ${BLPS_EIS_BITRIX_JCA_EMPLOYER_FIELD_CODE:UF_CRM_BLPS_EMPLOYER}
+      tariff-name-field-code: ${BLPS_EIS_BITRIX_JCA_TARIFF_NAME_FIELD_CODE:UF_CRM_BLPS_TARIFF}
+      tariff-duration-days-field-code: ${BLPS_EIS_BITRIX_JCA_TARIFF_DAYS_FIELD_CODE:UF_CRM_BLPS_TARIFF_DAYS}

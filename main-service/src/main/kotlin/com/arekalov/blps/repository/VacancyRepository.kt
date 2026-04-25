@@ -20,10 +20,6 @@ interface VacancyRepository : JpaRepository<Vacancy, UUID> {
     fun findByEmployerIdAndStatus(employerId: UUID, status: VacancyStatus, pageable: Pageable): Page<Vacancy>
     fun countByStatus(status: VacancyStatus): Long
 
-    /**
-     * Идемпотентное автоархивирование: только PUBLISHED, срок по тарифу `published_at + duration_days`.
-     * [asOf] должен быть в той же «календарной» семантике, что и `published_at` в БД (см. [java.time.Clock] в приложении).
-     */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(
         value = """

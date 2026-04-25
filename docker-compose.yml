@@ -1,4 +1,4 @@
-# Полный локальный стек: ZooKeeper + Kafka + топик + main-service + worker-service.
+# Стек: ZooKeeper + Kafka + main-service + worker-service + WildFly (JCA RAR bitrix24 + WAR eis-gateway).
 #
 # Запуск (первый раз долго — сборка JAR внутри образов):
 #   docker compose up -d --build
@@ -66,6 +66,18 @@ services:
         --replication-factor 1
       echo "Topic vacancy.submitted-for-moderation ready."
 
+  wildfly-bitrix-eis:
+    build:
+      context: .
+      dockerfile: docker/wildfly-bitrix-eis/Dockerfile
+    hostname: wildfly-bitrix-eis
+    ports:
+      - "8088:8080"
+    environment:
+      BITRIX_WEBHOOK_BASE_URL: ${BITRIX_WEBHOOK_BASE_URL:-}
+      BITRIX_CONNECT_TIMEOUT_MS: "10000"
+      BITRIX_READ_TIMEOUT_MS: "30000"
+
   main-service:
     build:
       context: .
@@ -74,11 +86,16 @@ services:
     ports:
       - "8080:8080"
     environment:
-      # Логи и @Scheduled cron по умолчанию в этой зоне (переопредели: TZ=UTC в .env)
       TZ: ${TZ:-Europe/Moscow}
       SPRING_PROFILES_ACTIVE: dev
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      BLPS_EIS_BITRIX_JCA_GATEWAY_BASE_URL: http://wildfly-bitrix-eis:8080
+      BLPS_EIS_BITRIX_JCA_VACANCY_API_PUBLIC_BASE_URL: http://localhost:8080
+      BLPS_EIS_BITRIX_JCA_DEAL_CATEGORY_ID: "1"
+      BLPS_EIS_BITRIX_JCA_INITIAL_STAGE_ID: "C1:NEW"
     depends_on:
+      wildfly-bitrix-eis:
+        condition: service_started
       kafka-init:
         condition: service_completed_successfully
 
