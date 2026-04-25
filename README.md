@@ -61,12 +61,14 @@
 2. Профиль **`dev`**: `spring.kafka.bootstrap-servers` по умолчанию `localhost:9092`.
 3. `./gradlew :main-service:bootRun` и `./gradlew :worker-service:bootRun` (или `./gradlew bootRun` для main).
 
+**Автоархив опубликованных вакансий (Spring `@Scheduled`):** массовый перевод `PUBLISHED` → `ARCHIVED`, если истёк срок `publishedAt + durationDays` тарифа. Расписание: `blps.scheduling.published-vacancy-archive-cron` (6-полевой cron) в зоне **`spring.task.scheduling.time-zone`** (по умолчанию **Europe/Moscow**). В Docker для логов и JVM по умолчанию задано **`TZ=Europe/Moscow`** (переопредели переменной `TZ`). Граница «просрочено» в SQL: **`asOf` = `LocalDateTime` в зоне JVM по умолчанию** (тот же смысл, что у `publishedAt` при одобрении; колонки в БД — `timestamp without time zone`). Отключить планировщик: `blps.scheduling.enabled=false`.
+
 **Вариант B — всё в Docker (Kafka + main + worker):**
 
 ```bash
 docker compose up -d --build
 ```
 
-Первый запуск собирает JAR внутри образов (долго). API: `http://localhost:8080/blps/swagger-ui.html`. Нужен Docker Compose с поддержкой `condition: service_completed_successfully` (Compose V2).
+Первый запуск собирает JAR внутри образов (долго). API: `http://localhost:8080/blps/swagger-ui.html`. Нужен Docker Compose с поддержкой `condition: service_completed_successfully` (Compose V2). Часовой пояс процессов приложений: **`TZ`** в `docker-compose.yml` (по умолчанию `Europe/Moscow`).
 
 Остановка: `docker compose down`. Пример переменных для БД вне JAR: [`.env.docker.example`](.env.docker.example).

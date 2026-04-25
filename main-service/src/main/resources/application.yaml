@@ -16,6 +16,11 @@ spring:
   kafka:
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
 
+  # Зона для выражений @Scheduled(cron=...) (совпадает с TZ в Docker; переопределение: SPRING_TASK_SCHEDULING_TIMEZONE).
+  task:
+    scheduling:
+      time-zone: ${SPRING_TASK_SCHEDULING_TIMEZONE:Europe/Moscow}
+
   jpa:
     # Явное значение убирает предупреждение Spring Boot о дефолте true (OSIV)
     open-in-view: true
@@ -60,6 +65,17 @@ logging:
 
 
 blps:
+  scheduling:
+    enabled: true
+    # Spring @Scheduled: 6 полей через пробел — «секунда минута час день_месяца месяц день_недели».
+    # Значение "0 0 3 * * *" = каждый календарный день в 03:00:00 в зоне spring.task.scheduling.time-zone (по умолчанию Europe/Moscow; в Docker см. TZ в compose).
+    #   1) 0  — секунда (0–59), здесь ровно начало минуты;
+    #   2) 0  — минута (0–59);
+    #   3) 3  — час (0–23), третий час ночи;
+    #   4) *  — любой день месяца (1–31);
+    #   5) *  — любой месяц (1–12);
+    #   6) *  — любой день недели (0–7, 0 и 7 = воскресенье; * = без фильтра по дню недели).
+    published-vacancy-archive-cron: "0 * * * * *"
   kafka:
     vacancy-submitted-topic: vacancy.submitted-for-moderation
   bootstrap:

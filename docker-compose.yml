@@ -74,6 +74,8 @@ services:
     ports:
       - "8080:8080"
     environment:
+      # Логи и @Scheduled cron по умолчанию в этой зоне (переопредели: TZ=UTC в .env)
+      TZ: ${TZ:-Europe/Moscow}
       SPRING_PROFILES_ACTIVE: dev
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     depends_on:
@@ -86,6 +88,7 @@ services:
       dockerfile: worker-service/Dockerfile
     hostname: worker-service
     environment:
+      TZ: ${TZ:-Europe/Moscow}
       SPRING_PROFILES_ACTIVE: dev
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     depends_on:

@@ -22,7 +22,7 @@ interface VacancyRepository : JpaRepository<Vacancy, UUID> {
 
     /**
      * Идемпотентное автоархивирование: только PUBLISHED, срок по тарифу `published_at + duration_days`.
-     * Используется планировщиком (фаза G).
+     * [asOf] должен быть в той же «календарной» семантике, что и `published_at` в БД (см. [java.time.Clock] в приложении).
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(

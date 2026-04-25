@@ -11,9 +11,9 @@
 - [x] **B:** `settings.gradle.kts`, `main-service` + `worker-service` JAR, без `common` — копии entity/repo/enum в worker
 - [x] **C:** `VacancyStatus` + Flyway V6 CHECK + правила для `SUBMISSION_PENDING` + репозиторий для архивации
 - [x] **D (инфра):** [`docker-compose.yml`](docker-compose.yml) — ZK + Kafka + init топика `vacancy.submitted-for-moderation`; в `application-dev` обоих модулей — `spring.kafka.bootstrap-servers` (дефолт `localhost:9092`). Опционально позже: `KafkaAdmin` / `NewTopic` в Java (дублирование create — безвредно)
-- [ ] **E:** Producer, DTO, `publishVacancy`, AFTER_COMMIT, контроллер 202, ошибки send
-- [ ] **F:** `@KafkaListener`, идемпотентность, `SUBMISSION_PENDING` → `PENDING_MODERATION`
-- [ ] **G:** `@EnableScheduling`, cron, архив `PUBLISHED` по `publishedAt` + `durationDays`
+- [x] **E:** Producer, DTO, `publishVacancy`, AFTER_COMMIT, контроллер 202, ошибки send
+- [x] **F:** `@KafkaListener`, идемпотентность, `SUBMISSION_PENDING` → `PENDING_MODERATION`
+- [x] **G:** `@EnableScheduling`, cron, архив `PUBLISHED` по `publishedAt` + `durationDays`
 - [ ] **H:** pending-фильтры, запрет модерации `SUBMISSION_PENDING`, OpenAPI
 - [ ] **I:** `docs/openapi.yaml`, BPMN, `scripts/`, deployment diagram
 - [ ] **J:** ручной прогон, опционально Testcontainers, два реплики worker

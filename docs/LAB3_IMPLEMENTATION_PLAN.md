@@ -12,10 +12,10 @@
 
 - **Домен:** публикация вакансий (hh-подобный сценарий), тарифы, модерация, роли (Spring Security + JAAS), JTA/WildFly по лабе 2.
 - **WildFly:** для лабораторной №3 по [`README.md`](../README.md) **не обязателен**. `worker-service` — всегда отдельный Spring Boot **JAR** без сервера приложений. **main-service** можно перевести на **исполняемый JAR + встроенный Tomcat** (убрать `war`, JNDI, `JBossAppServerJtaPlatform`), если согласовано с преподавателем относительно требований лабы №2. JCA к EIS часто снова тянет сервер с RA — учесть при выборе интеграции.
-- **Ключевые операции сейчас:**
-  - отправка на модерацию — синхронно: `VacancyService.publishVacancy()` → статус `PUBLISHED` не ставится сразу, а `PENDING_MODERATION` (см. текущий код и OpenAPI);
+- **Ключевые операции в текущей реализации (main + worker):**
+  - отправка на модерацию: `publishVacancy` → **`SUBMISSION_PENDING`**, после commit — событие в Kafka; **worker** идемпотентно переводит в **`PENDING_MODERATION`**; HTTP **`202 Accepted`**;
   - модерация — `ModerationService.approveVacancy` / `rejectVacancy`;
-  - архивирование — вручную работодателем (`archiveVacancy`).
+  - архивирование — вручную (`archiveVacancy`) + **`@Scheduled`** автоархив `PUBLISHED` по сроку тарифа.
 - **Артефакты для обновления по правилам лабы:** BPMN/модель процесса, OpenAPI, скрипты тестов, при полном объёме лабы — ещё **JCA/EIS** и deployment diagram (см. раздел 7).
 
 ---
