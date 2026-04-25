@@ -62,7 +62,6 @@ class SecurityConfig(
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers("/api/v1/auth/**").permitAll()
-                    .requestMatchers("/api/v1/integrations/bitrix/**").permitAll()
                     .requestMatchers(
                         "/v3/api-docs/**",
                         "/v3/api-docs.yaml",

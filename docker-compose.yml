@@ -93,8 +93,6 @@ services:
       BLPS_EIS_BITRIX_JCA_VACANCY_API_PUBLIC_BASE_URL: http://localhost:8080
       BLPS_EIS_BITRIX_JCA_DEAL_CATEGORY_ID: "1"
       BLPS_EIS_BITRIX_JCA_INITIAL_STAGE_ID: "C1:NEW"
-      BLPS_EIS_BITRIX_JCA_CANDIDATE_FOUND_STAGE_ID: "C1:WON"
-      BLPS_EIS_BITRIX_JCA_INBOUND_SECRET: ${BLPS_EIS_BITRIX_JCA_INBOUND_SECRET:-}
     depends_on:
       wildfly-bitrix-eis:
         condition: service_started
