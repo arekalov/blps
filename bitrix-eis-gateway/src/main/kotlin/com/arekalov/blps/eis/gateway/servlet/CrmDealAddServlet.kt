@@ -15,6 +15,7 @@ import javax.naming.InitialContext
 class CrmDealAddServlet : HttpServlet() {
 
     override fun doPost(req: HttpServletRequest, resp: HttpServletResponse) {
+        req.characterEncoding = StandardCharsets.UTF_8.name()
         val body = req.reader.readText()
         logGateway("received /crm.deal.add, bodySize=${body.length}")
         if (body.isBlank()) {
@@ -41,7 +42,7 @@ class CrmDealAddServlet : HttpServlet() {
                 return
             }
             val raw = extractResponseBody(outRecord)
-            resp.contentType = "application/json"
+            resp.contentType = "application/json; charset=UTF-8"
             resp.characterEncoding = StandardCharsets.UTF_8.name()
             resp.status = HttpServletResponse.SC_OK
             resp.writer.write(raw)
