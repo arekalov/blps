@@ -78,8 +78,8 @@ public class Bitrix24InteractionImpl implements Interaction {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(targetUrl))
                 .timeout(Duration.ofMillis(Math.max(1, valueOrDefault(mcf.getReadTimeoutMillis(), 5000))))
-                .header("Content-Type", "application/json")
-                .header("Accept", "application/json")
+                .header("Content-Type", "application/json; charset=UTF-8")
+                .header("Accept", "application/json; charset=UTF-8")
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 

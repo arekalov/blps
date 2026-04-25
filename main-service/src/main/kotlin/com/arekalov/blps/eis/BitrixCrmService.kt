@@ -21,11 +21,24 @@ class BitrixCrmService(
 
     fun tryCreateDealForPublishedVacancy(event: VacancyPublishedForBitrixCommitted) {
         if (!properties.enabled) {
+            log.debug("Bitrix JCA outbound disabled by config")
             return
         }
+        log.info(
+            "Bitrix outbound start: vacancyId={} title='{}' employer='{}'",
+            event.vacancyId,
+            event.title,
+            event.employerCompanyName,
+        )
         val url = buildJcaGatewayDealAddUrl() ?: return
         val vacancyUrl = buildPublicVacancyUrl(event)
         val body = buildDealAddBody(event, vacancyUrl)
+        log.debug(
+            "Bitrix outbound prepared: vacancyId={} url={} fields={}",
+            event.vacancyId,
+            url,
+            body["fields"]?.keys?.joinToString(","),
+        )
         postDealAdd(event, url, body)
     }
 
@@ -86,6 +99,7 @@ class BitrixCrmService(
         url: String,
         body: Map<String, Map<String, Any>>,
     ) {
+        val startedAtNanos = System.nanoTime()
         try {
             val raw = restClient.post()
                 .uri(url)
@@ -93,19 +107,31 @@ class BitrixCrmService(
                 .body(body)
                 .retrieve()
                 .body(String::class.java) ?: ""
+            val elapsedMs = (System.nanoTime() - startedAtNanos) / 1_000_000
+            log.debug(
+                "Bitrix gateway responded: vacancyId={} elapsedMs={} bodySnippet={}",
+                event.vacancyId,
+                elapsedMs,
+                shorten(raw),
+            )
             val node = objectMapper.readTree(raw)
             handleDealAddResponse(event, raw, node)
         } catch (e: RestClientException) {
+            val elapsedMs = (System.nanoTime() - startedAtNanos) / 1_000_000
             log.error(
-                "Bitrix JCA gateway request failed: vacancyId={} url={}",
+                "Bitrix JCA gateway request failed: vacancyId={} url={} elapsedMs={}",
                 event.vacancyId,
                 url,
+                elapsedMs,
                 e,
             )
         } catch (e: JacksonException) {
+            val elapsedMs = (System.nanoTime() - startedAtNanos) / 1_000_000
             log.error(
-                "Bitrix JCA gateway response parse failed: vacancyId={}",
+                "Bitrix JCA gateway response parse failed: vacancyId={} elapsedMs={} raw={}",
                 event.vacancyId,
+                elapsedMs,
+                shorten(body["fields"].toString()),
                 e,
             )
         }
@@ -142,6 +168,10 @@ class BitrixCrmService(
             dealIdForLog,
             event.vacancyId,
         )
+    }
+
+    private fun shorten(raw: String, max: Int = 500): String {
+        return if (raw.length <= max) raw else raw.substring(0, max) + "...(truncated)"
     }
 
     private fun putOptionalField(

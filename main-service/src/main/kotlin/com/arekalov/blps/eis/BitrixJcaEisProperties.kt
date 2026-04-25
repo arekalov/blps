@@ -16,4 +16,6 @@ data class BitrixJcaEisProperties(
     val employerFieldCode: String? = null,
     val tariffNameFieldCode: String? = null,
     val tariffDurationDaysFieldCode: String? = null,
+    val candidateFoundStageId: String = "C1:WON",
+    val inboundSecret: String? = null,
 )

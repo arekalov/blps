@@ -76,6 +76,10 @@ public class Bitrix24ManagedConnectionFactory implements ManagedConnectionFactor
     }
 
     public String getWebhookBaseUrl() {
+        String env = System.getenv("BITRIX_WEBHOOK_BASE_URL");
+        if (env != null && !env.isBlank()) {
+            return env.trim();
+        }
         return webhookBaseUrl;
     }
 
@@ -84,6 +88,14 @@ public class Bitrix24ManagedConnectionFactory implements ManagedConnectionFactor
     }
 
     public Integer getConnectTimeoutMillis() {
+        String env = System.getenv("BITRIX_CONNECT_TIMEOUT_MS");
+        if (env != null && !env.isBlank()) {
+            try {
+                return Integer.parseInt(env.trim());
+            } catch (NumberFormatException ignored) {
+                // fallback to configured value
+            }
+        }
         return connectTimeoutMillis;
     }
 
@@ -92,6 +104,14 @@ public class Bitrix24ManagedConnectionFactory implements ManagedConnectionFactor
     }
 
     public Integer getReadTimeoutMillis() {
+        String env = System.getenv("BITRIX_READ_TIMEOUT_MS");
+        if (env != null && !env.isBlank()) {
+            try {
+                return Integer.parseInt(env.trim());
+            } catch (NumberFormatException ignored) {
+                // fallback to configured value
+            }
+        }
         return readTimeoutMillis;
     }
 

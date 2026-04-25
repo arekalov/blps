@@ -60,7 +60,7 @@ class CrmDealAddServlet : HttpServlet() {
         r["path"] = "crm.deal.add.json"
         r["httpMethod"] = "POST"
         r["method"] = "POST"
-        r["contentType"] = "application/json"
+        r["contentType"] = "application/json; charset=UTF-8"
         r["payload"] = jsonBody
         r["body"] = jsonBody
         return r
@@ -77,6 +77,6 @@ class CrmDealAddServlet : HttpServlet() {
     }
 
     private fun logGateway(msg: String) {
-        System.err.println("[eis-gateway] $msg")
+        println("[eis-gateway] $msg")
     }
 }

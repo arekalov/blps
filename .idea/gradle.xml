@@ -10,6 +10,7 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/bitrix-eis-gateway" />
             <option value="$PROJECT_DIR$/main-service" />
             <option value="$PROJECT_DIR$/worker-service" />
           </set>

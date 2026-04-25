@@ -97,3 +97,5 @@ blps:
       employer-field-code: ${BLPS_EIS_BITRIX_JCA_EMPLOYER_FIELD_CODE:UF_CRM_BLPS_EMPLOYER}
       tariff-name-field-code: ${BLPS_EIS_BITRIX_JCA_TARIFF_NAME_FIELD_CODE:UF_CRM_BLPS_TARIFF}
       tariff-duration-days-field-code: ${BLPS_EIS_BITRIX_JCA_TARIFF_DAYS_FIELD_CODE:UF_CRM_BLPS_TARIFF_DAYS}
+      candidate-found-stage-id: ${BLPS_EIS_BITRIX_JCA_CANDIDATE_FOUND_STAGE_ID:C1:WON}
+      inbound-secret: ${BLPS_EIS_BITRIX_JCA_INBOUND_SECRET:}

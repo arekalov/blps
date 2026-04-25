@@ -1,0 +1,201 @@
+#!/usr/bin/env kotlin
+
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.nio.charset.StandardCharsets
+import java.time.Duration
+import java.time.Instant
+import java.util.Base64
+
+data class HttpResult(val code: Int, val body: String)
+data class Tariff(val id: String, val name: String)
+
+val baseUrl = System.getenv("BLPS_BASE_URL") ?: "http://localhost:8080/blps"
+val adminEmail = System.getenv("BLPS_ADMIN_EMAIL") ?: "admin@ya.ru"
+val adminPassword = System.getenv("BLPS_ADMIN_PASSWORD") ?: "admin"
+val preferredTariffName = System.getenv("BLPS_TARIFF_NAME") ?: "Standart"
+val timeoutSeconds = (System.getenv("BLPS_HTTP_TIMEOUT_SECONDS") ?: "20").toLong()
+
+val client = HttpClient.newBuilder()
+    .connectTimeout(Duration.ofSeconds(timeoutSeconds))
+    .build()
+
+fun basicHeader(email: String, password: String): String {
+    val raw = "$email:$password"
+    return "Basic " + Base64.getEncoder().encodeToString(raw.toByteArray(StandardCharsets.UTF_8))
+}
+
+fun request(
+    method: String,
+    path: String,
+    body: String? = null,
+    basicEmail: String? = null,
+    basicPassword: String? = null,
+): HttpResult {
+    val builder = HttpRequest.newBuilder()
+        .uri(URI.create(baseUrl.trimEnd('/') + path))
+        .timeout(Duration.ofSeconds(timeoutSeconds))
+        .header("Accept", "application/json")
+    if (basicEmail != null && basicPassword != null) {
+        builder.header("Authorization", basicHeader(basicEmail, basicPassword))
+    }
+    if (body != null) {
+        builder.header("Content-Type", "application/json")
+        when (method) {
+            "POST" -> builder.POST(HttpRequest.BodyPublishers.ofString(body))
+            "PATCH" -> builder.method("PATCH", HttpRequest.BodyPublishers.ofString(body))
+            else -> error("Unsupported method with body: $method")
+        }
+    } else {
+        when (method) {
+            "GET" -> builder.GET()
+            "PATCH" -> builder.method("PATCH", HttpRequest.BodyPublishers.noBody())
+            "POST" -> builder.POST(HttpRequest.BodyPublishers.noBody())
+            else -> error("Unsupported method without body: $method")
+        }
+    }
+    val resp = client.send(builder.build(), HttpResponse.BodyHandlers.ofString())
+    return HttpResult(resp.statusCode(), resp.body())
+}
+
+fun expect2xx(step: String, result: HttpResult, allowedCodes: Set<Int> = emptySet()): HttpResult {
+    if (result.code in 200..299 || result.code in allowedCodes) {
+        println("OK   [$step] HTTP ${result.code}")
+        return result
+    }
+    error("FAIL [$step] HTTP ${result.code}\n${result.body}")
+}
+
+fun firstGroupOrNull(text: String, regex: Regex): String? = regex.find(text)?.groupValues?.get(1)
+
+fun extractVacancyId(json: String): String =
+    firstGroupOrNull(json, Regex(""""id"\s*:\s*"([0-9a-fA-F-]{36})""""))
+        ?: error("Cannot parse vacancy id from body:\n$json")
+
+fun extractStatus(json: String): String? =
+    firstGroupOrNull(json, Regex(""""status"\s*:\s*"([A-Z_]+)""""))
+
+fun parseTariffs(json: String): List<Tariff> {
+    val content = firstGroupOrNull(json, Regex(""""content"\s*:\s*\[(.*?)]\s*,\s*"page"""", setOf(RegexOption.DOT_MATCHES_ALL)))
+        ?: firstGroupOrNull(json, Regex(""""content"\s*:\s*\[(.*)]""", setOf(RegexOption.DOT_MATCHES_ALL)))
+        ?: return emptyList()
+    val itemRegex = Regex("""\{\s*"id"\s*:\s*"([^"]+)"[\s\S]*?"name"\s*:\s*"([^"]+)"""")
+    return itemRegex.findAll(content).map { Tariff(it.groupValues[1], it.groupValues[2]) }.toList()
+}
+
+fun waitForPendingModeration(vacancyId: String, email: String, password: String, timeoutSec: Long = 90): String {
+    val deadline = Instant.now().plusSeconds(timeoutSec)
+    while (Instant.now().isBefore(deadline)) {
+        val r = request("GET", "/api/v1/vacancies/$vacancyId", basicEmail = email, basicPassword = password)
+        if (r.code in 200..299) {
+            val status = extractStatus(r.body)
+            if (status != null) {
+                println("INFO [poll-status] $status")
+                if (status == "PENDING_MODERATION") return status
+            }
+        }
+        Thread.sleep(2000)
+    }
+    error("Timeout waiting for vacancy $vacancyId to become PENDING_MODERATION")
+}
+
+val now = Instant.now().epochSecond
+val employerEmail = "bitrix-smoke-$now@example.com"
+val employerPassword = "secret123"
+val employerCompany = "Bitrix Smoke Co $now"
+
+println("Base URL: $baseUrl")
+println("Employer: $employerEmail")
+
+val registerBody = """
+{
+  "email": "$employerEmail",
+  "password": "$employerPassword",
+  "companyName": "$employerCompany"
+}
+""".trimIndent()
+expect2xx(
+    "register-employer",
+    request("POST", "/api/v1/auth/register", body = registerBody),
+    allowedCodes = setOf(400),
+)
+
+val createVacancyBody = """
+{
+  "title": "Bitrix smoke vacancy $now",
+  "description": "Autogenerated script vacancy for Bitrix integration check",
+  "experienceLevel": "ONE_TO_THREE",
+  "salaryFrom": 100000,
+  "salaryTo": 150000,
+  "employmentType": "FULL_TIME",
+  "workFormat": "HYBRID",
+  "employmentFormat": "EMPLOYMENT_CONTRACT",
+  "workSchedule": "FLEXIBLE",
+  "city": "Moscow",
+  "address": "Tverskaya 1",
+  "companyDescription": "Smoke-test company",
+  "additionalSkills": ["Kotlin", "Spring"]
+}
+""".trimIndent()
+val created = expect2xx(
+    "create-vacancy",
+    request(
+        "POST",
+        "/api/v1/vacancies",
+        body = createVacancyBody,
+        basicEmail = employerEmail,
+        basicPassword = employerPassword,
+    ),
+)
+val vacancyId = extractVacancyId(created.body)
+println("Vacancy ID: $vacancyId")
+
+val tariffsResp = expect2xx("get-tariffs", request("GET", "/api/v1/tariffs?page=0&size=50"))
+val tariffs = parseTariffs(tariffsResp.body)
+if (tariffs.isEmpty()) error("No tariffs found")
+val selectedTariff = tariffs.firstOrNull { it.name.equals(preferredTariffName, ignoreCase = true) } ?: tariffs.first()
+println("Selected tariff: ${selectedTariff.name} (${selectedTariff.id})")
+
+expect2xx(
+    "select-tariff",
+    request(
+        "PATCH",
+        "/api/v1/vacancies/$vacancyId/tariff?tariffId=${selectedTariff.id}",
+        basicEmail = employerEmail,
+        basicPassword = employerPassword,
+    ),
+)
+
+expect2xx(
+    "publish-vacancy",
+    request(
+        "PATCH",
+        "/api/v1/vacancies/$vacancyId/publish",
+        basicEmail = employerEmail,
+        basicPassword = employerPassword,
+    ),
+    allowedCodes = setOf(202),
+)
+
+waitForPendingModeration(vacancyId, employerEmail, employerPassword)
+
+expect2xx(
+    "moderator-approve",
+    request(
+        "POST",
+        "/api/v1/moderation/$vacancyId/moderate?action=APPROVE",
+        basicEmail = adminEmail,
+        basicPassword = adminPassword,
+    ),
+)
+
+println(
+    """
+DONE
+- Vacancy approved and should trigger Bitrix deal creation.
+- Check main-service logs for "Bitrix deal created".
+- Check Bitrix funnel BLPS HR for new deal with UF_CRM_BLPS_VACANCY_ID=$vacancyId.
+    """.trimIndent(),
+)
