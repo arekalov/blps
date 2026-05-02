@@ -7,6 +7,7 @@ import com.arekalov.blps.dto.vacancy.VacancyResponse
 import com.arekalov.blps.exception.ForbiddenException
 import com.arekalov.blps.exception.NotFoundException
 import com.arekalov.blps.exception.ValidationException
+import com.arekalov.blps.kafka.event.VacancySubmittedForModerationCommitted
 import com.arekalov.blps.mapper.toEntity
 import com.arekalov.blps.mapper.toPagedResponse
 import com.arekalov.blps.mapper.toResponse
@@ -15,11 +16,14 @@ import com.arekalov.blps.model.enum.UserRole
 import com.arekalov.blps.model.enum.VacancyStatus
 import com.arekalov.blps.repository.SkillRepository
 import com.arekalov.blps.repository.TariffRepository
+import com.arekalov.blps.repository.TariffUsageHistoryRepository
 import com.arekalov.blps.repository.UserRepository
 import com.arekalov.blps.repository.VacancyRepository
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.Instant
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -29,6 +33,8 @@ class VacancyService(
     private val userRepository: UserRepository,
     private val tariffRepository: TariffRepository,
     private val skillRepository: SkillRepository,
+    private val tariffUsageHistoryRepository: TariffUsageHistoryRepository,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
 
     fun getAllVacancies(status: VacancyStatus?, pageable: Pageable): PagedResponse<VacancyResponse> {
@@ -84,6 +90,10 @@ class VacancyService(
             throw ForbiddenException("You don't have permission to update this vacancy")
         }
 
+        if (vacancy.status == VacancyStatus.SUBMISSION_PENDING) {
+            throw ValidationException("Vacancy is being submitted for moderation and cannot be edited")
+        }
+
         applyVacancyUpdates(vacancy, request)
         vacancy.updatedAt = LocalDateTime.now()
 
@@ -101,6 +111,11 @@ class VacancyService(
             throw ForbiddenException("You don't have permission to delete this vacancy")
         }
 
+        if (vacancy.status == VacancyStatus.SUBMISSION_PENDING) {
+            throw ValidationException("Vacancy is being submitted for moderation and cannot be deleted")
+        }
+
+        tariffUsageHistoryRepository.deleteByVacancy_Id(vacancy.id!!)
         vacancyRepository.delete(vacancy)
     }
 
@@ -140,17 +155,27 @@ class VacancyService(
         }
 
         if (vacancy.status != VacancyStatus.DRAFT) {
-            throw ValidationException("Vacancy is already published or archived")
+            throw ValidationException("Only draft vacancies can be submitted for moderation")
         }
 
         if (vacancy.tariff == null) {
             throw ValidationException("Cannot publish vacancy without a tariff")
         }
 
-        vacancy.status = VacancyStatus.PENDING_MODERATION
+        vacancy.status = VacancyStatus.SUBMISSION_PENDING
         vacancy.updatedAt = LocalDateTime.now()
 
         val pendingVacancy = vacancyRepository.save(vacancy)
+        val eventId = UUID.randomUUID()
+        val occurredAt = Instant.now()
+        eventPublisher.publishEvent(
+            VacancySubmittedForModerationCommitted(
+                eventId = eventId,
+                vacancyId = pendingVacancy.id!!,
+                employerId = requireNotNull(pendingVacancy.employer.id) { "employer id required after save" },
+                occurredAt = occurredAt,
+            ),
+        )
         return pendingVacancy.toResponse()
     }
 
@@ -166,6 +191,10 @@ class VacancyService(
 
         if (vacancy.status == VacancyStatus.ARCHIVED) {
             throw ValidationException("Vacancy is already archived")
+        }
+
+        if (vacancy.status != VacancyStatus.PUBLISHED) {
+            throw ValidationException("Only published vacancies can be archived manually")
         }
 
         vacancy.status = VacancyStatus.ARCHIVED

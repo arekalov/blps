@@ -1,6 +1,7 @@
 package com.arekalov.blps.dto.tariff
 
 import jakarta.validation.constraints.Positive
+import jakarta.validation.constraints.PositiveOrZero
 import jakarta.validation.constraints.Size
 import java.math.BigDecimal
 
@@ -9,7 +10,7 @@ data class UpdateTariffRequest(
     val name: String? = null,
     @field:Positive(message = "Price must be positive")
     val price: BigDecimal? = null,
-    @field:Positive(message = "Duration days must be positive")
+    @field:PositiveOrZero(message = "Duration days must be zero or positive")
     val durationDays: Int? = null,
     @field:Size(max = 1000, message = "Description must not exceed 1000 characters")
     val description: String? = null,

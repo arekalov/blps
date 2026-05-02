@@ -9,6 +9,8 @@ import java.util.UUID
 
 @Repository
 interface TariffUsageHistoryRepository : JpaRepository<TariffUsageHistory, UUID> {
+    fun deleteByVacancy_Id(vacancyId: UUID)
+
     fun findByTariffId(tariffId: UUID, pageable: Pageable): Page<TariffUsageHistory>
     fun findByEmployerId(employerId: UUID, pageable: Pageable): Page<TariffUsageHistory>
     fun findByModeratorId(moderatorId: UUID, pageable: Pageable): Page<TariffUsageHistory>

@@ -1,0 +1,99 @@
+spring:
+  application:
+    name: blps
+  
+  # Профиль по умолчанию для локальной разработки
+  profiles:
+    active: dev
+
+  # Включаем выброс исключения для несуществующих эндпоинтов
+  web:
+    resources:
+      add-mappings: false
+  mvc:
+    throw-exception-if-no-handler-found: true
+
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+  # Зона для выражений @Scheduled(cron=...) (совпадает с TZ в Docker; переопределение: SPRING_TASK_SCHEDULING_TIMEZONE).
+  task:
+    scheduling:
+      time-zone: ${SPRING_TASK_SCHEDULING_TIMEZONE:Europe/Moscow}
+
+  jpa:
+    # Явное значение убирает предупреждение Spring Boot о дефолте true (OSIV)
+    open-in-view: true
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: UTC
+
+  # Flyway настройки
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    validate-on-migrate: true
+
+# Настройки сервера (контекст /blps как при деплое blps.war на WildFly)
+server:
+  servlet:
+    context-path: /blps
+  compression:
+    enabled: true
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# OpenAPI настройки (общие)
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+  writer-with-default-pretty-printer: true
+  paths-to-match: /api/v1/**
+
+# Настройки логирования (общие)
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+
+blps:
+  scheduling:
+    enabled: true
+    # Spring @Scheduled: 6 полей через пробел — «секунда минута час день_месяца месяц день_недели».
+    # Значение "0 0 3 * * *" = каждый календарный день в 03:00:00 в зоне spring.task.scheduling.time-zone (по умолчанию Europe/Moscow; в Docker см. TZ в compose).
+    #   1) 0  — секунда (0–59), здесь ровно начало минуты;
+    #   2) 0  — минута (0–59);
+    #   3) 3  — час (0–23), третий час ночи;
+    #   4) *  — любой день месяца (1–31);
+    #   5) *  — любой месяц (1–12);
+    #   6) *  — любой день недели (0–7, 0 и 7 = воскресенье; * = без фильтра по дню недели).
+    published-vacancy-archive-cron: "* * 10 * * *"
+  kafka:
+    vacancy-submitted-topic: vacancy.submitted-for-moderation
+  bootstrap:
+    admin-email: admin@ya.ru
+    admin-password: admin
+    admin-company-name: Admin Company
+  eis:
+    bitrix-jca:
+      enabled: true
+      # Только URL HTTP-шлюза на WildFly (WAR eis + RAR), не вебхук Bitrix. Вебхук — env BITRIX_WEBHOOK_BASE_URL в контейнере WildFly.
+      gateway-base-url: ${BLPS_EIS_BITRIX_JCA_GATEWAY_BASE_URL:}
+      crm-deal-add-path: /eis/crm.deal.add
+      vacancy-api-public-base-url: ${BLPS_EIS_BITRIX_JCA_VACANCY_API_PUBLIC_BASE_URL:http://localhost:8080}
+      vacancy-api-path-prefix: /blps/api/v1/vacancies
+      deal-category-id: ${BLPS_EIS_BITRIX_JCA_DEAL_CATEGORY_ID:}
+      initial-stage-id: ${BLPS_EIS_BITRIX_JCA_INITIAL_STAGE_ID:}
+      vacancy-id-field-code: ${BLPS_EIS_BITRIX_JCA_VACANCY_ID_FIELD_CODE:UF_CRM_BLPS_VACANCY_ID}
+      vacancy-url-field-code: ${BLPS_EIS_BITRIX_JCA_VACANCY_URL_FIELD_CODE:UF_CRM_BLPS_VACANCY_URL}
+      employer-field-code: ${BLPS_EIS_BITRIX_JCA_EMPLOYER_FIELD_CODE:UF_CRM_BLPS_EMPLOYER}
+      tariff-name-field-code: ${BLPS_EIS_BITRIX_JCA_TARIFF_NAME_FIELD_CODE:UF_CRM_BLPS_TARIFF}
+      tariff-duration-days-field-code: ${BLPS_EIS_BITRIX_JCA_TARIFF_DAYS_FIELD_CODE:UF_CRM_BLPS_TARIFF_DAYS}

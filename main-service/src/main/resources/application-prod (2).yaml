@@ -1,10 +1,13 @@
-# Development Profile - для локальной разработки с Neon DB
+# Production Profile - для деплоя на Гелиос со STUDS DB
 
 spring:
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
   datasource:
-    url: jdbc:postgresql://ep-cold-pond-aiwpwa1w-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require
-    username: neondb_owner
-    password: npg_yASDEsN1vxF8
+    url: jdbc:postgresql://pg:5432/studs
+    username: s409449
+    password: 7ChhsEMmi3l6rp3x
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
@@ -15,12 +18,25 @@ spring:
   
   jpa:
     show-sql: true
+    hibernate:
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
+  
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 4
+    validate-on-migrate: false
+    locations: classpath:db/migration
+    out-of-order: true
 
 server:
-  port: 8080
+  port: 23561
+
+jwt:
+  secret: blps-jwt-secret-key-production-secure-256bits-minimum-change-this-in-prod
 
 springdoc:
   swagger-ui:

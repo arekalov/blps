@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -250,7 +251,10 @@ class VacancyController(
     )
     @ApiResponses(
         value = [
-            ApiResponse(responseCode = "200", description = "Vacancy published successfully"),
+            ApiResponse(
+                responseCode = "202",
+                description = "Vacancy saved as submission pending; moderation enqueue is asynchronous via Kafka",
+            ),
             ApiResponse(
                 responseCode = "400",
                 description = "Validation error - vacancy must have a tariff selected",
@@ -276,11 +280,12 @@ class VacancyController(
     fun publishVacancy(
         authentication: Authentication,
         @PathVariable id: UUID,
-    ): VacancyResponse {
+    ): ResponseEntity<VacancyResponse> {
         val userId = getCurrentUserId(authentication)
             ?: throw UnauthorizedException("Authentication required")
         val userRole = getCurrentUserRole(authentication)
-        return vacancyService.publishVacancy(userId, id, userRole)
+        val body = vacancyService.publishVacancy(userId, id, userRole)
+        return ResponseEntity.accepted().body(body)
     }
 
     @PatchMapping("/{id}/archive")
