@@ -1,68 +1,65 @@
 {
-  "id": "moderation-form",
-  "schema": {
-    "type": "default",
-    "components": [
-      {
-        "type": "text",
-        "text": "## Модерация вакансии",
-        "id": "header"
+  "type": "default",
+  "components": [
+    {
+      "type": "text",
+      "text": "## Модерация вакансии",
+      "id": "header"
+    },
+    {
+      "type": "textfield",
+      "key": "vacancyId",
+      "label": "ID вакансии",
+      "disabled": true,
+      "id": "field-vacancyId"
+    },
+    {
+      "type": "textfield",
+      "key": "title",
+      "label": "Название вакансии",
+      "disabled": true,
+      "id": "field-title-readonly"
+    },
+    {
+      "type": "textfield",
+      "key": "city",
+      "label": "Город",
+      "disabled": true,
+      "id": "field-city-readonly"
+    },
+    {
+      "type": "select",
+      "key": "moderationAction",
+      "label": "Решение",
+      "validate": {
+        "required": true
       },
-      {
-        "type": "textfield",
-        "key": "vacancyId",
-        "label": "ID вакансии",
-        "disabled": true,
-        "id": "field-vacancyId"
-      },
-      {
-        "type": "textfield",
-        "key": "title",
-        "label": "Название вакансии",
-        "disabled": true,
-        "id": "field-title-readonly"
-      },
-      {
-        "type": "textfield",
-        "key": "city",
-        "label": "Город",
-        "disabled": true,
-        "id": "field-city-readonly"
-      },
-      {
-        "type": "select",
-        "key": "moderationAction",
-        "label": "Решение",
-        "validate": {
-          "required": true
+      "values": [
+        {
+          "value": "APPROVE",
+          "label": "Одобрить и опубликовать"
         },
-        "values": [
-          {
-            "value": "APPROVE",
-            "label": "Одобрить и опубликовать"
-          },
-          {
-            "value": "REJECT",
-            "label": "Отклонить"
-          }
-        ],
-        "id": "field-moderationAction"
+        {
+          "value": "REJECT",
+          "label": "Отклонить"
+        }
+      ],
+      "id": "field-moderationAction"
+    },
+    {
+      "type": "textarea",
+      "key": "rejectionReason",
+      "label": "Причина отклонения",
+      "validate": {
+        "maxLength": 2000
       },
-      {
-        "type": "textarea",
-        "key": "rejectionReason",
-        "label": "Причина отклонения",
-        "validate": {
-          "maxLength": 2000
-        },
-        "conditional": {
-          "hide": false,
-          "when": "moderationAction",
-          "eq": "REJECT"
-        },
-        "id": "field-rejectionReason"
-      }
-    ],
-    "id": "moderation-form"
-  }
+      "conditional": {
+        "hide": false,
+        "when": "moderationAction",
+        "eq": "REJECT"
+      },
+      "id": "field-rejectionReason"
+    }
+  ],
+  "id": "moderation-form"
 }

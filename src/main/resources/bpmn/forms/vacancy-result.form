@@ -1,34 +1,32 @@
 {
-  "schema": {
-    "type": "default",
-    "components": [
-      {
-        "type": "text",
-        "text": "## Результат модерации вакансии",
-        "id": "header"
-      },
-      {
-        "type": "textfield",
-        "key": "vacancyId",
-        "label": "ID вакансии",
-        "disabled": true,
-        "id": "field-vacancyId"
-      },
-      {
-        "type": "textfield",
-        "key": "vacancyStatus",
-        "label": "Статус вакансии",
-        "disabled": true,
-        "id": "field-status"
-      },
-      {
-        "type": "textfield",
-        "key": "rejectionReason",
-        "label": "Причина отклонения (если отклонена)",
-        "disabled": true,
-        "id": "field-rejectionReason"
-      }
-    ],
-    "id": "vacancy-result-form"
-  }
+  "type": "default",
+  "components": [
+    {
+      "type": "text",
+      "text": "## Результат модерации вакансии",
+      "id": "header"
+    },
+    {
+      "type": "textfield",
+      "key": "vacancyId",
+      "label": "ID вакансии",
+      "disabled": true,
+      "id": "field-vacancyId"
+    },
+    {
+      "type": "textfield",
+      "key": "vacancyStatus",
+      "label": "Статус вакансии",
+      "disabled": true,
+      "id": "field-status"
+    },
+    {
+      "type": "textfield",
+      "key": "rejectionReason",
+      "label": "Причина отклонения (если отклонена)",
+      "disabled": true,
+      "id": "field-rejectionReason"
+    }
+  ],
+  "id": "vacancy-result-form"
 }

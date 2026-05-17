@@ -1,185 +1,182 @@
 {
-  "id": "vacancy-required-form",
-  "schema": {
-    "type": "default",
-    "components": [
-      {
-        "type": "text",
-        "text": "## Обязательные данные вакансии",
-        "id": "header"
+  "type": "default",
+  "components": [
+    {
+      "type": "text",
+      "text": "## Обязательные данные вакансии",
+      "id": "header"
+    },
+    {
+      "type": "textfield",
+      "key": "title",
+      "label": "Название вакансии",
+      "validate": {
+        "required": true,
+        "maxLength": 255
       },
-      {
-        "type": "textfield",
-        "key": "title",
-        "label": "Название вакансии",
-        "validate": {
-          "required": true,
-          "maxLength": 255
+      "id": "field-title"
+    },
+    {
+      "type": "textarea",
+      "key": "description",
+      "label": "Описание вакансии",
+      "validate": {
+        "required": true,
+        "maxLength": 10000
+      },
+      "id": "field-description"
+    },
+    {
+      "type": "select",
+      "key": "experienceLevel",
+      "label": "Требуемый опыт",
+      "validate": {
+        "required": true
+      },
+      "values": [
+        {
+          "value": "NO_EXPERIENCE",
+          "label": "Без опыта"
         },
-        "id": "field-title"
-      },
-      {
-        "type": "textarea",
-        "key": "description",
-        "label": "Описание вакансии",
-        "validate": {
-          "required": true,
-          "maxLength": 10000
+        {
+          "value": "ONE_TO_THREE",
+          "label": "1-3 года"
         },
-        "id": "field-description"
-      },
-      {
-        "type": "select",
-        "key": "experienceLevel",
-        "label": "Требуемый опыт",
-        "validate": {
-          "required": true
+        {
+          "value": "THREE_TO_SIX",
+          "label": "3-6 лет"
         },
-        "values": [
-          {
-            "value": "NO_EXPERIENCE",
-            "label": "Без опыта"
-          },
-          {
-            "value": "ONE_TO_THREE",
-            "label": "1-3 года"
-          },
-          {
-            "value": "THREE_TO_SIX",
-            "label": "3-6 лет"
-          },
-          {
-            "value": "MORE_THAN_SIX",
-            "label": "Более 6 лет"
-          }
-        ],
-        "id": "field-experienceLevel"
+        {
+          "value": "MORE_THAN_SIX",
+          "label": "Более 6 лет"
+        }
+      ],
+      "id": "field-experienceLevel"
+    },
+    {
+      "type": "select",
+      "key": "employmentType",
+      "label": "Тип занятости",
+      "validate": {
+        "required": true
       },
-      {
-        "type": "select",
-        "key": "employmentType",
-        "label": "Тип занятости",
-        "validate": {
-          "required": true
+      "values": [
+        {
+          "value": "FULL_TIME",
+          "label": "Полная занятость"
         },
-        "values": [
-          {
-            "value": "FULL_TIME",
-            "label": "Полная занятость"
-          },
-          {
-            "value": "PART_TIME",
-            "label": "Частичная занятость"
-          },
-          {
-            "value": "CONTRACT",
-            "label": "Контракт"
-          },
-          {
-            "value": "INTERNSHIP",
-            "label": "Стажировка"
-          },
-          {
-            "value": "VOLUNTEER",
-            "label": "Волонтёрство"
-          }
-        ],
-        "id": "field-employmentType"
-      },
-      {
-        "type": "select",
-        "key": "workFormat",
-        "label": "Формат работы",
-        "validate": {
-          "required": true
+        {
+          "value": "PART_TIME",
+          "label": "Частичная занятость"
         },
-        "values": [
-          {
-            "value": "OFFICE",
-            "label": "Офис"
-          },
-          {
-            "value": "REMOTE",
-            "label": "Удалённо"
-          },
-          {
-            "value": "HYBRID",
-            "label": "Гибридный"
-          }
-        ],
-        "id": "field-workFormat"
-      },
-      {
-        "type": "select",
-        "key": "employmentFormat",
-        "label": "Формат трудоустройства",
-        "validate": {
-          "required": true
+        {
+          "value": "CONTRACT",
+          "label": "Контракт"
         },
-        "values": [
-          {
-            "value": "FULL_DAY",
-            "label": "Полный день"
-          },
-          {
-            "value": "SHIFT",
-            "label": "Сменный"
-          },
-          {
-            "value": "FLEXIBLE",
-            "label": "Гибкий"
-          },
-          {
-            "value": "REMOTE_WORK",
-            "label": "Удалённая работа"
-          }
-        ],
-        "id": "field-employmentFormat"
-      },
-      {
-        "type": "select",
-        "key": "workSchedule",
-        "label": "График работы",
-        "validate": {
-          "required": true
+        {
+          "value": "INTERNSHIP",
+          "label": "Стажировка"
         },
-        "values": [
-          {
-            "value": "FIVE_DAYS",
-            "label": "5/2"
-          },
-          {
-            "value": "SIX_DAYS",
-            "label": "6/1"
-          },
-          {
-            "value": "SHIFT_SCHEDULE",
-            "label": "Сменный"
-          },
-          {
-            "value": "ARBITRARY",
-            "label": "Произвольный"
-          }
-        ],
-        "id": "field-workSchedule"
+        {
+          "value": "VOLUNTEER",
+          "label": "Волонтёрство"
+        }
+      ],
+      "id": "field-employmentType"
+    },
+    {
+      "type": "select",
+      "key": "workFormat",
+      "label": "Формат работы",
+      "validate": {
+        "required": true
       },
-      {
-        "type": "textfield",
-        "key": "city",
-        "label": "Город",
-        "validate": {
-          "required": true,
-          "maxLength": 100
+      "values": [
+        {
+          "value": "OFFICE",
+          "label": "Офис"
         },
-        "id": "field-city"
+        {
+          "value": "REMOTE",
+          "label": "Удалённо"
+        },
+        {
+          "value": "HYBRID",
+          "label": "Гибридный"
+        }
+      ],
+      "id": "field-workFormat"
+    },
+    {
+      "type": "select",
+      "key": "employmentFormat",
+      "label": "Формат трудоустройства",
+      "validate": {
+        "required": true
       },
-      {
-        "type": "checkbox",
-        "key": "fillOptional",
-        "label": "Добавить дополнительные данные (зарплата, навыки, адрес)",
-        "id": "field-fillOptional"
-      }
-    ],
-    "id": "vacancy-required-form"
-  }
+      "values": [
+        {
+          "value": "FULL_DAY",
+          "label": "Полный день"
+        },
+        {
+          "value": "SHIFT",
+          "label": "Сменный"
+        },
+        {
+          "value": "FLEXIBLE",
+          "label": "Гибкий"
+        },
+        {
+          "value": "REMOTE_WORK",
+          "label": "Удалённая работа"
+        }
+      ],
+      "id": "field-employmentFormat"
+    },
+    {
+      "type": "select",
+      "key": "workSchedule",
+      "label": "График работы",
+      "validate": {
+        "required": true
+      },
+      "values": [
+        {
+          "value": "FIVE_DAYS",
+          "label": "5/2"
+        },
+        {
+          "value": "SIX_DAYS",
+          "label": "6/1"
+        },
+        {
+          "value": "SHIFT_SCHEDULE",
+          "label": "Сменный"
+        },
+        {
+          "value": "ARBITRARY",
+          "label": "Произвольный"
+        }
+      ],
+      "id": "field-workSchedule"
+    },
+    {
+      "type": "textfield",
+      "key": "city",
+      "label": "Город",
+      "validate": {
+        "required": true,
+        "maxLength": 100
+      },
+      "id": "field-city"
+    },
+    {
+      "type": "checkbox",
+      "key": "fillOptional",
+      "label": "Добавить дополнительные данные (зарплата, навыки, адрес)",
+      "id": "field-fillOptional"
+    }
+  ],
+  "id": "vacancy-required-form"
 }

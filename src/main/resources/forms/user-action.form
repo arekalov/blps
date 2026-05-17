@@ -1,39 +1,36 @@
 {
-  "id": "user-action-form",
-  "schema": {
-    "type": "default",
-    "components": [
-      {
-        "type": "text",
-        "text": "## Управление профилем пользователя",
-        "id": "header"
+  "type": "default",
+  "components": [
+    {
+      "type": "text",
+      "text": "## Управление профилем пользователя",
+      "id": "header"
+    },
+    {
+      "type": "select",
+      "key": "userAction",
+      "label": "Выберите действие",
+      "validate": {
+        "required": true
       },
-      {
-        "type": "select",
-        "key": "userAction",
-        "label": "Выберите действие",
-        "validate": {
-          "required": true
+      "values": [
+        {
+          "value": "EDIT",
+          "label": "Редактировать профиль"
         },
-        "values": [
-          {
-            "value": "EDIT",
-            "label": "Редактировать профиль"
-          },
-          {
-            "value": "DELETE",
-            "label": "Удалить пользователя (только ADMIN)"
-          }
-        ],
-        "id": "field-userAction"
-      },
-      {
-        "type": "textfield",
-        "key": "targetUserId",
-        "label": "ID пользователя (для действий ADMIN над другим пользователем, оставьте пустым для себя)",
-        "id": "field-targetUserId"
-      }
-    ],
-    "id": "user-action-form"
-  }
+        {
+          "value": "DELETE",
+          "label": "Удалить пользователя (только ADMIN)"
+        }
+      ],
+      "id": "field-userAction"
+    },
+    {
+      "type": "textfield",
+      "key": "targetUserId",
+      "label": "ID пользователя (для действий ADMIN над другим пользователем, оставьте пустым для себя)",
+      "id": "field-targetUserId"
+    }
+  ],
+  "id": "user-action-form"
 }

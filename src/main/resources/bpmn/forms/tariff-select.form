@@ -1,26 +1,26 @@
 {
-  "schema": {
-    "type": "default",
-    "components": [
-      {
-        "type": "text",
-        "text": "## Выбор тарифа",
-        "id": "header"
+  "type": "default",
+  "components": [
+    {
+      "type": "text",
+      "text": "## Выбор тарифа",
+      "id": "header"
+    },
+    {
+      "type": "text",
+      "text": "Выберите тариф для публикации вакансии. Тариф определяет срок размещения.",
+      "id": "description"
+    },
+    {
+      "type": "select",
+      "key": "selectedTariffId",
+      "label": "Тариф",
+      "validate": {
+        "required": true
       },
-      {
-        "type": "text",
-        "text": "Выберите тариф для публикации вакансии. Тариф определяет срок размещения.",
-        "id": "description"
-      },
-      {
-        "type": "select",
-        "key": "selectedTariffId",
-        "label": "Тариф",
-        "validate": { "required": true },
-        "valuesExpression": "=tariffOptions",
-        "id": "field-selectedTariffId"
-      }
-    ],
-    "id": "tariff-select-form"
-  }
+      "valuesExpression": "=tariffOptions",
+      "id": "field-selectedTariffId"
+    }
+  ],
+  "id": "tariff-select-form"
 }

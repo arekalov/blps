@@ -1,29 +1,29 @@
 {
-  "schema": {
-    "type": "default",
-    "components": [
-      {
-        "type": "textfield",
-        "key": "tariffId",
-        "label": "ID тарифа (UUID)",
-        "validate": { "required": true },
-        "id": "field-tariffId"
+  "type": "default",
+  "components": [
+    {
+      "type": "textfield",
+      "key": "tariffId",
+      "label": "ID тарифа (UUID)",
+      "validate": {
+        "required": true
       },
-      {
-        "type": "number",
-        "key": "page",
-        "label": "Страница (с 0)",
-        "defaultValue": 0,
-        "id": "field-page"
-      },
-      {
-        "type": "number",
-        "key": "size",
-        "label": "Размер страницы",
-        "defaultValue": 20,
-        "id": "field-size"
-      }
-    ],
-    "id": "tariff-history-query-form"
-  }
+      "id": "field-tariffId"
+    },
+    {
+      "type": "number",
+      "key": "page",
+      "label": "Страница (с 0)",
+      "defaultValue": 0,
+      "id": "field-page"
+    },
+    {
+      "type": "number",
+      "key": "size",
+      "label": "Размер страницы",
+      "defaultValue": 20,
+      "id": "field-size"
+    }
+  ],
+  "id": "tariff-history-query-form"
 }

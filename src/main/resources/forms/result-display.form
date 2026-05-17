@@ -1,22 +1,16 @@
 {
-  "id": "result-display-form",
-  "schema": {
-    "type": "default",
-    "components": [
-      {
-        "type": "text",
-        "text": "## Результат",
-        "id": "header"
-      },
-      {
-        "type": "textarea",
-        "key": "resultSummary",
-        "label": "Данные",
-        "disabled": true,
-        "rows": 18,
-        "id": "field-resultSummary"
-      }
-    ],
-    "id": "result-display-form"
-  }
+  "type": "default",
+  "components": [
+    {
+      "type": "text",
+      "text": "## Результат",
+      "id": "header"
+    },
+    {
+      "type": "text",
+      "text": "=resultSummary",
+      "id": "result-body"
+    }
+  ],
+  "id": "result-display-form"
 }

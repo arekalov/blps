@@ -1,18 +1,15 @@
 {
-  "id": "user-id-input-form",
-  "schema": {
-    "type": "default",
-    "components": [
-      {
-        "type": "textfield",
-        "key": "targetUserId",
-        "label": "ID пользователя (UUID)",
-        "validate": {
-          "required": true
-        },
-        "id": "field-targetUserId"
-      }
-    ],
-    "id": "user-id-input-form"
-  }
+  "type": "default",
+  "components": [
+    {
+      "type": "textfield",
+      "key": "targetUserId",
+      "label": "ID пользователя (UUID)",
+      "validate": {
+        "required": true
+      },
+      "id": "field-targetUserId"
+    }
+  ],
+  "id": "user-id-input-form"
 }

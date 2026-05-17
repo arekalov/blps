@@ -1,42 +1,39 @@
 {
-  "id": "vacancy-publish-form",
-  "schema": {
-    "type": "default",
-    "components": [
-      {
-        "type": "text",
-        "text": "## Отправка вакансии на модерацию",
-        "id": "header"
+  "type": "default",
+  "components": [
+    {
+      "type": "text",
+      "text": "## Отправка вакансии на модерацию",
+      "id": "header"
+    },
+    {
+      "type": "text",
+      "text": "Вакансия создана в статусе 'Черновик'. Нажмите 'Отправить на модерацию' чтобы продолжить.",
+      "id": "description"
+    },
+    {
+      "type": "textfield",
+      "key": "vacancyId",
+      "label": "ID вакансии",
+      "disabled": true,
+      "id": "field-vacancyId"
+    },
+    {
+      "type": "textfield",
+      "key": "title",
+      "label": "Название вакансии",
+      "disabled": true,
+      "id": "field-title-readonly"
+    },
+    {
+      "type": "checkbox",
+      "key": "submitForModeration",
+      "label": "Отправить на модерацию",
+      "validate": {
+        "required": true
       },
-      {
-        "type": "text",
-        "text": "Вакансия создана в статусе 'Черновик'. Нажмите 'Отправить на модерацию' чтобы продолжить.",
-        "id": "description"
-      },
-      {
-        "type": "textfield",
-        "key": "vacancyId",
-        "label": "ID вакансии",
-        "disabled": true,
-        "id": "field-vacancyId"
-      },
-      {
-        "type": "textfield",
-        "key": "title",
-        "label": "Название вакансии",
-        "disabled": true,
-        "id": "field-title-readonly"
-      },
-      {
-        "type": "checkbox",
-        "key": "submitForModeration",
-        "label": "Отправить на модерацию",
-        "validate": {
-          "required": true
-        },
-        "id": "field-submit"
-      }
-    ],
-    "id": "vacancy-publish-form"
-  }
+      "id": "field-submit"
+    }
+  ],
+  "id": "vacancy-publish-form"
 }

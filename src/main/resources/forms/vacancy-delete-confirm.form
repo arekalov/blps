@@ -1,23 +1,20 @@
 {
-  "id": "vacancy-delete-confirm-form",
-  "schema": {
-    "type": "default",
-    "components": [
-      {
-        "type": "text",
-        "text": "Удаление вакансии необратимо.",
-        "id": "warning"
+  "type": "default",
+  "components": [
+    {
+      "type": "text",
+      "text": "Удаление вакансии необратимо.",
+      "id": "warning"
+    },
+    {
+      "type": "checkbox",
+      "key": "confirmDelete",
+      "label": "Подтверждаю удаление",
+      "validate": {
+        "required": true
       },
-      {
-        "type": "checkbox",
-        "key": "confirmDelete",
-        "label": "Подтверждаю удаление",
-        "validate": {
-          "required": true
-        },
-        "id": "field-confirm"
-      }
-    ],
-    "id": "vacancy-delete-confirm-form"
-  }
+      "id": "field-confirm"
+    }
+  ],
+  "id": "vacancy-delete-confirm-form"
 }

@@ -1,19 +1,16 @@
 {
-  "id": "vacancy-picker-form",
-  "schema": {
-    "type": "default",
-    "components": [
-      {
-        "type": "select",
-        "key": "vacancyId",
-        "label": "Вакансия",
-        "validate": {
-          "required": true
-        },
-        "valuesExpression": "=vacancyOptions",
-        "id": "field-vacancyId"
-      }
-    ],
-    "id": "vacancy-picker-form"
-  }
+  "type": "default",
+  "components": [
+    {
+      "type": "select",
+      "key": "vacancyId",
+      "label": "Вакансия",
+      "validate": {
+        "required": true
+      },
+      "valuesExpression": "=vacancyOptions",
+      "id": "field-vacancyId"
+    }
+  ],
+  "id": "vacancy-picker-form"
 }

@@ -1,28 +1,26 @@
 {
-  "schema": {
-    "type": "default",
-    "components": [
-      {
-        "type": "checkbox",
-        "key": "my",
-        "label": "Только текущий пользователь",
-        "id": "field-my"
-      },
-      {
-        "type": "number",
-        "key": "page",
-        "label": "Страница (с 0)",
-        "defaultValue": 0,
-        "id": "field-page"
-      },
-      {
-        "type": "number",
-        "key": "size",
-        "label": "Размер страницы",
-        "defaultValue": 20,
-        "id": "field-size"
-      }
-    ],
-    "id": "user-list-query-form"
-  }
+  "type": "default",
+  "components": [
+    {
+      "type": "checkbox",
+      "key": "my",
+      "label": "Только текущий пользователь",
+      "id": "field-my"
+    },
+    {
+      "type": "number",
+      "key": "page",
+      "label": "Страница (с 0)",
+      "defaultValue": 0,
+      "id": "field-page"
+    },
+    {
+      "type": "number",
+      "key": "size",
+      "label": "Размер страницы",
+      "defaultValue": 20,
+      "id": "field-size"
+    }
+  ],
+  "id": "user-list-query-form"
 }

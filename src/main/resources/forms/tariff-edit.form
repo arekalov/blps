@@ -1,50 +1,47 @@
 {
-  "id": "tariff-edit-form",
-  "schema": {
-    "type": "default",
-    "components": [
-      {
-        "type": "text",
-        "text": "## Редактирование тарифа",
-        "id": "header"
+  "type": "default",
+  "components": [
+    {
+      "type": "text",
+      "text": "## Редактирование тарифа",
+      "id": "header"
+    },
+    {
+      "type": "textfield",
+      "key": "tariffName",
+      "label": "Название тарифа",
+      "validate": {
+        "maxLength": 100
       },
-      {
-        "type": "textfield",
-        "key": "tariffName",
-        "label": "Название тарифа",
-        "validate": {
-          "maxLength": 100
-        },
-        "id": "field-name"
+      "id": "field-name"
+    },
+    {
+      "type": "number",
+      "key": "tariffPrice",
+      "label": "Цена (руб.)",
+      "validate": {
+        "min": 0
       },
-      {
-        "type": "number",
-        "key": "tariffPrice",
-        "label": "Цена (руб.)",
-        "validate": {
-          "min": 0
-        },
-        "id": "field-price"
+      "id": "field-price"
+    },
+    {
+      "type": "number",
+      "key": "tariffDurationDays",
+      "label": "Срок размещения (дней)",
+      "validate": {
+        "min": 1
       },
-      {
-        "type": "number",
-        "key": "tariffDurationDays",
-        "label": "Срок размещения (дней)",
-        "validate": {
-          "min": 1
-        },
-        "id": "field-durationDays"
+      "id": "field-durationDays"
+    },
+    {
+      "type": "textarea",
+      "key": "tariffDescription",
+      "label": "Описание тарифа",
+      "validate": {
+        "maxLength": 1000
       },
-      {
-        "type": "textarea",
-        "key": "tariffDescription",
-        "label": "Описание тарифа",
-        "validate": {
-          "maxLength": 1000
-        },
-        "id": "field-description"
-      }
-    ],
-    "id": "tariff-edit-form"
-  }
+      "id": "field-description"
+    }
+  ],
+  "id": "tariff-edit-form"
 }

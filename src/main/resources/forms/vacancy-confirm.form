@@ -1,56 +1,53 @@
 {
-  "id": "vacancy-confirm-form",
-  "schema": {
-    "type": "default",
-    "components": [
-      {
-        "type": "text",
-        "text": "## Подтверждение создания вакансии",
-        "id": "header"
+  "type": "default",
+  "components": [
+    {
+      "type": "text",
+      "text": "## Подтверждение создания вакансии",
+      "id": "header"
+    },
+    {
+      "type": "text",
+      "text": "Проверьте данные перед созданием. После подтверждения вакансия будет создана в статусе 'Черновик'.",
+      "id": "description"
+    },
+    {
+      "type": "textfield",
+      "key": "title",
+      "label": "Название",
+      "disabled": true,
+      "id": "field-title-readonly"
+    },
+    {
+      "type": "textfield",
+      "key": "city",
+      "label": "Город",
+      "disabled": true,
+      "id": "field-city-readonly"
+    },
+    {
+      "type": "textfield",
+      "key": "experienceLevel",
+      "label": "Опыт",
+      "disabled": true,
+      "id": "field-exp-readonly"
+    },
+    {
+      "type": "textfield",
+      "key": "selectedTariffId",
+      "label": "ID тарифа",
+      "disabled": true,
+      "id": "field-tariff-readonly"
+    },
+    {
+      "type": "checkbox",
+      "key": "confirmed",
+      "label": "Подтверждаю корректность данных и создаю вакансию",
+      "validate": {
+        "required": true
       },
-      {
-        "type": "text",
-        "text": "Проверьте данные перед созданием. После подтверждения вакансия будет создана в статусе 'Черновик'.",
-        "id": "description"
-      },
-      {
-        "type": "textfield",
-        "key": "title",
-        "label": "Название",
-        "disabled": true,
-        "id": "field-title-readonly"
-      },
-      {
-        "type": "textfield",
-        "key": "city",
-        "label": "Город",
-        "disabled": true,
-        "id": "field-city-readonly"
-      },
-      {
-        "type": "textfield",
-        "key": "experienceLevel",
-        "label": "Опыт",
-        "disabled": true,
-        "id": "field-exp-readonly"
-      },
-      {
-        "type": "textfield",
-        "key": "selectedTariffId",
-        "label": "ID тарифа",
-        "disabled": true,
-        "id": "field-tariff-readonly"
-      },
-      {
-        "type": "checkbox",
-        "key": "confirmed",
-        "label": "Подтверждаю корректность данных и создаю вакансию",
-        "validate": {
-          "required": true
-        },
-        "id": "field-confirmed"
-      }
-    ],
-    "id": "vacancy-confirm-form"
-  }
+      "id": "field-confirmed"
+    }
+  ],
+  "id": "vacancy-confirm-form"
 }

@@ -1,32 +1,32 @@
 {
-  "schema": {
-    "type": "default",
-    "components": [
-      {
-        "type": "text",
-        "text": "## Удаление тарифа",
-        "id": "header"
+  "type": "default",
+  "components": [
+    {
+      "type": "text",
+      "text": "## Удаление тарифа",
+      "id": "header"
+    },
+    {
+      "type": "text",
+      "text": "Внимание! Удаление тарифа необратимо. Вакансии с этим тарифом потеряют привязку.",
+      "id": "warning"
+    },
+    {
+      "type": "textfield",
+      "key": "tariffId",
+      "label": "ID тарифа",
+      "disabled": true,
+      "id": "field-tariffId"
+    },
+    {
+      "type": "checkbox",
+      "key": "deleteConfirmed",
+      "label": "Подтверждаю удаление тарифа",
+      "validate": {
+        "required": true
       },
-      {
-        "type": "text",
-        "text": "Внимание! Удаление тарифа необратимо. Вакансии с этим тарифом потеряют привязку.",
-        "id": "warning"
-      },
-      {
-        "type": "textfield",
-        "key": "tariffId",
-        "label": "ID тарифа",
-        "disabled": true,
-        "id": "field-tariffId"
-      },
-      {
-        "type": "checkbox",
-        "key": "deleteConfirmed",
-        "label": "Подтверждаю удаление тарифа",
-        "validate": { "required": true },
-        "id": "field-confirm"
-      }
-    ],
-    "id": "tariff-delete-form"
-  }
+      "id": "field-confirm"
+    }
+  ],
+  "id": "tariff-delete-form"
 }

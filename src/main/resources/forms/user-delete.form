@@ -1,35 +1,32 @@
 {
-  "id": "user-delete-form",
-  "schema": {
-    "type": "default",
-    "components": [
-      {
-        "type": "text",
-        "text": "## Удаление пользователя (ADMIN)",
-        "id": "header"
+  "type": "default",
+  "components": [
+    {
+      "type": "text",
+      "text": "## Удаление пользователя (ADMIN)",
+      "id": "header"
+    },
+    {
+      "type": "text",
+      "text": "Внимание! Удаление пользователя необратимо. Все вакансии пользователя также будут удалены.",
+      "id": "warning"
+    },
+    {
+      "type": "textfield",
+      "key": "targetUserId",
+      "label": "ID пользователя для удаления",
+      "disabled": true,
+      "id": "field-targetUserId"
+    },
+    {
+      "type": "checkbox",
+      "key": "deleteConfirmed",
+      "label": "Подтверждаю удаление пользователя и всех его данных",
+      "validate": {
+        "required": true
       },
-      {
-        "type": "text",
-        "text": "Внимание! Удаление пользователя необратимо. Все вакансии пользователя также будут удалены.",
-        "id": "warning"
-      },
-      {
-        "type": "textfield",
-        "key": "targetUserId",
-        "label": "ID пользователя для удаления",
-        "disabled": true,
-        "id": "field-targetUserId"
-      },
-      {
-        "type": "checkbox",
-        "key": "deleteConfirmed",
-        "label": "Подтверждаю удаление пользователя и всех его данных",
-        "validate": {
-          "required": true
-        },
-        "id": "field-confirm"
-      }
-    ],
-    "id": "user-delete-form"
-  }
+      "id": "field-confirm"
+    }
+  ],
+  "id": "user-delete-form"
 }

@@ -1,15 +1,15 @@
 {
-  "schema": {
-    "type": "default",
-    "components": [
-      {
-        "type": "textfield",
-        "key": "tariffId",
-        "label": "ID тарифа (UUID)",
-        "validate": { "required": true },
-        "id": "field-tariffId"
-      }
-    ],
-    "id": "tariff-id-input-form"
-  }
+  "type": "default",
+  "components": [
+    {
+      "type": "textfield",
+      "key": "tariffId",
+      "label": "ID тарифа (UUID)",
+      "validate": {
+        "required": true
+      },
+      "id": "field-tariffId"
+    }
+  ],
+  "id": "tariff-id-input-form"
 }
