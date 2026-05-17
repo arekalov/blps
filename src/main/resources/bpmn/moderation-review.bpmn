@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+             targetNamespace="http://bpmn.io/schema/bpmn"
+             id="moderation-review-definitions">
+
+  <process id="moderation-review" name="[POST] Модерировать вакансию" isExecutable="true"
+           camunda:historyTimeToLive="180" camunda:candidateStarterGroups="MODERATOR,ADMIN">
+
+    <startEvent id="start"><outgoing>flow-0</outgoing></startEvent>
+
+    <serviceTask id="task-set-mode" name="Подготовка"
+                 camunda:expression="${execution.setVariable(&#39;pickerMode&#39;, &#39;PENDING&#39;)}">
+      <incoming>flow-0</incoming><outgoing>flow-1</outgoing>
+    </serviceTask>
+
+    <serviceTask id="task-picker" name="Очередь модерации"
+                 camunda:delegateExpression="${vacancyPickerDelegate}">
+      <incoming>flow-1</incoming><outgoing>flow-2</outgoing>
+    </serviceTask>
+
+    <userTask id="task-pick" name="Выбрать вакансию"
+              camunda:formKey="camunda-forms:deployment:forms/vacancy-picker.form"
+              camunda:candidateGroups="MODERATOR,ADMIN">
+      <incoming>flow-2</incoming><outgoing>flow-3</outgoing>
+    </userTask>
+
+    <serviceTask id="task-load-details" name="Загрузить данные"
+                 camunda:delegateExpression="${vacancyLoadDetailsDelegate}">
+      <incoming>flow-3</incoming><outgoing>flow-4</outgoing>
+    </serviceTask>
+
+    <serviceTask id="task-prepare-moderator" name="Модератор"
+                 camunda:delegateExpression="${moderationReviewPrepareDelegate}">
+      <incoming>flow-4</incoming><outgoing>flow-5</outgoing>
+    </serviceTask>
+
+    <userTask id="task-moderate" name="Решение"
+              camunda:formKey="camunda-forms:deployment:forms/moderation.form"
+              camunda:candidateGroups="MODERATOR,ADMIN">
+      <incoming>flow-5</incoming><outgoing>flow-6</outgoing>
+    </userTask>
+
+    <exclusiveGateway id="gw-decision" name="Решение?">
+      <incoming>flow-6</incoming>
+      <outgoing>flow-approve</outgoing>
+      <outgoing>flow-reject</outgoing>
+    </exclusiveGateway>
+
+    <serviceTask id="task-approve" name="Одобрить"
+                 camunda:delegateExpression="${moderationApproveDelegate}">
+      <incoming>flow-approve</incoming><outgoing>flow-7a</outgoing>
+    </serviceTask>
+
+    <serviceTask id="task-reject" name="Отклонить"
+                 camunda:delegateExpression="${moderationRejectDelegate}">
+      <incoming>flow-reject</incoming><outgoing>flow-7b</outgoing>
+    </serviceTask>
+
+    <userTask id="task-result" name="Результат"
+              camunda:formKey="camunda-forms:deployment:forms/vacancy-result.form"
+              camunda:candidateGroups="MODERATOR,ADMIN">
+      <incoming>flow-7a</incoming>
+      <incoming>flow-7b</incoming>
+      <outgoing>flow-8</outgoing>
+    </userTask>
+
+    <endEvent id="end"><incoming>flow-8</incoming></endEvent>
+
+    <sequenceFlow id="flow-0" sourceRef="start" targetRef="task-set-mode"/>
+    <sequenceFlow id="flow-1" sourceRef="task-set-mode" targetRef="task-picker"/>
+    <sequenceFlow id="flow-2" sourceRef="task-picker" targetRef="task-pick"/>
+    <sequenceFlow id="flow-3" sourceRef="task-pick" targetRef="task-load-details"/>
+    <sequenceFlow id="flow-4" sourceRef="task-load-details" targetRef="task-prepare-moderator"/>
+    <sequenceFlow id="flow-5" sourceRef="task-prepare-moderator" targetRef="task-moderate"/>
+    <sequenceFlow id="flow-6" sourceRef="task-moderate" targetRef="gw-decision"/>
+    <sequenceFlow id="flow-approve" name="одобрить" sourceRef="gw-decision" targetRef="task-approve">
+      <conditionExpression xsi:type="tFormalExpression">${moderationAction == 'APPROVE'}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow-reject" name="отклонить" sourceRef="gw-decision" targetRef="task-reject">
+      <conditionExpression xsi:type="tFormalExpression">${moderationAction == 'REJECT'}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow-7a" sourceRef="task-approve" targetRef="task-result"/>
+    <sequenceFlow id="flow-7b" sourceRef="task-reject" targetRef="task-result"/>
+    <sequenceFlow id="flow-8" sourceRef="task-result" targetRef="end"/>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_moderation-review">
+    <bpmndi:BPMNPlane id="BPMNPlane_moderation-review" bpmnElement="moderation-review">
+      <bpmndi:BPMNShape id="start_di" bpmnElement="start"><omgdc:Bounds x="152" y="100" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-set-mode_di" bpmnElement="task-set-mode"><omgdc:Bounds x="240" y="78" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-picker_di" bpmnElement="task-picker"><omgdc:Bounds x="460" y="78" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-pick_di" bpmnElement="task-pick"><omgdc:Bounds x="680" y="78" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-load-details_di" bpmnElement="task-load-details"><omgdc:Bounds x="900" y="78" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-prepare-moderator_di" bpmnElement="task-prepare-moderator"><omgdc:Bounds x="1120" y="78" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-moderate_di" bpmnElement="task-moderate"><omgdc:Bounds x="1340" y="78" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-decision_di" bpmnElement="gw-decision" isMarkerVisible="true"><omgdc:Bounds x="1560" y="93" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-approve_di" bpmnElement="task-approve"><omgdc:Bounds x="1670" y="60" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-reject_di" bpmnElement="task-reject"><omgdc:Bounds x="1670" y="200" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-result_di" bpmnElement="task-result"><omgdc:Bounds x="1890" y="78" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_di" bpmnElement="end"><omgdc:Bounds x="2110" y="100" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow-0_di" bpmnElement="flow-0">
+        <omgdi:waypoint x="188" y="118"/><omgdi:waypoint x="240" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-1_di" bpmnElement="flow-1">
+        <omgdi:waypoint x="400" y="118"/><omgdi:waypoint x="460" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-2_di" bpmnElement="flow-2">
+        <omgdi:waypoint x="620" y="118"/><omgdi:waypoint x="680" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-3_di" bpmnElement="flow-3">
+        <omgdi:waypoint x="840" y="118"/><omgdi:waypoint x="900" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-4_di" bpmnElement="flow-4">
+        <omgdi:waypoint x="1060" y="118"/><omgdi:waypoint x="1120" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-5_di" bpmnElement="flow-5">
+        <omgdi:waypoint x="1280" y="118"/><omgdi:waypoint x="1340" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-6_di" bpmnElement="flow-6">
+        <omgdi:waypoint x="1500" y="118"/><omgdi:waypoint x="1560" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-approve_di" bpmnElement="flow-approve">
+        <omgdi:waypoint x="1610" y="118"/><omgdi:waypoint x="1670" y="100"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-reject_di" bpmnElement="flow-reject">
+        <omgdi:waypoint x="1610" y="118"/><omgdi:waypoint x="1670" y="240"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-7a_di" bpmnElement="flow-7a">
+        <omgdi:waypoint x="1830" y="100"/><omgdi:waypoint x="1890" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-7b_di" bpmnElement="flow-7b">
+        <omgdi:waypoint x="1830" y="240"/><omgdi:waypoint x="1890" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-8_di" bpmnElement="flow-8">
+        <omgdi:waypoint x="2050" y="118"/><omgdi:waypoint x="2110" y="118"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

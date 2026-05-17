@@ -34,9 +34,24 @@ if [[ ! -x "$WILDFLY_HOME/bin/standalone.sh" ]]; then
 	exit 1
 fi
 
-echo "Building WAR..."
+echo "Building WAR (clean)..."
 cd "$PROJECT_ROOT"
-./gradlew bootWar
+./gradlew clean bootWar
+
+WAR="$PROJECT_ROOT/build/libs/blps.war"
+if ! unzip -p "$WAR" WEB-INF/classes/bpmn/tariff-list.bpmn | grep -q 'BPMNEdge'; then
+	echo "Ошибка: в WAR нет BPMNEdge в tariff-list.bpmn — сборка устарела." >&2
+	exit 1
+fi
+if unzip -p "$WAR" WEB-INF/classes/bpmn/tariff-list.bpmn | grep -q 'embedded:.*:forms'; then
+	echo "Ошибка: в WAR formKey с embedded: — для .form нужен camunda-forms:deployment." >&2
+	exit 1
+fi
+if ! unzip -p "$WAR" WEB-INF/classes/bpmn/tariff-list.bpmn | grep -q 'camunda-forms:deployment:forms/'; then
+	echo "Ошибка: в WAR нет camunda-forms:deployment в tariff-list.bpmn." >&2
+	exit 1
+fi
+echo "WAR OK: BPMNEdge + camunda-forms:deployment в tariff-list.bpmn"
 
 echo "Stopping WildFly..."
 pkill -f "jboss-modules.jar" 2>/dev/null || true
@@ -56,7 +71,8 @@ shopt -u nullglob
 echo "Copying WAR to $DEPLOY_DIR ..."
 cp "$PROJECT_ROOT/build/libs/blps.war" "$DEPLOY_DIR/"
 
-echo "Starting WildFly..."
+echo "Starting WildFly (profile: wildfly)..."
 trap "pkill -f 'jboss-modules.jar'; exit 0" INT TERM
 
+export JAVA_OPTS="${JAVA_OPTS:-} -Dspring.profiles.active=wildfly"
 "$WILDFLY_HOME/bin/standalone.sh"

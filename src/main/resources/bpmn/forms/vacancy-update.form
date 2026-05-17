@@ -1,0 +1,49 @@
+{
+  "schema": {
+    "type": "default",
+    "components": [
+      {
+        "type": "text",
+        "text": "Заполните только поля, которые нужно изменить.",
+        "id": "hint"
+      },
+      {
+        "type": "textfield",
+        "key": "title",
+        "label": "Название",
+        "id": "field-title"
+      },
+      {
+        "type": "textarea",
+        "key": "description",
+        "label": "Описание",
+        "id": "field-description"
+      },
+      {
+        "type": "textfield",
+        "key": "city",
+        "label": "Город",
+        "id": "field-city"
+      },
+      {
+        "type": "textfield",
+        "key": "salaryFrom",
+        "label": "Зарплата от",
+        "id": "field-salaryFrom"
+      },
+      {
+        "type": "textfield",
+        "key": "salaryTo",
+        "label": "Зарплата до",
+        "id": "field-salaryTo"
+      },
+      {
+        "type": "textfield",
+        "key": "additionalSkills",
+        "label": "Навыки (через запятую)",
+        "id": "field-skills"
+      }
+    ],
+    "id": "vacancy-update-form"
+  }
+}

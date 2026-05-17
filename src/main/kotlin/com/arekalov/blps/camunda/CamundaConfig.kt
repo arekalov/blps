@@ -1,7 +1,6 @@
 package com.arekalov.blps.camunda
 
 import org.camunda.bpm.engine.impl.cfg.ProcessEnginePlugin
-import org.camunda.bpm.engine.impl.identity.ReadOnlyIdentityProvider
 import org.camunda.bpm.engine.spring.SpringProcessEngineConfiguration
 import org.camunda.bpm.spring.boot.starter.configuration.impl.AbstractCamundaConfiguration
 import org.springframework.context.annotation.Bean

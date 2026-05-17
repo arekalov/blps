@@ -17,13 +17,6 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-  swagger-ui:
-    enabled: false
-  paths-to-match: /api/v1/**
-
 camunda.bpm:
   filter:
     create: All Tasks

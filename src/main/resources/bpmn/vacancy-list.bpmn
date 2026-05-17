@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+             targetNamespace="http://bpmn.io/schema/bpmn"
+             id="vacancy-list-definitions">
+  <process id="vacancy-list" name="[GET] Список вакансий" isExecutable="true" camunda:historyTimeToLive="180">
+
+    <startEvent id="start">
+      <outgoing>flow-0</outgoing>
+    </startEvent>
+    <userTask id="task-query" name="Параметры списка"
+              camunda:formKey="camunda-forms:deployment:forms/vacancy-list-query.form">
+      <incoming>flow-0</incoming>
+      <outgoing>flow-1</outgoing>
+    </userTask>
+    <serviceTask id="task-load" name="Загрузить список"
+                 camunda:delegateExpression="${vacancyListLoadDelegate}">
+      <incoming>flow-1</incoming>
+      <outgoing>flow-2</outgoing>
+    </serviceTask>
+    <userTask id="task-result" name="Просмотр списка"
+              camunda:formKey="camunda-forms:deployment:forms/result-display.form">
+      <incoming>flow-2</incoming>
+      <outgoing>flow-3</outgoing>
+    </userTask>
+    <endEvent id="end">
+      <incoming>flow-3</incoming>
+    </endEvent>
+
+    <sequenceFlow id="flow-0" sourceRef="start" targetRef="task-query"/>
+    <sequenceFlow id="flow-1" sourceRef="task-query" targetRef="task-load"/>
+    <sequenceFlow id="flow-2" sourceRef="task-load" targetRef="task-result"/>
+    <sequenceFlow id="flow-3" sourceRef="task-result" targetRef="end"/>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_vacancy-list">
+    <bpmndi:BPMNPlane id="BPMNPlane_vacancy-list" bpmnElement="vacancy-list">
+      <bpmndi:BPMNShape id="start_di" bpmnElement="start"><omgdc:Bounds x="152" y="100" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-query_di" bpmnElement="task-query"><omgdc:Bounds x="240" y="78" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-load_di" bpmnElement="task-load"><omgdc:Bounds x="460" y="78" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-result_di" bpmnElement="task-result"><omgdc:Bounds x="680" y="78" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_di" bpmnElement="end"><omgdc:Bounds x="900" y="100" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow-0_di" bpmnElement="flow-0">
+        <omgdi:waypoint x="188" y="118"/><omgdi:waypoint x="240" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-1_di" bpmnElement="flow-1">
+        <omgdi:waypoint x="400" y="118"/><omgdi:waypoint x="460" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-2_di" bpmnElement="flow-2">
+        <omgdi:waypoint x="620" y="118"/><omgdi:waypoint x="680" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-3_di" bpmnElement="flow-3">
+        <omgdi:waypoint x="840" y="118"/><omgdi:waypoint x="900" y="118"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

@@ -2,63 +2,27 @@ spring:
   application:
     name: blps
   
-  # Профиль по умолчанию для локальной разработки
+  # Профиль по умолчанию для локальной разработки (WildFly: wildfly, тесты: test/verify)
   profiles:
     active: dev
   
-  # DataSource configuration for WildFly JNDI
-  datasource:
-    jndi-name: java:jboss/datasources/BlpsDS
-  
-  # Включаем выброс исключения для несуществующих эндпоинтов
-  web:
-    resources:
-      add-mappings: false
-  mvc:
-    throw-exception-if-no-handler-found: true
-  # Jersey (Camunda engine-rest): иначе по умолчанию /* и перехватывает DispatcherServlet — REST /api/v1/* даёт 404
+  # Jersey (Camunda engine-rest)
   jersey:
     application-path: /engine-rest
     # Camunda engine-rest: на строгой Jersey (WildFly) валидация модели даёт ложные FATAL на history API
     init:
       jersey.config.server.resource.validation.disable: "true"
 
-  # JPA настройки для WildFly JTA
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        jdbc:
-          time_zone: UTC
-        transaction:
-          jta:
-            platform: org.hibernate.engine.transaction.jta.platform.internal.JBossAppServerJtaPlatform
-  
-  # Flyway настройки
-  flyway:
-    enabled: true
-    baseline-on-migrate: true
-    locations: classpath:db/migration
-    validate-on-migrate: true
-
 # Настройки сервера
 server:
+  servlet:
+    # Должен совпадать с jboss-web.xml <context-root> — иначе Tasklist не резолвит embedded-формы
+    context-path: /blps
   compression:
     enabled: true
   error:
     include-message: always
     include-binding-errors: always
-
-# OpenAPI настройки (общие)
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-  writer-with-default-pretty-printer: true
-  paths-to-match: /api/v1/**
 
 # Настройки логирования (общие)
 logging:
@@ -70,13 +34,18 @@ camunda.bpm:
   # Вход в Tasklist — email/пароль пользователя из БД (см. blps.bootstrap).
   filter:
     create: All Tasks
+  # Полный редеплой BPMN при каждом старте (иначе в БД остаётся v2 без BPMNEdge)
+  deploy-changed-only: false
+  enable-duplicate-filtering: false
   generic-properties:
     properties:
       historyTimeToLive: P180D
   database:
     schema-update: true
-  deployment-resource-pattern: classpath*:bpmn/*.bpmn
+  # BPMN+forms деплоятся в BlpsCamundaDeploymentConfig (один deployment, имена forms/…)
+  auto-deployment-enabled: false
   webapp:
+    # По умолчанию /camunda → на WildFly: /blps/camunda/app/... (НЕ менять на /blps — сломает webapp)
     index-redirect-enabled: true
 
 blps:

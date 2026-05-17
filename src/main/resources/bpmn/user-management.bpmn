@@ -8,14 +8,14 @@
              targetNamespace="http://bpmn.io/schema/bpmn"
              id="user-management-definitions">
 
-  <process id="user-management" name="Управление пользователями" isExecutable="true" camunda:historyTimeToLive="180">
+  <process id="user-management" name="[PATCH/DELETE] Управление профилем" isExecutable="true" camunda:historyTimeToLive="180">
 
     <startEvent id="start" name="Управление пользователями">
       <outgoing>flow-start-to-action</outgoing>
     </startEvent>
 
     <userTask id="task-choose-action" name="Выбрать действие с профилем"
-              camunda:formKey="embedded:app:forms/user-action.form"
+              camunda:formKey="camunda-forms:deployment:forms/user-action.form"
               camunda:candidateGroups="EMPLOYER,MODERATOR,ADMIN">
       <incoming>flow-start-to-action</incoming>
       <outgoing>flow-action-to-gw</outgoing>
@@ -29,7 +29,7 @@
 
     <!-- EDIT branch -->
     <userTask id="task-edit-form" name="Редактировать профиль пользователя"
-              camunda:formKey="embedded:app:forms/user-edit.form"
+              camunda:formKey="camunda-forms:deployment:forms/user-edit.form"
               camunda:candidateGroups="EMPLOYER,MODERATOR,ADMIN">
       <incoming>flow-action-edit</incoming>
       <outgoing>flow-edit-form-to-service</outgoing>
@@ -43,7 +43,7 @@
 
     <!-- DELETE branch — только ADMIN -->
     <userTask id="task-delete-confirm" name="Подтвердить удаление пользователя (ADMIN)"
-              camunda:formKey="embedded:app:forms/user-delete.form"
+              camunda:formKey="camunda-forms:deployment:forms/user-delete.form"
               camunda:candidateGroups="ADMIN">
       <incoming>flow-action-delete</incoming>
       <outgoing>flow-delete-confirm-to-service</outgoing>

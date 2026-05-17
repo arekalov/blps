@@ -42,8 +42,6 @@ dependencies {
 	implementation("org.flywaydb:flyway-core")
 	implementation("org.flywaydb:flyway-database-postgresql")
 
-	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
-
 	// Camunda 7.22 — Spring Boot 3 / Jakarta EE 10 (WildFly 39)
 	implementation("org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-webapp:7.22.0") {
 		exclude(group = "org.glassfish.hk2", module = "hk2")
@@ -97,12 +95,6 @@ tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
 
 tasks.named("check") {
 	setDependsOn(dependsOn.filterNot { (it as? TaskProvider<*>)?.name == "detekt" })
-}
-
-tasks.register<Exec>("generateOpenApi") {
-	group = "documentation"
-	description = "Generate OpenAPI specification from running application"
-	commandLine("bash", "scripts/generate-openapi.sh")
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootWar>("bootWar") {

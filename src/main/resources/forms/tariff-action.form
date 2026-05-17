@@ -1,0 +1,43 @@
+{
+  "id": "tariff-action-form",
+  "schema": {
+    "type": "default",
+    "components": [
+      {
+        "type": "text",
+        "text": "## Управление тарифами",
+        "id": "header"
+      },
+      {
+        "type": "select",
+        "key": "tariffAction",
+        "label": "Выберите действие",
+        "validate": {
+          "required": true
+        },
+        "values": [
+          {
+            "value": "CREATE",
+            "label": "Создать новый тариф"
+          },
+          {
+            "value": "EDIT",
+            "label": "Редактировать тариф"
+          },
+          {
+            "value": "DELETE",
+            "label": "Удалить тариф"
+          }
+        ],
+        "id": "field-tariffAction"
+      },
+      {
+        "type": "textfield",
+        "key": "tariffId",
+        "label": "ID тарифа (для редактирования/удаления)",
+        "id": "field-tariffId"
+      }
+    ],
+    "id": "tariff-action-form"
+  }
+}

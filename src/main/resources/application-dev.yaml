@@ -25,20 +25,20 @@ spring:
 
 server:
   port: 8080
-
-springdoc:
-  swagger-ui:
-    enabled: true
+  servlet:
+    context-path: /blps
 
 camunda.bpm:
   filter:
     create: All Tasks
+  # Каждый рестарт — полный редеплой (иначе Cockpit может показывать старую v1 без диаграмм)
+  deploy-changed-only: false
   generic-properties:
     properties:
       historyTimeToLive: P180D
   database:
     schema-update: true
-  deployment-resource-pattern: classpath*:bpmn/*.bpmn
+  auto-deployment-enabled: false
 
 logging:
   level:

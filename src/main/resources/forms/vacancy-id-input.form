@@ -1,0 +1,18 @@
+{
+  "id": "vacancy-id-input-form",
+  "schema": {
+    "type": "default",
+    "components": [
+      {
+        "type": "textfield",
+        "key": "vacancyId",
+        "label": "ID вакансии (UUID)",
+        "validate": {
+          "required": true
+        },
+        "id": "field-vacancyId"
+      }
+    ],
+    "id": "vacancy-id-input-form"
+  }
+}

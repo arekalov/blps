@@ -24,6 +24,7 @@ spring:
     enabled: false
 
 camunda.bpm:
+  auto-deployment-enabled: false
   generic-properties:
     properties:
       enforceHistoryTimeToLive: false

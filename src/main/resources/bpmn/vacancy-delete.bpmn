@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+             targetNamespace="http://bpmn.io/schema/bpmn"
+             id="vacancy-delete-definitions">
+
+  <process id="vacancy-delete" name="[DELETE] Удалить вакансию" isExecutable="true"
+           camunda:historyTimeToLive="180" camunda:candidateStarterGroups="EMPLOYER,ADMIN">
+
+    <startEvent id="start"><outgoing>flow-0</outgoing></startEvent>
+
+    <serviceTask id="task-set-mode" name="Подготовка"
+                 camunda:expression="${execution.setVariable(&#39;pickerMode&#39;, &#39;MY&#39;)}">
+      <incoming>flow-0</incoming><outgoing>flow-1</outgoing>
+    </serviceTask>
+
+    <serviceTask id="task-picker" name="Список вакансий"
+                 camunda:delegateExpression="${vacancyPickerDelegate}">
+      <incoming>flow-1</incoming><outgoing>flow-2</outgoing>
+    </serviceTask>
+
+    <userTask id="task-pick" name="Выбрать вакансию"
+              camunda:formKey="camunda-forms:deployment:forms/vacancy-picker.form"
+              camunda:candidateGroups="EMPLOYER,ADMIN">
+      <incoming>flow-2</incoming><outgoing>flow-3</outgoing>
+    </userTask>
+
+    <userTask id="task-confirm" name="Подтверждение"
+              camunda:formKey="camunda-forms:deployment:forms/vacancy-delete-confirm.form"
+              camunda:candidateGroups="EMPLOYER,ADMIN">
+      <incoming>flow-3</incoming><outgoing>flow-4</outgoing>
+    </userTask>
+
+    <serviceTask id="task-delete" name="Удалить"
+                 camunda:delegateExpression="${vacancyDeleteDelegate}">
+      <incoming>flow-4</incoming><outgoing>flow-5</outgoing>
+    </serviceTask>
+
+    <userTask id="task-result" name="Результат"
+              camunda:formKey="camunda-forms:deployment:forms/result-display.form"
+              camunda:candidateGroups="EMPLOYER,ADMIN">
+      <incoming>flow-5</incoming><outgoing>flow-6</outgoing>
+    </userTask>
+
+    <endEvent id="end"><incoming>flow-6</incoming></endEvent>
+
+    <sequenceFlow id="flow-0" sourceRef="start" targetRef="task-set-mode"/>
+    <sequenceFlow id="flow-1" sourceRef="task-set-mode" targetRef="task-picker"/>
+    <sequenceFlow id="flow-2" sourceRef="task-picker" targetRef="task-pick"/>
+    <sequenceFlow id="flow-3" sourceRef="task-pick" targetRef="task-confirm"/>
+    <sequenceFlow id="flow-4" sourceRef="task-confirm" targetRef="task-delete"/>
+    <sequenceFlow id="flow-5" sourceRef="task-delete" targetRef="task-result"/>
+    <sequenceFlow id="flow-6" sourceRef="task-result" targetRef="end"/>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_vacancy-delete">
+    <bpmndi:BPMNPlane id="BPMNPlane_vacancy-delete" bpmnElement="vacancy-delete">
+      <bpmndi:BPMNShape id="start_di" bpmnElement="start"><omgdc:Bounds x="152" y="100" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-set-mode_di" bpmnElement="task-set-mode"><omgdc:Bounds x="240" y="78" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-picker_di" bpmnElement="task-picker"><omgdc:Bounds x="460" y="78" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-pick_di" bpmnElement="task-pick"><omgdc:Bounds x="680" y="78" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-confirm_di" bpmnElement="task-confirm"><omgdc:Bounds x="900" y="78" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-delete_di" bpmnElement="task-delete"><omgdc:Bounds x="1120" y="78" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-result_di" bpmnElement="task-result"><omgdc:Bounds x="1340" y="78" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_di" bpmnElement="end"><omgdc:Bounds x="1560" y="100" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow-0_di" bpmnElement="flow-0">
+        <omgdi:waypoint x="188" y="118"/><omgdi:waypoint x="240" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-1_di" bpmnElement="flow-1">
+        <omgdi:waypoint x="400" y="118"/><omgdi:waypoint x="460" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-2_di" bpmnElement="flow-2">
+        <omgdi:waypoint x="620" y="118"/><omgdi:waypoint x="680" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-3_di" bpmnElement="flow-3">
+        <omgdi:waypoint x="840" y="118"/><omgdi:waypoint x="900" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-4_di" bpmnElement="flow-4">
+        <omgdi:waypoint x="1060" y="118"/><omgdi:waypoint x="1120" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-5_di" bpmnElement="flow-5">
+        <omgdi:waypoint x="1280" y="118"/><omgdi:waypoint x="1340" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-6_di" bpmnElement="flow-6">
+        <omgdi:waypoint x="1500" y="118"/><omgdi:waypoint x="1560" y="118"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

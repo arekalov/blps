@@ -1,0 +1,33 @@
+# Профиль для локальной проверки Camunda-деплоя без WildFly
+spring:
+  jersey:
+    application-path: /engine-rest
+  datasource:
+    url: jdbc:h2:mem:blps_verify;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        transaction.jta.platform: org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform
+  flyway:
+    enabled: false
+
+server:
+  servlet:
+    context-path: /blps
+
+camunda.bpm:
+  auto-deployment-enabled: false
+  deploy-changed-only: false
+  enable-duplicate-filtering: false
+  generic-properties:
+    properties:
+      enforceHistoryTimeToLive: false
+  database:
+    type: h2
+    schema-update: true

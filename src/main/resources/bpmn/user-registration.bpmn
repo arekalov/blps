@@ -8,14 +8,14 @@
              targetNamespace="http://bpmn.io/schema/bpmn"
              id="user-registration-definitions">
 
-  <process id="user-registration" name="Регистрация пользователя" isExecutable="true" camunda:historyTimeToLive="180">
+  <process id="user-registration" name="[POST] Регистрация пользователя" isExecutable="true" camunda:historyTimeToLive="180">
 
     <startEvent id="start" name="Начало регистрации">
       <outgoing>flow-start-to-form</outgoing>
     </startEvent>
 
     <userTask id="task-fill-register" name="Заполнить форму регистрации"
-              camunda:formKey="embedded:app:forms/register.form">
+              camunda:formKey="camunda-forms:deployment:forms/register.form">
       <incoming>flow-start-to-form</incoming>
       <outgoing>flow-form-to-register</outgoing>
     </userTask>

@@ -8,14 +8,14 @@
              targetNamespace="http://bpmn.io/schema/bpmn"
              id="tariff-management-definitions">
 
-  <process id="tariff-management" name="Управление тарифами (ADMIN)" isExecutable="true" camunda:historyTimeToLive="180">
+  <process id="tariff-management" name="[POST/PUT/DELETE] Управление тарифами" isExecutable="true" camunda:historyTimeToLive="180">
 
     <startEvent id="start" name="Управление тарифами">
       <outgoing>flow-start-to-action</outgoing>
     </startEvent>
 
     <userTask id="task-choose-action" name="Выбрать действие с тарифом"
-              camunda:formKey="embedded:app:forms/tariff-action.form"
+              camunda:formKey="camunda-forms:deployment:forms/tariff-action.form"
               camunda:candidateGroups="ADMIN">
       <incoming>flow-start-to-action</incoming>
       <outgoing>flow-action-to-gw</outgoing>
@@ -30,7 +30,7 @@
 
     <!-- CREATE branch -->
     <userTask id="task-create-form" name="Заполнить форму создания тарифа"
-              camunda:formKey="embedded:app:forms/tariff-create.form"
+              camunda:formKey="camunda-forms:deployment:forms/tariff-create.form"
               camunda:candidateGroups="ADMIN">
       <incoming>flow-action-create</incoming>
       <outgoing>flow-create-form-to-service</outgoing>
@@ -44,7 +44,7 @@
 
     <!-- EDIT branch -->
     <userTask id="task-edit-form" name="Редактировать тариф"
-              camunda:formKey="embedded:app:forms/tariff-edit.form"
+              camunda:formKey="camunda-forms:deployment:forms/tariff-edit.form"
               camunda:candidateGroups="ADMIN">
       <incoming>flow-action-edit</incoming>
       <outgoing>flow-edit-form-to-service</outgoing>
@@ -58,7 +58,7 @@
 
     <!-- DELETE branch -->
     <userTask id="task-delete-confirm" name="Подтвердить удаление тарифа"
-              camunda:formKey="embedded:app:forms/tariff-delete.form"
+              camunda:formKey="camunda-forms:deployment:forms/tariff-delete.form"
               camunda:candidateGroups="ADMIN">
       <incoming>flow-action-delete</incoming>
       <outgoing>flow-delete-confirm-to-service</outgoing>

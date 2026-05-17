@@ -1,0 +1,47 @@
+{
+  "schema": {
+    "type": "default",
+    "components": [
+      {
+        "type": "text",
+        "text": "## Параметры списка вакансий",
+        "id": "header"
+      },
+      {
+        "type": "checkbox",
+        "key": "my",
+        "label": "Только мои вакансии (требуется вход)",
+        "id": "field-my"
+      },
+      {
+        "type": "select",
+        "key": "status",
+        "label": "Статус (необязательно)",
+        "values": [
+          { "value": "", "label": "Любой" },
+          { "value": "DRAFT", "label": "Черновик" },
+          { "value": "PENDING_MODERATION", "label": "На модерации" },
+          { "value": "PUBLISHED", "label": "Опубликована" },
+          { "value": "REJECTED", "label": "Отклонена" },
+          { "value": "ARCHIVED", "label": "В архиве" }
+        ],
+        "id": "field-status"
+      },
+      {
+        "type": "number",
+        "key": "page",
+        "label": "Страница (с 0)",
+        "defaultValue": 0,
+        "id": "field-page"
+      },
+      {
+        "type": "number",
+        "key": "size",
+        "label": "Размер страницы",
+        "defaultValue": 20,
+        "id": "field-size"
+      }
+    ],
+    "id": "vacancy-list-query-form"
+  }
+}
