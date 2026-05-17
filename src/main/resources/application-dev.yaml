@@ -1,6 +1,10 @@
 # Development Profile - для локальной разработки с Neon DB
 
 spring:
+  jersey:
+    application-path: /engine-rest
+    init:
+      jersey.config.server.resource.validation.disable: "true"
   datasource:
     url: jdbc:postgresql://ep-cold-pond-aiwpwa1w-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require
     username: neondb_owner
@@ -26,6 +30,16 @@ springdoc:
   swagger-ui:
     enabled: true
 
+camunda.bpm:
+  filter:
+    create: All Tasks
+  generic-properties:
+    properties:
+      historyTimeToLive: P180D
+  database:
+    schema-update: true
+  deployment-resource-pattern: classpath*:bpmn/*.bpmn
+
 logging:
   level:
     root: INFO
@@ -38,5 +52,6 @@ logging:
     org.hibernate: INFO
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.camunda: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

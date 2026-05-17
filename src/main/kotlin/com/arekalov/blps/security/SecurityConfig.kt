@@ -18,7 +18,7 @@ import org.springframework.security.web.SecurityFilterChain
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 class SecurityConfig(
     private val customAuthenticationEntryPoint: CustomAuthenticationEntryPoint,
     private val customAccessDeniedHandler: CustomAccessDeniedHandler,
@@ -48,7 +48,7 @@ class SecurityConfig(
         http
             .csrf { it.disable() }
             .cors { cors ->
-                cors.configurationSource { request ->
+                cors.configurationSource { _ ->
                     val config = org.springframework.web.cors.CorsConfiguration()
                     config.allowedOriginPatterns = listOf("*")
                     config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
@@ -68,14 +68,15 @@ class SecurityConfig(
                         "/swagger-ui.html",
                         "/swagger-ui/**",
                     ).permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/tariffs/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/vacancies", "/api/v1/vacancies/{id}").permitAll()
+                    // Camunda Tasklist, Cockpit, REST API — handled by Camunda's own auth
                     .requestMatchers(
-                        HttpMethod.GET,
-                        "/api/v1/tariffs/**",
-                    ).permitAll()
-                    .requestMatchers(
-                        HttpMethod.GET,
-                        "/api/v1/vacancies",
-                        "/api/v1/vacancies/{id}",
+                        "/camunda/**",
+                        "/engine-rest/**",
+                        "/app/**",
+                        "/api/**",
+                        "/lib/**",
                     ).permitAll()
                     .anyRequest().authenticated()
             }

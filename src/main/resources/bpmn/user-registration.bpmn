@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+             targetNamespace="http://bpmn.io/schema/bpmn"
+             id="user-registration-definitions">
+
+  <process id="user-registration" name="Регистрация пользователя" isExecutable="true" camunda:historyTimeToLive="180">
+
+    <startEvent id="start" name="Начало регистрации">
+      <outgoing>flow-start-to-form</outgoing>
+    </startEvent>
+
+    <userTask id="task-fill-register" name="Заполнить форму регистрации"
+              camunda:formKey="embedded:app:forms/register.form">
+      <incoming>flow-start-to-form</incoming>
+      <outgoing>flow-form-to-register</outgoing>
+    </userTask>
+
+    <serviceTask id="task-register-user" name="Зарегистрировать пользователя"
+                 camunda:delegateExpression="${registerDelegate}">
+      <incoming>flow-form-to-register</incoming>
+      <outgoing>flow-register-to-end</outgoing>
+    </serviceTask>
+
+    <endEvent id="end" name="Пользователь зарегистрирован">
+      <incoming>flow-register-to-end</incoming>
+    </endEvent>
+
+    <sequenceFlow id="flow-start-to-form" sourceRef="start" targetRef="task-fill-register"/>
+    <sequenceFlow id="flow-form-to-register" sourceRef="task-fill-register" targetRef="task-register-user"/>
+    <sequenceFlow id="flow-register-to-end" sourceRef="task-register-user" targetRef="end"/>
+
+  </process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_user-registration">
+    <bpmndi:BPMNPlane id="BPMNPlane_user-registration" bpmnElement="user-registration">
+      <bpmndi:BPMNShape id="start_di" bpmnElement="start">
+        <omgdc:Bounds x="152" y="82" width="36" height="36"/>
+        <bpmndi:BPMNLabel><omgdc:Bounds x="135" y="125" width="71" height="27"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-fill-register_di" bpmnElement="task-fill-register">
+        <omgdc:Bounds x="240" y="60" width="180" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-register-user_di" bpmnElement="task-register-user">
+        <omgdc:Bounds x="480" y="60" width="180" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_di" bpmnElement="end">
+        <omgdc:Bounds x="722" y="82" width="36" height="36"/>
+        <bpmndi:BPMNLabel><omgdc:Bounds x="700" y="125" width="80" height="27"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow-start-to-form_di" bpmnElement="flow-start-to-form">
+        <omgdi:waypoint x="188" y="100"/><omgdi:waypoint x="240" y="100"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-form-to-register_di" bpmnElement="flow-form-to-register">
+        <omgdi:waypoint x="420" y="100"/><omgdi:waypoint x="480" y="100"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-register-to-end_di" bpmnElement="flow-register-to-end">
+        <omgdi:waypoint x="660" y="100"/><omgdi:waypoint x="722" y="100"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+
+</definitions>

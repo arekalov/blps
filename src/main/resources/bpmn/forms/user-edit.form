@@ -1,0 +1,46 @@
+{
+  "schema": {
+    "type": "default",
+    "components": [
+      {
+        "type": "text",
+        "text": "## Редактирование профиля",
+        "id": "header"
+      },
+      {
+        "type": "textfield",
+        "key": "newEmail",
+        "label": "Новый email (оставьте пустым, чтобы не менять)",
+        "validate": { "maxLength": 255 },
+        "id": "field-email"
+      },
+      {
+        "type": "textfield",
+        "key": "newPassword",
+        "label": "Новый пароль (оставьте пустым, чтобы не менять)",
+        "validate": { "minLength": 6, "maxLength": 100 },
+        "id": "field-password"
+      },
+      {
+        "type": "textfield",
+        "key": "newCompanyName",
+        "label": "Новое название компании (оставьте пустым, чтобы не менять)",
+        "validate": { "maxLength": 255 },
+        "id": "field-companyName"
+      },
+      {
+        "type": "select",
+        "key": "newRole",
+        "label": "Роль (только для ADMIN)",
+        "values": [
+          { "value": "", "label": "Не менять" },
+          { "value": "EMPLOYER", "label": "EMPLOYER" },
+          { "value": "MODERATOR", "label": "MODERATOR" },
+          { "value": "ADMIN", "label": "ADMIN" }
+        ],
+        "id": "field-role"
+      }
+    ],
+    "id": "user-edit-form"
+  }
+}

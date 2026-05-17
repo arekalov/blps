@@ -1,9 +1,9 @@
 plugins {
-	kotlin("jvm") version "2.0.21"
-	kotlin("plugin.spring") version "2.0.21"
-	kotlin("plugin.jpa") version "2.0.21"
-	id("org.springframework.boot") version "3.3.5"
-	id("io.spring.dependency-management") version "1.1.7"
+	kotlin("jvm") version "1.9.25"
+	kotlin("plugin.spring") version "1.9.25"
+	kotlin("plugin.jpa") version "1.9.25"
+	id("org.springframework.boot") version "3.3.7"
+	id("io.spring.dependency-management") version "1.1.6"
 	id("io.gitlab.arturbosch.detekt") version "1.23.8"
 	war
 }
@@ -29,31 +29,47 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-security")
-	
+
 	providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
-	compileOnly("jakarta.servlet:jakarta.servlet-api:6.0.0")
-	
+	compileOnly("jakarta.servlet:jakarta.servlet-api")
+
+	// Только компиляция: на WildFly JSP subsystem отключён; Camunda webapp — static + Spring MVC
+	compileOnly("jakarta.servlet.jsp:jakarta.servlet.jsp-api:3.1.1")
+	compileOnly("org.glassfish.web:jakarta.servlet.jsp.jstl:3.0.1")
+
 	runtimeOnly("org.postgresql:postgresql")
-	
+
 	implementation("org.flywaydb:flyway-core")
 	implementation("org.flywaydb:flyway-database-postgresql")
-	
-	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
-	
+
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+
+	// Camunda 7.22 — Spring Boot 3 / Jakarta EE 10 (WildFly 39)
+	implementation("org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-webapp:7.22.0") {
+		exclude(group = "org.glassfish.hk2", module = "hk2")
+	}
+	implementation("org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-rest:7.22.0") {
+		exclude(group = "org.glassfish.hk2", module = "hk2")
+		// WildFly + Weld: SpringLifecycleListener тянет CDI-inject ApplicationContext
+		exclude(group = "org.glassfish.jersey.ext", module = "jersey-spring6")
+	}
+
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-	
+
 	detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.8")
-	
+
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+	testRuntimeOnly("com.h2database:h2")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict")
-    }
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+	kotlinOptions {
+		freeCompilerArgs = listOf("-Xjsr305=strict")
+		jvmTarget = "17"
+	}
 }
 
 tasks.withType<Test> {
@@ -91,4 +107,5 @@ tasks.register<Exec>("generateOpenApi") {
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootWar>("bootWar") {
 	archiveFileName.set("blps.war")
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

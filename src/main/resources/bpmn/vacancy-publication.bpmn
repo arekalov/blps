@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+             targetNamespace="http://bpmn.io/schema/bpmn"
+             id="vacancy-publication-definitions">
+
+  <process id="vacancy-publication" name="Публикация вакансии" isExecutable="true" camunda:historyTimeToLive="180">
+
+    <!-- ===== EMPLOYER PATH ===== -->
+
+    <startEvent id="start" name="Начало публикации вакансии">
+      <outgoing>flow-start-to-required</outgoing>
+    </startEvent>
+
+    <userTask id="task-fill-required" name="Заполнить обязательные данные вакансии"
+              camunda:formKey="embedded:app:forms/vacancy-required.form"
+              camunda:candidateGroups="EMPLOYER,ADMIN">
+      <incoming>flow-start-to-required</incoming>
+      <outgoing>flow-required-to-optional-gw</outgoing>
+    </userTask>
+
+    <exclusiveGateway id="gw-optional" name="Указать дополнительные данные?">
+      <incoming>flow-required-to-optional-gw</incoming>
+      <outgoing>flow-optional-yes</outgoing>
+      <outgoing>flow-optional-no</outgoing>
+    </exclusiveGateway>
+
+    <userTask id="task-fill-optional" name="Заполнить дополнительные данные"
+              camunda:formKey="embedded:app:forms/vacancy-optional.form"
+              camunda:candidateGroups="EMPLOYER,ADMIN">
+      <incoming>flow-optional-yes</incoming>
+      <outgoing>flow-optional-to-load-tariffs</outgoing>
+    </userTask>
+
+    <serviceTask id="task-load-tariffs" name="Загрузить доступные тарифы"
+                 camunda:delegateExpression="${tariffListDelegate}">
+      <incoming>flow-optional-no</incoming>
+      <incoming>flow-optional-to-load-tariffs</incoming>
+      <outgoing>flow-load-tariffs-to-select</outgoing>
+    </serviceTask>
+
+    <userTask id="task-select-tariff" name="Выбрать тариф"
+              camunda:formKey="embedded:app:forms/tariff-select.form"
+              camunda:candidateGroups="EMPLOYER,ADMIN">
+      <incoming>flow-load-tariffs-to-select</incoming>
+      <outgoing>flow-select-to-confirm</outgoing>
+    </userTask>
+
+    <userTask id="task-confirm-vacancy" name="Подтвердить и создать вакансию"
+              camunda:formKey="embedded:app:forms/vacancy-confirm.form"
+              camunda:candidateGroups="EMPLOYER,ADMIN">
+      <incoming>flow-select-to-confirm</incoming>
+      <outgoing>flow-confirm-to-create</outgoing>
+    </userTask>
+
+    <serviceTask id="task-create-vacancy" name="Создать вакансию (черновик)"
+                 camunda:delegateExpression="${vacancyCreateDelegate}">
+      <incoming>flow-confirm-to-create</incoming>
+      <outgoing>flow-create-to-publish-task</outgoing>
+    </serviceTask>
+
+    <userTask id="task-publish-vacancy" name="Отправить вакансию на модерацию"
+              camunda:formKey="embedded:app:forms/vacancy-publish.form"
+              camunda:candidateGroups="EMPLOYER,ADMIN">
+      <incoming>flow-create-to-publish-task</incoming>
+      <outgoing>flow-publish-task-to-service</outgoing>
+    </userTask>
+
+    <serviceTask id="task-submit-moderation" name="Отправить на модерацию (изменить статус)"
+                 camunda:delegateExpression="${vacancyPublishDelegate}">
+      <incoming>flow-publish-task-to-service</incoming>
+      <outgoing>flow-submit-to-moderation-start</outgoing>
+    </serviceTask>
+
+    <!-- ===== MODERATION PATH ===== -->
+
+    <intermediateCatchEvent id="event-moderation-received" name="Получена заявка на модерацию">
+      <incoming>flow-submit-to-moderation-start</incoming>
+      <outgoing>flow-moderation-received-to-task</outgoing>
+      <messageEventDefinition messageRef="message-moderation-request"/>
+    </intermediateCatchEvent>
+
+    <userTask id="task-moderate" name="Проверить вакансию и принять решение"
+              camunda:formKey="embedded:app:forms/moderation.form"
+              camunda:candidateGroups="MODERATOR,ADMIN">
+      <incoming>flow-moderation-received-to-task</incoming>
+      <outgoing>flow-moderate-to-gw</outgoing>
+    </userTask>
+
+    <exclusiveGateway id="gw-moderation-decision" name="Решение модератора">
+      <incoming>flow-moderate-to-gw</incoming>
+      <outgoing>flow-decision-approve</outgoing>
+      <outgoing>flow-decision-reject</outgoing>
+    </exclusiveGateway>
+
+    <serviceTask id="task-approve" name="Опубликовать вакансию + записать статистику"
+                 camunda:delegateExpression="${moderationApproveDelegate}">
+      <incoming>flow-decision-approve</incoming>
+      <outgoing>flow-approve-to-notify</outgoing>
+    </serviceTask>
+
+    <serviceTask id="task-reject" name="Отклонить вакансию (статус REJECTED)"
+                 camunda:delegateExpression="${moderationRejectDelegate}">
+      <incoming>flow-decision-reject</incoming>
+      <outgoing>flow-reject-to-notify</outgoing>
+    </serviceTask>
+
+    <userTask id="task-notify-result" name="Просмотреть результат модерации"
+              camunda:formKey="embedded:app:forms/vacancy-result.form"
+              camunda:candidateGroups="EMPLOYER,ADMIN">
+      <incoming>flow-approve-to-notify</incoming>
+      <incoming>flow-reject-to-notify</incoming>
+      <outgoing>flow-notify-to-end</outgoing>
+    </userTask>
+
+    <endEvent id="end" name="Вакансия опубликована / отклонена">
+      <incoming>flow-notify-to-end</incoming>
+    </endEvent>
+
+    <!-- ===== SEQUENCE FLOWS ===== -->
+
+    <sequenceFlow id="flow-start-to-required" sourceRef="start" targetRef="task-fill-required"/>
+    <sequenceFlow id="flow-required-to-optional-gw" sourceRef="task-fill-required" targetRef="gw-optional"/>
+    <sequenceFlow id="flow-optional-yes" name="да" sourceRef="gw-optional" targetRef="task-fill-optional">
+      <conditionExpression xsi:type="tFormalExpression">${fillOptional == true}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow-optional-no" name="нет" sourceRef="gw-optional" targetRef="task-load-tariffs">
+      <conditionExpression xsi:type="tFormalExpression">${fillOptional != true}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow-optional-to-load-tariffs" sourceRef="task-fill-optional" targetRef="task-load-tariffs"/>
+    <sequenceFlow id="flow-load-tariffs-to-select" sourceRef="task-load-tariffs" targetRef="task-select-tariff"/>
+    <sequenceFlow id="flow-select-to-confirm" sourceRef="task-select-tariff" targetRef="task-confirm-vacancy"/>
+    <sequenceFlow id="flow-confirm-to-create" sourceRef="task-confirm-vacancy" targetRef="task-create-vacancy"/>
+    <sequenceFlow id="flow-create-to-publish-task" sourceRef="task-create-vacancy" targetRef="task-publish-vacancy"/>
+    <sequenceFlow id="flow-publish-task-to-service" sourceRef="task-publish-vacancy" targetRef="task-submit-moderation"/>
+    <sequenceFlow id="flow-submit-to-moderation-start" sourceRef="task-submit-moderation" targetRef="event-moderation-received"/>
+    <sequenceFlow id="flow-moderation-received-to-task" sourceRef="event-moderation-received" targetRef="task-moderate"/>
+    <sequenceFlow id="flow-moderate-to-gw" sourceRef="task-moderate" targetRef="gw-moderation-decision"/>
+    <sequenceFlow id="flow-decision-approve" name="одобрить" sourceRef="gw-moderation-decision" targetRef="task-approve">
+      <conditionExpression xsi:type="tFormalExpression">${moderationAction == 'APPROVE'}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow-decision-reject" name="отклонить" sourceRef="gw-moderation-decision" targetRef="task-reject">
+      <conditionExpression xsi:type="tFormalExpression">${moderationAction == 'REJECT'}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow-approve-to-notify" sourceRef="task-approve" targetRef="task-notify-result"/>
+    <sequenceFlow id="flow-reject-to-notify" sourceRef="task-reject" targetRef="task-notify-result"/>
+    <sequenceFlow id="flow-notify-to-end" sourceRef="task-notify-result" targetRef="end"/>
+
+  </process>
+
+  <message id="message-moderation-request" name="ModerationRequest"/>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_vacancy-publication">
+    <bpmndi:BPMNPlane id="BPMNPlane_vacancy-publication" bpmnElement="vacancy-publication">
+      <bpmndi:BPMNShape id="start_di" bpmnElement="start">
+        <omgdc:Bounds x="152" y="82" width="36" height="36"/>
+        <bpmndi:BPMNLabel><omgdc:Bounds x="130" y="125" width="81" height="27"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-fill-required_di" bpmnElement="task-fill-required">
+        <omgdc:Bounds x="240" y="60" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-optional_di" bpmnElement="gw-optional" isMarkerVisible="true">
+        <omgdc:Bounds x="455" y="75" width="50" height="50"/>
+        <bpmndi:BPMNLabel><omgdc:Bounds x="435" y="132" width="90" height="27"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-fill-optional_di" bpmnElement="task-fill-optional">
+        <omgdc:Bounds x="560" y="160" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-load-tariffs_di" bpmnElement="task-load-tariffs">
+        <omgdc:Bounds x="720" y="60" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-select-tariff_di" bpmnElement="task-select-tariff">
+        <omgdc:Bounds x="940" y="60" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-confirm-vacancy_di" bpmnElement="task-confirm-vacancy">
+        <omgdc:Bounds x="1160" y="60" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-create-vacancy_di" bpmnElement="task-create-vacancy">
+        <omgdc:Bounds x="1380" y="60" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-publish-vacancy_di" bpmnElement="task-publish-vacancy">
+        <omgdc:Bounds x="1600" y="60" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-submit-moderation_di" bpmnElement="task-submit-moderation">
+        <omgdc:Bounds x="1820" y="60" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="event-moderation-received_di" bpmnElement="event-moderation-received">
+        <omgdc:Bounds x="2042" y="82" width="36" height="36"/>
+        <bpmndi:BPMNLabel><omgdc:Bounds x="2020" y="125" width="80" height="40"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-moderate_di" bpmnElement="task-moderate">
+        <omgdc:Bounds x="2140" y="60" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-moderation-decision_di" bpmnElement="gw-moderation-decision" isMarkerVisible="true">
+        <omgdc:Bounds x="2360" y="75" width="50" height="50"/>
+        <bpmndi:BPMNLabel><omgdc:Bounds x="2340" y="132" width="90" height="27"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-approve_di" bpmnElement="task-approve">
+        <omgdc:Bounds x="2470" y="60" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-reject_di" bpmnElement="task-reject">
+        <omgdc:Bounds x="2470" y="200" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-notify-result_di" bpmnElement="task-notify-result">
+        <omgdc:Bounds x="2700" y="60" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_di" bpmnElement="end">
+        <omgdc:Bounds x="2922" y="82" width="36" height="36"/>
+        <bpmndi:BPMNLabel><omgdc:Bounds x="2900" y="125" width="81" height="27"/></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow-start-to-required_di" bpmnElement="flow-start-to-required">
+        <omgdi:waypoint x="188" y="100"/><omgdi:waypoint x="240" y="100"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-required-to-optional-gw_di" bpmnElement="flow-required-to-optional-gw">
+        <omgdi:waypoint x="400" y="100"/><omgdi:waypoint x="455" y="100"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-optional-yes_di" bpmnElement="flow-optional-yes">
+        <omgdi:waypoint x="480" y="125"/><omgdi:waypoint x="480" y="200"/><omgdi:waypoint x="560" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-optional-no_di" bpmnElement="flow-optional-no">
+        <omgdi:waypoint x="505" y="100"/><omgdi:waypoint x="720" y="100"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-optional-to-load-tariffs_di" bpmnElement="flow-optional-to-load-tariffs">
+        <omgdi:waypoint x="720" y="200"/><omgdi:waypoint x="800" y="200"/><omgdi:waypoint x="800" y="140"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-load-tariffs-to-select_di" bpmnElement="flow-load-tariffs-to-select">
+        <omgdi:waypoint x="880" y="100"/><omgdi:waypoint x="940" y="100"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-select-to-confirm_di" bpmnElement="flow-select-to-confirm">
+        <omgdi:waypoint x="1100" y="100"/><omgdi:waypoint x="1160" y="100"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-confirm-to-create_di" bpmnElement="flow-confirm-to-create">
+        <omgdi:waypoint x="1320" y="100"/><omgdi:waypoint x="1380" y="100"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-create-to-publish-task_di" bpmnElement="flow-create-to-publish-task">
+        <omgdi:waypoint x="1540" y="100"/><omgdi:waypoint x="1600" y="100"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-publish-task-to-service_di" bpmnElement="flow-publish-task-to-service">
+        <omgdi:waypoint x="1760" y="100"/><omgdi:waypoint x="1820" y="100"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-submit-to-moderation-start_di" bpmnElement="flow-submit-to-moderation-start">
+        <omgdi:waypoint x="1980" y="100"/><omgdi:waypoint x="2042" y="100"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-moderation-received-to-task_di" bpmnElement="flow-moderation-received-to-task">
+        <omgdi:waypoint x="2078" y="100"/><omgdi:waypoint x="2140" y="100"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-moderate-to-gw_di" bpmnElement="flow-moderate-to-gw">
+        <omgdi:waypoint x="2300" y="100"/><omgdi:waypoint x="2360" y="100"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-decision-approve_di" bpmnElement="flow-decision-approve">
+        <omgdi:waypoint x="2410" y="100"/><omgdi:waypoint x="2470" y="100"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-decision-reject_di" bpmnElement="flow-decision-reject">
+        <omgdi:waypoint x="2385" y="125"/><omgdi:waypoint x="2385" y="240"/><omgdi:waypoint x="2470" y="240"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-approve-to-notify_di" bpmnElement="flow-approve-to-notify">
+        <omgdi:waypoint x="2630" y="100"/><omgdi:waypoint x="2700" y="100"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-reject-to-notify_di" bpmnElement="flow-reject-to-notify">
+        <omgdi:waypoint x="2630" y="240"/><omgdi:waypoint x="2780" y="240"/><omgdi:waypoint x="2780" y="140"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-notify-to-end_di" bpmnElement="flow-notify-to-end">
+        <omgdi:waypoint x="2860" y="100"/><omgdi:waypoint x="2922" y="100"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+
+</definitions>

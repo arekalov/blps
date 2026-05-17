@@ -47,6 +47,7 @@ local.properties
 application.yaml
 application-prod.yaml
 deployment/application-prod.yaml
+deployment/wildfly.env
 
 ### Cursor AI ###
 .cursor/

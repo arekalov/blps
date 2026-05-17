@@ -1,0 +1,47 @@
+{
+  "schema": {
+    "type": "default",
+    "components": [
+      {
+        "type": "text",
+        "text": "## Дополнительные данные вакансии",
+        "id": "header"
+      },
+      {
+        "type": "number",
+        "key": "salaryFrom",
+        "label": "Зарплата от (руб.)",
+        "validate": { "min": 0 },
+        "id": "field-salaryFrom"
+      },
+      {
+        "type": "number",
+        "key": "salaryTo",
+        "label": "Зарплата до (руб.)",
+        "validate": { "min": 0 },
+        "id": "field-salaryTo"
+      },
+      {
+        "type": "textfield",
+        "key": "additionalSkills",
+        "label": "Навыки (через запятую, например: Java, Kotlin, Spring)",
+        "id": "field-additionalSkills"
+      },
+      {
+        "type": "textfield",
+        "key": "address",
+        "label": "Адрес офиса",
+        "validate": { "maxLength": 500 },
+        "id": "field-address"
+      },
+      {
+        "type": "textarea",
+        "key": "companyDescription",
+        "label": "Описание компании",
+        "validate": { "maxLength": 5000 },
+        "id": "field-companyDescription"
+      }
+    ],
+    "id": "vacancy-optional-form"
+  }
+}

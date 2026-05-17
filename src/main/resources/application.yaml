@@ -16,7 +16,13 @@ spring:
       add-mappings: false
   mvc:
     throw-exception-if-no-handler-found: true
-  
+  # Jersey (Camunda engine-rest): иначе по умолчанию /* и перехватывает DispatcherServlet — REST /api/v1/* даёт 404
+  jersey:
+    application-path: /engine-rest
+    # Camunda engine-rest: на строгой Jersey (WildFly) валидация модели даёт ложные FATAL на history API
+    init:
+      jersey.config.server.resource.validation.disable: "true"
+
   # JPA настройки для WildFly JTA
   jpa:
     hibernate:
@@ -59,6 +65,19 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
 
+camunda.bpm:
+  # admin-user не задаём: CreateAdminUser ломает read-only BlpsIdentityProvider.
+  # Вход в Tasklist — email/пароль пользователя из БД (см. blps.bootstrap).
+  filter:
+    create: All Tasks
+  generic-properties:
+    properties:
+      historyTimeToLive: P180D
+  database:
+    schema-update: true
+  deployment-resource-pattern: classpath*:bpmn/*.bpmn
+  webapp:
+    index-redirect-enabled: true
 
 blps:
   bootstrap:
