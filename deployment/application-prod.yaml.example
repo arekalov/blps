@@ -1,6 +1,3 @@
-# Helios (STUDS PostgreSQL). Генерируется в src/main/resources/application-prod.yaml
-# скриптом deploy-helios.sh из deployment/helios.env (см. helios.env.example).
-
 spring:
   datasource:
     url: jdbc:postgresql://pg:5432/studs?currentSchema=${STUDS_DB_SCHEMA}
@@ -57,6 +54,7 @@ camunda.bpm:
   database:
     schema-update: true
     schema-name: ${STUDS_DB_SCHEMA}
+    table-prefix: ${STUDS_DB_SCHEMA}.
   auto-deployment-enabled: false
   webapp:
     index-redirect-enabled: false

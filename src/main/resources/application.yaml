@@ -1,22 +1,17 @@
 spring:
   application:
     name: blps
-  
-  # Профиль по умолчанию: dev (локально). WildFly локально: wildfly. Helios: prod (см. deployment/README-helios.md).
+
   profiles:
     active: dev
-  
-  # Jersey (Camunda engine-rest)
+
   jersey:
     application-path: /engine-rest
-    # Camunda engine-rest: на строгой Jersey (WildFly) валидация модели даёт ложные FATAL на history API
     init:
       jersey.config.server.resource.validation.disable: "true"
 
-# Настройки сервера
 server:
   servlet:
-    # Должен совпадать с jboss-web.xml <context-root> — иначе Tasklist не резолвит embedded-формы
     context-path: /blps
   compression:
     enabled: true
@@ -24,32 +19,24 @@ server:
     include-message: always
     include-binding-errors: always
 
-# Настройки логирования (общие)
 logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
 
 camunda.bpm:
-  # Spin JSON для переменных форм (tariffOptions, vacancyOptions)
   spin:
     enabled: true
   authorization:
     enabled: true
-  # admin-user не задаём: CreateAdminUser ломает read-only BlpsIdentityProvider.
-  # Полные права (Cockpit, Admin) — группе ADMIN через AdministratorAuthorizationPlugin (CamundaConfig).
-  # Вход в Tasklist — email/пароль пользователя из БД (см. blps.bootstrap).
   generic-properties:
     properties:
       historyTimeToLive: P180D
-  # Полный редеплoy BPMN при каждом старте (иначе в БД остаётся v2 без BPMNEdge)
   deploy-changed-only: false
   enable-duplicate-filtering: false
   database:
     schema-update: true
-  # BPMN+forms деплоятся в BlpsCamundaDeploymentConfig (один deployment, имена forms/…)
   auto-deployment-enabled: false
   webapp:
-    # false — иначе /camunda/app/ редиректит в Tasklist, минуя Welcome для гостей
     index-redirect-enabled: false
 
 blps:

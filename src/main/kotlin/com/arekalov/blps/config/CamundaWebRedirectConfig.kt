@@ -8,7 +8,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 class CamundaWebRedirectConfig : WebMvcConfigurer {
 
     override fun addViewControllers(registry: ViewControllerRegistry) {
-        // Landing с формой регистрации; Camunda Welcome — для PUBLIC-процессов
         registry.addViewController("/").setViewName("forward:/welcome.html")
         registry.addRedirectViewController("/camunda", "/camunda/app/welcome/default/")
     }

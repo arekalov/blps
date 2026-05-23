@@ -21,7 +21,6 @@ class CamundaConfig(
         }
     }
 
-    /** Cockpit + Admin + все ресурсы — только группе ADMIN (не camunda-admin). */
     @Bean
     fun administratorAuthorizationPlugin(): ProcessEnginePlugin {
         val plugin = AdministratorAuthorizationPlugin()

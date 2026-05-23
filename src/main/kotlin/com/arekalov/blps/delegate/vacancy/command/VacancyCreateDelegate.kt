@@ -54,7 +54,6 @@ class VacancyCreateDelegate(
 
         val vacancy = vacancyService.createVacancy(initiatorId, request)
 
-        // Assign selected tariff if provided
         val selectedTariffIdStr = execution.getVariable("selectedTariffId") as? String
         if (!selectedTariffIdStr.isNullOrBlank()) {
             val tariffId = UUID.fromString(selectedTariffIdStr)

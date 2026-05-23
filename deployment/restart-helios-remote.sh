@@ -35,7 +35,7 @@ echo "PID: $!"
 echo "Ждём старт (20 с)..."
 sleep 20
 
-if ! pgrep -f "$WILDFLY_PATH/bin/standalone.sh" >/dev/null; then
+if ! pgrep -f "wildfly-39.0.1.Final" >/dev/null && ! pgrep -f "jboss-modules.jar" >/dev/null; then
   echo "WildFly не стартовал — смотрите лог:" >&2
   tail -n 40 "$WILDFLY_PATH/standalone/log/server.log" >&2 || tail -n 40 "$WILDFLY_PATH/wildfly.log" >&2
   exit 1

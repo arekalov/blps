@@ -1,4 +1,3 @@
-# WildFly: JNDI DataSource и JTA (активируйте: spring.profiles.active=wildfly)
 spring:
   datasource:
     jndi-name: java:jboss/datasources/BlpsDS

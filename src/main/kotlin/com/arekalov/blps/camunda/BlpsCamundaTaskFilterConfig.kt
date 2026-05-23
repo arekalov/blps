@@ -11,9 +11,6 @@ import org.springframework.context.event.EventListener
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
-/**
- * Tasklist: один фильтр — задачи процессов, где текущий пользователь автор (initiatorEmail).
- */
 @Component
 class BlpsCamundaTaskFilterConfig(
     private val filterService: FilterService,
@@ -80,7 +77,6 @@ class BlpsCamundaTaskFilterConfig(
 
     companion object {
         const val FILTER_MY_TASKS = "Мои задачи"
-        /** Удаляются при старте (legacy). */
         private const val FILTER_ALL_TASKS = "All Tasks"
         private const val FILTER_MODERATION = "Очередь модерации"
     }

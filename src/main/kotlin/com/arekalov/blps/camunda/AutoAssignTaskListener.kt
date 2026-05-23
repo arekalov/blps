@@ -8,10 +8,6 @@ import org.camunda.bpm.model.bpmn.instance.UserTask
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
 
-/**
- * Назначает user task на пользователя, запустившего процесс,
- * если его роль входит в candidateGroups задачи (или candidateGroups не заданы).
- */
 @Component("autoAssignTaskListener")
 class AutoAssignTaskListener(
     private val userRepository: UserRepository,

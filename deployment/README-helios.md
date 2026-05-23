@@ -33,12 +33,18 @@ cp deployment/helios.env.example deployment/helios.env
 
 ## Доступ с ноутбука
 
+`deploy-helios.sh` **сам поднимает SSH-туннель** после деплоя (порты в `helios.env`: `HELIOS_LOCAL_PORT=8080`, `HELIOS_REMOTE_PORT=23561`).
+
 ```bash
-ssh -L 8080:localhost:23561 ifmo
+./deployment/deploy-helios.sh              # деплой + туннель + tail -F логов (непрерывно)
+./deployment/deploy-helios.sh --no-logs    # без потока логов
+./deployment/deploy-helios.sh --no-tunnel    # без SSH-туннеля
 ```
 
 - Welcome: http://localhost:8080/blps/camunda/app/welcome/
-- Tasklist: http://localhost:8080/blps/camunda/app/tasklist/
+- Остановить туннель: `kill $(cat deployment/.helios-tunnel.pid)`
+
+Вручную: `ssh -L 8080:localhost:23561 ifmo`
 
 Логин: пользователи из БД (bootstrap admin `admin@ya.ru` / `admin`).
 

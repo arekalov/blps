@@ -1,5 +1,3 @@
-# Development Profile - для локальной разработки с Neon DB
-
 spring:
   jersey:
     application-path: /engine-rest
@@ -34,7 +32,6 @@ camunda.bpm:
   generic-properties:
     properties:
       historyTimeToLive: P180D
-  # Каждый рестарт — полный редеплой (иначе Cockpit может показывать старую v1 без диаграмм)
   deploy-changed-only: false
   database:
     schema-update: true

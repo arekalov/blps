@@ -11,10 +11,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
 
-/**
- * Выдаёт READ / TASK_WORK только автору процесса ([InitiatorEnrichmentListener] → initiatorEmail).
- * Без TASK * у группы пользователь не увидит чужие задачи в Tasklist.
- */
 @Component("taskAuthorAuthorizationListener")
 class TaskAuthorAuthorizationListener(
     @Lazy private val authorizationService: AuthorizationService,

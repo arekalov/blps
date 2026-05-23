@@ -33,7 +33,6 @@ dependencies {
 	providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
 	compileOnly("jakarta.servlet:jakarta.servlet-api")
 
-	// Только компиляция: на WildFly JSP subsystem отключён; Camunda webapp — static + Spring MVC
 	compileOnly("jakarta.servlet.jsp:jakarta.servlet.jsp-api:3.1.1")
 	compileOnly("org.glassfish.web:jakarta.servlet.jsp.jstl:3.0.1")
 
@@ -42,13 +41,11 @@ dependencies {
 	implementation("org.flywaydb:flyway-core")
 	implementation("org.flywaydb:flyway-database-postgresql")
 
-	// Camunda 7.22 — Spring Boot 3 / Jakarta EE 10 (WildFly 39)
 	implementation("org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-webapp:7.22.0") {
 		exclude(group = "org.glassfish.hk2", module = "hk2")
 	}
 	implementation("org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-rest:7.22.0") {
 		exclude(group = "org.glassfish.hk2", module = "hk2")
-		// WildFly + Weld: SpringLifecycleListener тянет CDI-inject ApplicationContext
 		exclude(group = "org.glassfish.jersey.ext", module = "jersey-spring6")
 	}
 	implementation("org.camunda.bpm:camunda-engine-plugin-spin:7.22.0")

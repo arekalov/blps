@@ -12,9 +12,6 @@ import org.springframework.context.event.EventListener
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
-/**
- * Camunda authorizations aligned with [docs/ROLES_SPECIFICATION.md].
- */
 @Component
 @ConditionalOnProperty(name = ["camunda.bpm.authorization.enabled"], havingValue = "true")
 class BlpsCamundaAuthorizationConfig(
@@ -161,13 +158,11 @@ class BlpsCamundaAuthorizationConfig(
             "tariff-view",
         )
 
-        /** Профиль текущего пользователя — employer/moderator. */
         val SHARED_AUTHENTICATED_PROCESS_KEYS = listOf(
             "user-current",
             "user-management",
         )
 
-        /** Список/просмотр пользователей — только admin. */
         val ADMIN_ONLY_PROCESS_KEYS = listOf(
             "user-list",
             "user-view",
@@ -187,7 +182,6 @@ class BlpsCamundaAuthorizationConfig(
             "tariff-usage-history",
         )
 
-        /** Включены в vacancy-publication — не стартуют из Tasklist. */
         val REVOKED_EMPLOYER_PROCESS_KEYS = listOf(
             "user-list",
             "user-view",

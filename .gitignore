@@ -49,6 +49,7 @@ application-prod.yaml
 deployment/application-prod.yaml
 deployment/wildfly.env
 deployment/helios.env
+deployment/.helios-tunnel.pid
 
 ### Cursor AI ###
 .cursor/

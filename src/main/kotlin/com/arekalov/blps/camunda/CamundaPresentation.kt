@@ -12,7 +12,6 @@ object CamundaPresentation {
     fun toSelectOptions(items: List<Pair<String, String>>): List<Map<String, String>> =
         items.map { (value, label) -> mapOf("value" to value, "label" to label) }
 
-    /** Подпись в select: UUID и название (опционально статус). */
     fun vacancyOptionLabel(id: String, title: String, status: String? = null): String {
         val base = "$id — $title"
         return if (status.isNullOrBlank()) base else "$base ($status)"
@@ -174,7 +173,6 @@ object CamundaPresentation {
     private fun escapeCell(value: String): String =
         value.replace("|", "\\|").replace("\n", " ").replace("\r", "")
 
-    /** Лимит Camunda для строковых переменных процесса (ACT_RU_VARIABLE). */
     private fun fitProcessVariable(text: String, maxLength: Int = 3900): String {
         if (text.length <= maxLength) return text
         return text.take(maxLength - 100) +
