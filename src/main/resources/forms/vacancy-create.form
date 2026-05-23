@@ -70,8 +70,8 @@
           "label": "Частичная занятость"
         },
         {
-          "value": "CONTRACT",
-          "label": "Контракт"
+          "value": "PROJECT",
+          "label": "Проектная работа"
         },
         {
           "value": "INTERNSHIP",
@@ -116,20 +116,16 @@
       },
       "values": [
         {
-          "value": "FULL_DAY",
-          "label": "Полный день"
+          "value": "EMPLOYMENT_CONTRACT",
+          "label": "Трудовой договор"
         },
         {
-          "value": "SHIFT",
-          "label": "Сменный"
+          "value": "CIVIL_CONTRACT",
+          "label": "ГПХ / договор услуг"
         },
         {
-          "value": "FLEXIBLE",
-          "label": "Гибкий"
-        },
-        {
-          "value": "REMOTE_WORK",
-          "label": "Удалённая работа"
+          "value": "SELF_EMPLOYED",
+          "label": "Самозанятость"
         }
       ],
       "id": "field-employmentFormat"
@@ -143,20 +139,28 @@
       },
       "values": [
         {
-          "value": "FIVE_DAYS",
-          "label": "5/2"
+          "value": "NINE_TO_EIGHTEEN",
+          "label": "9:00–18:00"
         },
         {
-          "value": "SIX_DAYS",
-          "label": "6/1"
+          "value": "TEN_TO_NINETEEN",
+          "label": "10:00–19:00"
         },
         {
-          "value": "SHIFT_SCHEDULE",
+          "value": "EIGHT_TO_SEVENTEEN",
+          "label": "8:00–17:00"
+        },
+        {
+          "value": "FLEXIBLE",
+          "label": "Гибкий график"
+        },
+        {
+          "value": "SHIFT",
           "label": "Сменный"
         },
         {
-          "value": "ARBITRARY",
-          "label": "Произвольный"
+          "value": "REMOTE_FLEXIBLE",
+          "label": "Удалённо, гибкий график"
         }
       ],
       "id": "field-workSchedule"
