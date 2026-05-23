@@ -8,7 +8,7 @@
              id="vacancy-submit-moderation-definitions">
 
   <process id="vacancy-submit-moderation" name="[PATCH] Отправить на модерацию" isExecutable="true"
-           camunda:historyTimeToLive="180" camunda:candidateStarterGroups="EMPLOYER,ADMIN">
+           camunda:historyTimeToLive="180" camunda:isStartableInTasklist="false">
 
     <startEvent id="start"><outgoing>flow-0</outgoing></startEvent>
 

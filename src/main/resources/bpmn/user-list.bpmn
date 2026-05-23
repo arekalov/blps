@@ -7,7 +7,7 @@
              xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
              targetNamespace="http://bpmn.io/schema/bpmn"
              id="user-list-definitions">
-  <process id="user-list" name="[GET] Список пользователей" isExecutable="true" camunda:historyTimeToLive="180" camunda:candidateStarterGroups="EMPLOYER,MODERATOR,ADMIN">
+  <process id="user-list" name="[GET] Список пользователей" isExecutable="true" camunda:historyTimeToLive="180" camunda:candidateStarterGroups="ADMIN">
 
     <startEvent id="start">
       <outgoing>flow-start-to-get</outgoing>
@@ -15,7 +15,7 @@
 
     <userTask id="task-get" name="Список пользователей"
               camunda:formKey="camunda-forms:deployment:forms/user-list-get.form"
-              camunda:candidateGroups="EMPLOYER,MODERATOR,ADMIN">
+              camunda:candidateGroups="ADMIN">
       <extensionElements>
         <camunda:executionListener event="start" delegateExpression="${userListLoadDelegate}" />
       </extensionElements>

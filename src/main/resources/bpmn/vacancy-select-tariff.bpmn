@@ -8,7 +8,7 @@
              id="vacancy-select-tariff-definitions">
 
   <process id="vacancy-select-tariff" name="[PATCH] Выбрать тариф для вакансии" isExecutable="true"
-           camunda:historyTimeToLive="180" camunda:candidateStarterGroups="EMPLOYER,ADMIN">
+           camunda:historyTimeToLive="180" camunda:isStartableInTasklist="false">
 
     <startEvent id="start"><outgoing>flow-0</outgoing></startEvent>
 

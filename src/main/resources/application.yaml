@@ -33,23 +33,24 @@ camunda.bpm:
   # Spin JSON для переменных форм (tariffOptions, vacancyOptions)
   spin:
     enabled: true
+  authorization:
+    enabled: true
   # admin-user не задаём: CreateAdminUser ломает read-only BlpsIdentityProvider.
+  # Полные права (Cockpit, Admin) — группе ADMIN через AdministratorAuthorizationPlugin (CamundaConfig).
   # Вход в Tasklist — email/пароль пользователя из БД (см. blps.bootstrap).
-  filter:
-    create: All Tasks
-  # Полный редеплой BPMN при каждом старте (иначе в БД остаётся v2 без BPMNEdge)
-  deploy-changed-only: false
-  enable-duplicate-filtering: false
   generic-properties:
     properties:
       historyTimeToLive: P180D
+  # Полный редеплoy BPMN при каждом старте (иначе в БД остаётся v2 без BPMNEdge)
+  deploy-changed-only: false
+  enable-duplicate-filtering: false
   database:
     schema-update: true
   # BPMN+forms деплоятся в BlpsCamundaDeploymentConfig (один deployment, имена forms/…)
   auto-deployment-enabled: false
   webapp:
-    # По умолчанию /camunda → на WildFly: /blps/camunda/app/... (НЕ менять на /blps — сломает webapp)
-    index-redirect-enabled: true
+    # false — иначе /camunda/app/ редиректит в Tasklist, минуя Welcome для гостей
+    index-redirect-enabled: false
 
 blps:
   bootstrap:

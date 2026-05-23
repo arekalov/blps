@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
              xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
              xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
@@ -8,15 +7,14 @@
              targetNamespace="http://bpmn.io/schema/bpmn"
              id="vacancy-publication-definitions">
 
-  <process id="vacancy-publication" name="[BPMN] Публикация вакансии (полный цикл)" isExecutable="true" camunda:historyTimeToLive="180">
+  <process id="vacancy-publication" name="[POST] Создание и отправка на модерацию" isExecutable="true"
+           camunda:historyTimeToLive="180" camunda:candidateStarterGroups="EMPLOYER,ADMIN">
 
-    <!-- ===== EMPLOYER PATH ===== -->
-
-    <startEvent id="start" name="Начало публикации вакансии">
+    <startEvent id="start" name="Начало">
       <outgoing>flow-start-to-load-tariffs</outgoing>
     </startEvent>
 
-    <serviceTask id="task-load-tariffs" name="Загрузить доступные тарифы"
+    <serviceTask id="task-load-tariffs" name="Загрузить тарифы"
                  camunda:delegateExpression="${tariffListDelegate}">
       <incoming>flow-start-to-load-tariffs</incoming>
       <outgoing>flow-load-tariffs-to-fill</outgoing>
@@ -35,76 +33,37 @@
       <outgoing>flow-create-to-publish-task</outgoing>
     </serviceTask>
 
-    <userTask id="task-publish-vacancy" name="Отправить вакансию на модерацию"
+    <userTask id="task-publish-vacancy" name="Отправить на модерацию"
               camunda:formKey="camunda-forms:deployment:forms/vacancy-publish.form"
               camunda:candidateGroups="EMPLOYER,ADMIN">
       <incoming>flow-create-to-publish-task</incoming>
       <outgoing>flow-publish-task-to-service</outgoing>
     </userTask>
 
-    <serviceTask id="task-submit-moderation" name="Отправить на модерацию (изменить статус)"
+    <serviceTask id="task-submit-moderation" name="Submit for moderation"
                  camunda:delegateExpression="${vacancyPublishDelegate}">
       <incoming>flow-publish-task-to-service</incoming>
-      <outgoing>flow-submit-to-moderate</outgoing>
+      <outgoing>flow-submit-to-result</outgoing>
     </serviceTask>
 
-    <!-- ===== MODERATION PATH ===== -->
-
-    <userTask id="task-moderate" name="Проверить вакансию и принять решение"
-              camunda:formKey="camunda-forms:deployment:forms/moderation.form"
-              camunda:candidateGroups="MODERATOR,ADMIN">
-      <incoming>flow-submit-to-moderate</incoming>
-      <outgoing>flow-moderate-to-gw</outgoing>
-    </userTask>
-
-    <exclusiveGateway id="gw-moderation-decision" name="Решение модератора">
-      <incoming>flow-moderate-to-gw</incoming>
-      <outgoing>flow-decision-approve</outgoing>
-      <outgoing>flow-decision-reject</outgoing>
-    </exclusiveGateway>
-
-    <serviceTask id="task-approve" name="Опубликовать вакансию + записать статистику"
-                 camunda:delegateExpression="${moderationApproveDelegate}">
-      <incoming>flow-decision-approve</incoming>
-      <outgoing>flow-approve-to-notify</outgoing>
-    </serviceTask>
-
-    <serviceTask id="task-reject" name="Отклонить вакансию (статус REJECTED)"
-                 camunda:delegateExpression="${moderationRejectDelegate}">
-      <incoming>flow-decision-reject</incoming>
-      <outgoing>flow-reject-to-notify</outgoing>
-    </serviceTask>
-
-    <userTask id="task-notify-result" name="Просмотреть результат модерации"
-              camunda:formKey="camunda-forms:deployment:forms/vacancy-result.form"
+    <userTask id="task-result" name="Результат"
+              camunda:formKey="camunda-forms:deployment:forms/result-display.form"
               camunda:candidateGroups="EMPLOYER,ADMIN">
-      <incoming>flow-approve-to-notify</incoming>
-      <incoming>flow-reject-to-notify</incoming>
-      <outgoing>flow-notify-to-end</outgoing>
+      <incoming>flow-submit-to-result</incoming>
+      <outgoing>flow-result-to-end</outgoing>
     </userTask>
 
-    <endEvent id="end" name="Вакансия опубликована / отклонена">
-      <incoming>flow-notify-to-end</incoming>
+    <endEvent id="end" name="Отправлено на модерацию">
+      <incoming>flow-result-to-end</incoming>
     </endEvent>
-
-    <!-- ===== SEQUENCE FLOWS ===== -->
 
     <sequenceFlow id="flow-start-to-load-tariffs" sourceRef="start" targetRef="task-load-tariffs"/>
     <sequenceFlow id="flow-load-tariffs-to-fill" sourceRef="task-load-tariffs" targetRef="task-fill-vacancy"/>
     <sequenceFlow id="flow-fill-to-create" sourceRef="task-fill-vacancy" targetRef="task-create-vacancy"/>
     <sequenceFlow id="flow-create-to-publish-task" sourceRef="task-create-vacancy" targetRef="task-publish-vacancy"/>
     <sequenceFlow id="flow-publish-task-to-service" sourceRef="task-publish-vacancy" targetRef="task-submit-moderation"/>
-    <sequenceFlow id="flow-submit-to-moderate" sourceRef="task-submit-moderation" targetRef="task-moderate"/>
-    <sequenceFlow id="flow-moderate-to-gw" sourceRef="task-moderate" targetRef="gw-moderation-decision"/>
-    <sequenceFlow id="flow-decision-approve" name="одобрить" sourceRef="gw-moderation-decision" targetRef="task-approve">
-      <conditionExpression xsi:type="tFormalExpression">${moderationAction == 'APPROVE'}</conditionExpression>
-    </sequenceFlow>
-    <sequenceFlow id="flow-decision-reject" name="отклонить" sourceRef="gw-moderation-decision" targetRef="task-reject">
-      <conditionExpression xsi:type="tFormalExpression">${moderationAction == 'REJECT'}</conditionExpression>
-    </sequenceFlow>
-    <sequenceFlow id="flow-approve-to-notify" sourceRef="task-approve" targetRef="task-notify-result"/>
-    <sequenceFlow id="flow-reject-to-notify" sourceRef="task-reject" targetRef="task-notify-result"/>
-    <sequenceFlow id="flow-notify-to-end" sourceRef="task-notify-result" targetRef="end"/>
+    <sequenceFlow id="flow-submit-to-result" sourceRef="task-submit-moderation" targetRef="task-result"/>
+    <sequenceFlow id="flow-result-to-end" sourceRef="task-result" targetRef="end"/>
 
   </process>
 
@@ -112,7 +71,6 @@
     <bpmndi:BPMNPlane id="BPMNPlane_vacancy-publication" bpmnElement="vacancy-publication">
       <bpmndi:BPMNShape id="start_di" bpmnElement="start">
         <omgdc:Bounds x="152" y="82" width="36" height="36"/>
-        <bpmndi:BPMNLabel><omgdc:Bounds x="130" y="125" width="81" height="27"/></bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="task-load-tariffs_di" bpmnElement="task-load-tariffs">
         <omgdc:Bounds x="240" y="60" width="160" height="80"/>
@@ -129,25 +87,11 @@
       <bpmndi:BPMNShape id="task-submit-moderation_di" bpmnElement="task-submit-moderation">
         <omgdc:Bounds x="1120" y="60" width="160" height="80"/>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-moderate_di" bpmnElement="task-moderate">
+      <bpmndi:BPMNShape id="task-result_di" bpmnElement="task-result">
         <omgdc:Bounds x="1340" y="60" width="160" height="80"/>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="gw-moderation-decision_di" bpmnElement="gw-moderation-decision" isMarkerVisible="true">
-        <omgdc:Bounds x="1560" y="75" width="50" height="50"/>
-        <bpmndi:BPMNLabel><omgdc:Bounds x="1640" y="132" width="90" height="27"/></bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-approve_di" bpmnElement="task-approve">
-        <omgdc:Bounds x="1670" y="60" width="160" height="80"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-reject_di" bpmnElement="task-reject">
-        <omgdc:Bounds x="1670" y="200" width="160" height="80"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-notify-result_di" bpmnElement="task-notify-result">
-        <omgdc:Bounds x="1900" y="60" width="160" height="80"/>
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="end_di" bpmnElement="end">
-        <omgdc:Bounds x="2122" y="82" width="36" height="36"/>
-        <bpmndi:BPMNLabel><omgdc:Bounds x="2900" y="125" width="81" height="27"/></bpmndi:BPMNLabel>
+        <omgdc:Bounds x="1562" y="82" width="36" height="36"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="flow-start-to-load-tariffs_di" bpmnElement="flow-start-to-load-tariffs">
         <omgdi:waypoint x="188" y="100"/><omgdi:waypoint x="240" y="100"/>
@@ -164,26 +108,11 @@
       <bpmndi:BPMNEdge id="flow-publish-task-to-service_di" bpmnElement="flow-publish-task-to-service">
         <omgdi:waypoint x="1060" y="100"/><omgdi:waypoint x="1120" y="100"/>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-submit-to-moderate_di" bpmnElement="flow-submit-to-moderate">
+      <bpmndi:BPMNEdge id="flow-submit-to-result_di" bpmnElement="flow-submit-to-result">
         <omgdi:waypoint x="1280" y="100"/><omgdi:waypoint x="1340" y="100"/>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-moderate-to-gw_di" bpmnElement="flow-moderate-to-gw">
-        <omgdi:waypoint x="1500" y="100"/><omgdi:waypoint x="1560" y="100"/>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-decision-approve_di" bpmnElement="flow-decision-approve">
-        <omgdi:waypoint x="1610" y="100"/><omgdi:waypoint x="1670" y="100"/>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-decision-reject_di" bpmnElement="flow-decision-reject">
-        <omgdi:waypoint x="1585" y="125"/><omgdi:waypoint x="1585" y="240"/><omgdi:waypoint x="1670" y="240"/>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-approve-to-notify_di" bpmnElement="flow-approve-to-notify">
-        <omgdi:waypoint x="1830" y="100"/><omgdi:waypoint x="1900" y="100"/>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-reject-to-notify_di" bpmnElement="flow-reject-to-notify">
-        <omgdi:waypoint x="1830" y="240"/><omgdi:waypoint x="1980" y="240"/><omgdi:waypoint x="1980" y="140"/>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-notify-to-end_di" bpmnElement="flow-notify-to-end">
-        <omgdi:waypoint x="2060" y="100"/><omgdi:waypoint x="2122" y="100"/>
+      <bpmndi:BPMNEdge id="flow-result-to-end_di" bpmnElement="flow-result-to-end">
+        <omgdi:waypoint x="1500" y="100"/><omgdi:waypoint x="1562" y="100"/>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

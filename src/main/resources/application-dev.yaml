@@ -29,13 +29,13 @@ server:
     context-path: /blps
 
 camunda.bpm:
-  filter:
-    create: All Tasks
-  # Каждый рестарт — полный редеплой (иначе Cockpit может показывать старую v1 без диаграмм)
-  deploy-changed-only: false
+  authorization:
+    enabled: true
   generic-properties:
     properties:
       historyTimeToLive: P180D
+  # Каждый рестарт — полный редеплой (иначе Cockpit может показывать старую v1 без диаграмм)
+  deploy-changed-only: false
   database:
     schema-update: true
   auto-deployment-enabled: false

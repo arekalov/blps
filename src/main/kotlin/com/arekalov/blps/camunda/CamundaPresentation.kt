@@ -20,9 +20,9 @@ object CamundaPresentation {
             "Город" to v.city,
             "Опыт" to v.experienceLevel.name,
             "Зарплата" to "${v.salaryFrom ?: "—"} – ${v.salaryTo ?: "—"}",
-            "Работодатель" to v.employerId.toString(),
-            "Тариф" to (v.tariffId?.toString() ?: "не выбран"),
-            "Описание" to (v.description ?: "—"),
+            "Работодатель" to v.employerId,
+            "Тариф" to (v.tariffId ?: "не выбран"),
+            "Описание" to (v.description),
             "Причина отклонения" to (v.rejectionReason ?: "—"),
             "Создана" to v.createdAt.toString(),
             "Опубликована" to (v.publishedAt?.toString() ?: "—"),
@@ -50,7 +50,7 @@ object CamundaPresentation {
             "Название" to t.name,
             "Цена" to "${t.price} руб.",
             "Срок" to "${t.durationDays} дн.",
-            "Описание" to (t.description ?: "—"),
+            "Описание" to (t.description),
         ),
     )
 

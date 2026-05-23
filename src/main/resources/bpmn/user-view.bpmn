@@ -7,7 +7,7 @@
              xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
              targetNamespace="http://bpmn.io/schema/bpmn"
              id="user-view-definitions">
-  <process id="user-view" name="[GET] Пользователь по ID" isExecutable="true" camunda:historyTimeToLive="180">
+  <process id="user-view" name="[GET] Пользователь по ID" isExecutable="true" camunda:historyTimeToLive="180" camunda:candidateStarterGroups="ADMIN">
 
     <startEvent id="start">
       <outgoing>flow-start-to-get</outgoing>

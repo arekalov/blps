@@ -25,5 +25,15 @@ class RegisterDelegate(
         val userResponse = authService.register(request)
         execution.setVariable("registeredUserId", userResponse.id.toString())
         execution.setVariable("registeredUserEmail", userResponse.email)
+        execution.setVariable(
+            "resultSummary",
+            """
+            |Регистрация успешна.
+            |Email: ${userResponse.email}
+            |Роль: EMPLOYER
+            |
+            |Войдите в Tasklist (Camunda → Tasklist → Login) тем же email и паролем.
+            """.trimMargin(),
+        )
     }
 }

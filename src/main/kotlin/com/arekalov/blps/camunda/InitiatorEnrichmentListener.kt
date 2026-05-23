@@ -13,8 +13,9 @@ class InitiatorEnrichmentListener(
     private val log = LoggerFactory.getLogger(javaClass)
 
     override fun notify(execution: DelegateExecution) {
-        if (execution.hasVariable("initiatorUserId")) return
+        val existingEmail = execution.getVariable("initiatorEmail") as? String
+        if (!existingEmail.isNullOrBlank()) return
         runCatching { processUserResolver.enrichExecution(execution) }
-            .onFailure { log.debug("Initiator not resolved at process start: {}", it.message) }
+            .onFailure { log.warn("Initiator not resolved at process start: {}", it.message) }
     }
 }

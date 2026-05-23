@@ -8,7 +8,7 @@
              targetNamespace="http://bpmn.io/schema/bpmn"
              id="user-management-definitions">
 
-  <process id="user-management" name="[PATCH/DELETE] Управление профилем" isExecutable="true" camunda:historyTimeToLive="180">
+  <process id="user-management" name="[PATCH/DELETE] Управление профилем" isExecutable="true" camunda:historyTimeToLive="180" camunda:candidateStarterGroups="EMPLOYER,MODERATOR,ADMIN">
 
     <startEvent id="start" name="Управление пользователями">
       <outgoing>flow-start-to-action</outgoing>
