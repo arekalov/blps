@@ -3,8 +3,13 @@
   "components": [
     {
       "type": "text",
-      "text": "## Tariff List",
+      "text": "## Список тарифов",
       "id": "header-query"
+    },
+    {
+      "type": "text",
+      "text": "Настройте пагинацию и нажмите **Complete** — список обновится. Чтобы выйти — отметьте «Завершить просмотр».",
+      "id": "hint"
     },
     {
       "type": "number",
@@ -32,9 +37,9 @@
     },
     {
       "type": "checkbox",
-      "key": "refreshSearch",
-      "label": "Обновить результат с новыми параметрами",
-      "id": "field-refreshSearch"
+      "key": "finish",
+      "label": "Завершить просмотр",
+      "id": "field-finish"
     }
   ],
   "id": "tariff-list-get"

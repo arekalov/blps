@@ -10,66 +10,89 @@
   <process id="vacancy-view" name="[GET] Вакансия по ID" isExecutable="true" camunda:historyTimeToLive="180">
 
     <startEvent id="start">
-      <outgoing>flow-start-to-get</outgoing>
+      <extensionElements>
+        <camunda:executionListener event="end" expression="${execution.setVariable(&#39;finish&#39;, false)}" />
+      </extensionElements>
+      <outgoing>flow-start-to-mode</outgoing>
     </startEvent>
 
+    <serviceTask id="task-set-mode" name="Режим списка"
+                 camunda:expression="${execution.setVariable(&#39;pickerMode&#39;, &#39;ALL&#39;)}">
+      <incoming>flow-start-to-mode</incoming>
+      <outgoing>flow-mode-to-picker</outgoing>
+    </serviceTask>
+
+    <serviceTask id="task-picker" name="Список вакансий"
+                 camunda:delegateExpression="${vacancyPickerDelegate}">
+      <incoming>flow-mode-to-picker</incoming>
+      <outgoing>flow-picker-to-get</outgoing>
+    </serviceTask>
+
     <userTask id="task-get" name="Просмотр вакансии"
-              camunda:formKey="camunda-forms:deployment:forms/vacancy-view-get.form">
-      <extensionElements>
-        <camunda:executionListener event="start" delegateExpression="${vacancyViewLoadDelegate}" />
-      </extensionElements>
-      <incoming>flow-start-to-get</incoming>
+              camunda:formKey="camunda-forms:deployment:forms/vacancy-view-get.form"
+              camunda:candidateGroups="EMPLOYER,MODERATOR,ADMIN">
+      <incoming>flow-picker-to-get</incoming>
       <incoming>flow-load-to-get</incoming>
       <outgoing>flow-get-to-gw</outgoing>
     </userTask>
 
-    <exclusiveGateway id="gw-refresh" name="Обновить?">
+    <exclusiveGateway id="gw-finish" name="Завершить?">
       <incoming>flow-get-to-gw</incoming>
-      <outgoing>flow-refresh-yes</outgoing>
-      <outgoing>flow-refresh-no</outgoing>
+      <outgoing>flow-finish-yes</outgoing>
+      <outgoing>flow-finish-no</outgoing>
     </exclusiveGateway>
 
     <serviceTask id="task-load" name="Загрузить вакансию"
                  camunda:delegateExpression="${vacancyViewLoadDelegate}">
-      <incoming>flow-refresh-yes</incoming>
+      <incoming>flow-finish-no</incoming>
       <outgoing>flow-load-to-get</outgoing>
     </serviceTask>
 
     <endEvent id="end">
-      <incoming>flow-refresh-no</incoming>
+      <incoming>flow-finish-yes</incoming>
     </endEvent>
 
-    <sequenceFlow id="flow-start-to-get" sourceRef="start" targetRef="task-get"/>
-    <sequenceFlow id="flow-get-to-gw" sourceRef="task-get" targetRef="gw-refresh"/>
-    <sequenceFlow id="flow-refresh-yes" name="обновить" sourceRef="gw-refresh" targetRef="task-load">
-      <conditionExpression xsi:type="tFormalExpression">${refreshSearch == true}</conditionExpression>
+    <sequenceFlow id="flow-start-to-mode" sourceRef="start" targetRef="task-set-mode"/>
+    <sequenceFlow id="flow-mode-to-picker" sourceRef="task-set-mode" targetRef="task-picker"/>
+    <sequenceFlow id="flow-picker-to-get" sourceRef="task-picker" targetRef="task-get"/>
+    <sequenceFlow id="flow-get-to-gw" sourceRef="task-get" targetRef="gw-finish"/>
+    <sequenceFlow id="flow-finish-yes" name="завершить" sourceRef="gw-finish" targetRef="end">
+      <conditionExpression xsi:type="tFormalExpression">${finish == true}</conditionExpression>
     </sequenceFlow>
-    <sequenceFlow id="flow-refresh-no" name="готово" sourceRef="gw-refresh" targetRef="end">
-      <conditionExpression xsi:type="tFormalExpression">${refreshSearch != true}</conditionExpression>
+    <sequenceFlow id="flow-finish-no" name="загрузить" sourceRef="gw-finish" targetRef="task-load">
+      <conditionExpression xsi:type="tFormalExpression">${finish != true}</conditionExpression>
     </sequenceFlow>
     <sequenceFlow id="flow-load-to-get" sourceRef="task-load" targetRef="task-get"/>
   </process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_vacancy-view">
     <bpmndi:BPMNPlane id="BPMNPlane_vacancy-view" bpmnElement="vacancy-view">
       <bpmndi:BPMNShape id="start_di" bpmnElement="start"><omgdc:Bounds x="152" y="100" width="36" height="36"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-get_di" bpmnElement="task-get"><omgdc:Bounds x="240" y="78" width="160" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="gw-refresh_di" bpmnElement="gw-refresh" isMarkerVisible="true"><omgdc:Bounds x="455" y="93" width="50" height="50"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-load_di" bpmnElement="task-load"><omgdc:Bounds x="560" y="160" width="160" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="end_di" bpmnElement="end"><omgdc:Bounds x="560" y="100" width="36" height="36"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="flow-start-to-get_di" bpmnElement="flow-start-to-get">
-        <omgdi:waypoint x="188" y="118"/><omgdi:waypoint x="240" y="118"/>
+      <bpmndi:BPMNShape id="task-set-mode_di" bpmnElement="task-set-mode"><omgdc:Bounds x="220" y="100" width="100" height="60"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-picker_di" bpmnElement="task-picker"><omgdc:Bounds x="360" y="78" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-get_di" bpmnElement="task-get"><omgdc:Bounds x="560" y="78" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-finish_di" bpmnElement="gw-finish" isMarkerVisible="true"><omgdc:Bounds x="775" y="93" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-load_di" bpmnElement="task-load"><omgdc:Bounds x="660" y="160" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_di" bpmnElement="end"><omgdc:Bounds x="880" y="100" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow-start-to-mode_di" bpmnElement="flow-start-to-mode">
+        <omgdi:waypoint x="188" y="118"/><omgdi:waypoint x="220" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-mode-to-picker_di" bpmnElement="flow-mode-to-picker">
+        <omgdi:waypoint x="320" y="118"/><omgdi:waypoint x="360" y="118"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-picker-to-get_di" bpmnElement="flow-picker-to-get">
+        <omgdi:waypoint x="520" y="118"/><omgdi:waypoint x="560" y="118"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="flow-get-to-gw_di" bpmnElement="flow-get-to-gw">
-        <omgdi:waypoint x="400" y="118"/><omgdi:waypoint x="455" y="118"/>
+        <omgdi:waypoint x="720" y="118"/><omgdi:waypoint x="775" y="118"/>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-refresh-yes_di" bpmnElement="flow-refresh-yes">
-        <omgdi:waypoint x="480" y="143"/><omgdi:waypoint x="480" y="200"/><omgdi:waypoint x="560" y="200"/>
+      <bpmndi:BPMNEdge id="flow-finish-yes_di" bpmnElement="flow-finish-yes">
+        <omgdi:waypoint x="825" y="118"/><omgdi:waypoint x="880" y="118"/>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-refresh-no_di" bpmnElement="flow-refresh-no">
-        <omgdi:waypoint x="505" y="118"/><omgdi:waypoint x="560" y="118"/>
+      <bpmndi:BPMNEdge id="flow-finish-no_di" bpmnElement="flow-finish-no">
+        <omgdi:waypoint x="800" y="143"/><omgdi:waypoint x="800" y="200"/><omgdi:waypoint x="740" y="200"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="flow-load-to-get_di" bpmnElement="flow-load-to-get">
-        <omgdi:waypoint x="640" y="160"/><omgdi:waypoint x="640" y="40"/><omgdi:waypoint x="320" y="40"/><omgdi:waypoint x="320" y="78"/>
+        <omgdi:waypoint x="660" y="160"/><omgdi:waypoint x="640" y="160"/><omgdi:waypoint x="640" y="118"/>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

@@ -57,5 +57,6 @@ class VacancyUpdateDelegate(
 
         val result = vacancyService.updateVacancy(actor.id!!, vacancyId, role, request)
         execution.setVariable("resultSummary", "Вакансия обновлена.\n\n" + CamundaPresentation.formatVacancy(result))
+        execution.setVariable("showResult", true)
     }
 }

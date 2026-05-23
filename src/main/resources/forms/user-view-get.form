@@ -3,16 +3,22 @@
   "components": [
     {
       "type": "text",
-      "text": "## User View",
+      "text": "## Пользователь",
       "id": "header-query"
     },
     {
-      "type": "textfield",
+      "type": "text",
+      "text": "Выберите пользователя и нажмите **Complete** для загрузки. Чтобы выйти — отметьте «Завершить просмотр».",
+      "id": "hint"
+    },
+    {
+      "type": "select",
       "key": "targetUserId",
-      "label": "ID пользователя (UUID)",
+      "label": "Пользователь",
       "validate": {
         "required": true
       },
+      "valuesExpression": "=userOptions",
       "id": "field-targetUserId"
     },
     {
@@ -27,9 +33,9 @@
     },
     {
       "type": "checkbox",
-      "key": "refreshSearch",
-      "label": "Обновить результат с новыми параметрами",
-      "id": "field-refreshSearch"
+      "key": "finish",
+      "label": "Завершить просмотр",
+      "id": "field-finish"
     }
   ],
   "id": "user-view-get"

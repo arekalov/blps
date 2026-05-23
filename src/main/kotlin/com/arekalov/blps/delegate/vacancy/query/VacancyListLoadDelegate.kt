@@ -26,12 +26,22 @@ class VacancyListLoadDelegate(
 
         val my = CamundaPresentation.boolVar(execution, "my")
         val result = if (my) {
-            val actor = processUserResolver.resolveActor(execution)
+            val actor = try {
+                processUserResolver.resolveActor(execution)
+            } catch (e: Exception) {
+                execution.setVariable(
+                    "resultSummary",
+                    "Для фильтра «Только мои вакансии» войдите в Tasklist под своим email.",
+                )
+                execution.setVariable("finish", false)
+                return
+            }
             vacancyService.getMyVacancies(actor.id!!, status, pageable)
         } else {
             vacancyService.getAllVacancies(status, pageable)
         }
 
         execution.setVariable("resultSummary", CamundaPresentation.formatVacancyList(result))
+        execution.setVariable("finish", false)
     }
 }

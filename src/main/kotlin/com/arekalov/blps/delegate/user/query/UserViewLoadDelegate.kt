@@ -13,8 +13,23 @@ class UserViewLoadDelegate(
 ) : JavaDelegate {
 
     override fun execute(execution: DelegateExecution) {
-        val userId = UUID.fromString(execution.getVariable("targetUserId") as String)
+        val idRaw = execution.getVariable("targetUserId") as? String
+        if (idRaw.isNullOrBlank()) {
+            execution.setVariable("resultSummary", "Выберите пользователя.")
+            execution.setVariable("finish", false)
+            return
+        }
+
+        val userId = try {
+            UUID.fromString(idRaw.trim())
+        } catch (_: IllegalArgumentException) {
+            execution.setVariable("resultSummary", "Некорректный UUID: $idRaw")
+            execution.setVariable("finish", false)
+            return
+        }
+
         val user = userService.getUserById(userId)
         execution.setVariable("resultSummary", CamundaPresentation.formatUser(user))
+        execution.setVariable("finish", false)
     }
 }

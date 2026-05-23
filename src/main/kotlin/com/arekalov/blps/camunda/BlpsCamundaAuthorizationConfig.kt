@@ -35,9 +35,29 @@ class BlpsCamundaAuthorizationConfig(
 
         setupPublicGuestAccess()
 
-        listOf(GROUP_EMPLOYER, GROUP_MODERATOR).forEach { group ->
+        listOf(GROUP_EMPLOYER, GROUP_MODERATOR, GROUP_ADMIN).forEach { group ->
             ensureGroupGrant(group, Resources.APPLICATION, APP_TASKLIST, Permissions.ACCESS)
-            ensureGroupGrant(group, Resources.PROCESS_INSTANCE, ANY_RESOURCE, Permissions.CREATE)
+            ensureGroupGrant(
+                group,
+                Resources.TASK,
+                ANY_RESOURCE,
+                Permissions.READ,
+                Permissions.UPDATE,
+                Permissions.TASK_WORK,
+            )
+            ensureGroupGrant(
+                group,
+                Resources.PROCESS_INSTANCE,
+                ANY_RESOURCE,
+                Permissions.READ,
+                Permissions.CREATE,
+            )
+        }
+
+        listOf(GROUP_EMPLOYER, GROUP_MODERATOR).forEach { group ->
+            PUBLIC_PROCESS_KEYS.forEach { key ->
+                ensureProcessStartGrant(group, key)
+            }
         }
 
         EMPLOYER_PROCESS_KEYS.forEach { key ->

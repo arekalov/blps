@@ -1,0 +1,31 @@
+{
+  "type": "default",
+  "schemaVersion": 2,
+  "components": [
+    {
+      "type": "text",
+      "text": "## Архивирование вакансии",
+      "id": "header"
+    },
+    {
+      "type": "select",
+      "key": "vacancyId",
+      "label": "Опубликованная вакансия",
+      "id": "field-vacancyId",
+      "valuesExpression": "=vacancyOptions",
+      "validate": {
+        "required": true
+      }
+    },
+    {
+      "type": "checkbox",
+      "key": "confirmArchive",
+      "label": "Подтверждаю архивирование",
+      "id": "field-confirmArchive",
+      "validate": {
+        "required": true
+      }
+    }
+  ],
+  "id": "vacancy-archive-form"
+}

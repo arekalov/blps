@@ -1,0 +1,165 @@
+{
+  "type": "default",
+  "components": [
+    {
+      "type": "text",
+      "text": "## Управление профилем пользователя",
+      "id": "header",
+      "conditional": {
+        "hide": "=showResult"
+      }
+    },
+    {
+      "type": "select",
+      "key": "userAction",
+      "label": "Выберите действие",
+      "validate": {
+        "required": true
+      },
+      "values": [
+        {
+          "value": "EDIT",
+          "label": "Редактировать профиль"
+        },
+        {
+          "value": "DELETE",
+          "label": "Удалить пользователя (только ADMIN)"
+        }
+      ],
+      "id": "field-userAction",
+      "conditional": {
+        "hide": "=showResult"
+      }
+    },
+    {
+      "type": "select",
+      "key": "targetUserId",
+      "label": "Пользователь для удаления (только ADMIN)",
+      "validate": {
+        "required": true
+      },
+      "valuesExpression": "=userOptions",
+      "id": "field-targetUserId",
+      "conditional": {
+        "hide": "=showResult or userAction != \"DELETE\""
+      }
+    },
+    {
+      "type": "text",
+      "text": "### Редактирование",
+      "id": "header-edit",
+      "conditional": {
+        "hide": "=showResult or userAction != \"EDIT\""
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "newEmail",
+      "label": "Новый email (оставьте пустым, чтобы не менять)",
+      "validate": {
+        "maxLength": 255
+      },
+      "id": "field-email",
+      "conditional": {
+        "hide": "=showResult or userAction != \"EDIT\""
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "newPassword",
+      "label": "Новый пароль (оставьте пустым, чтобы не менять)",
+      "validate": {
+        "minLength": 6,
+        "maxLength": 100
+      },
+      "id": "field-password",
+      "conditional": {
+        "hide": "=showResult or userAction != \"EDIT\""
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "newCompanyName",
+      "label": "Новое название компании (оставьте пустым, чтобы не менять)",
+      "validate": {
+        "maxLength": 255
+      },
+      "id": "field-companyName",
+      "conditional": {
+        "hide": "=showResult or userAction != \"EDIT\""
+      }
+    },
+    {
+      "type": "select",
+      "key": "newRole",
+      "label": "Роль (только для ADMIN)",
+      "values": [
+        {
+          "value": "",
+          "label": "Не менять"
+        },
+        {
+          "value": "EMPLOYER",
+          "label": "EMPLOYER"
+        },
+        {
+          "value": "MODERATOR",
+          "label": "MODERATOR"
+        },
+        {
+          "value": "ADMIN",
+          "label": "ADMIN"
+        }
+      ],
+      "id": "field-role",
+      "conditional": {
+        "hide": "=showResult or userAction != \"EDIT\""
+      }
+    },
+    {
+      "type": "text",
+      "text": "### Удаление (ADMIN)",
+      "id": "header-delete",
+      "conditional": {
+        "hide": "=showResult or userAction != \"DELETE\""
+      }
+    },
+    {
+      "type": "text",
+      "text": "Внимание! Удаление пользователя необратимо.",
+      "id": "warning-delete",
+      "conditional": {
+        "hide": "=showResult or userAction != \"DELETE\""
+      }
+    },
+    {
+      "type": "checkbox",
+      "key": "deleteConfirmed",
+      "label": "Подтверждаю удаление пользователя и всех его данных",
+      "validate": {
+        "required": true
+      },
+      "id": "field-confirm-delete",
+      "conditional": {
+        "hide": "=showResult or userAction != \"DELETE\""
+      }
+    },
+    {
+      "type": "text",
+      "text": "### Результат",
+      "id": "header-result",
+      "conditional": {
+        "hide": "=not(showResult)"
+      }
+    },
+    {
+      "type": "text",
+      "text": "=resultSummary",
+      "id": "result-body",
+      "conditional": {
+        "hide": "=not(showResult)"
+      }
+    }
+  ],
+  "id": "user-management-form"
+}

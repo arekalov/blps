@@ -3,8 +3,11 @@
   "components": [
     {
       "type": "text",
-      "text": "## Регистрация нового пользователя\n\nБез входа в систему. После регистрации войдите в **Tasklist** (Camunda → Tasklist → Login).",
-      "id": "header"
+      "text": "## Регистрация нового пользователя\n\nБез входа в систему. После регистрации войдите в **Tasklist**.",
+      "id": "header",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "textfield",
@@ -15,7 +18,10 @@
         "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
         "patternMessage": "Введите корректный email"
       },
-      "id": "field-email"
+      "id": "field-email",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "textfield",
@@ -26,7 +32,10 @@
         "minLength": 6,
         "maxLength": 100
       },
-      "id": "field-password"
+      "id": "field-password",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "textfield",
@@ -36,7 +45,26 @@
         "required": true,
         "maxLength": 255
       },
-      "id": "field-companyName"
+      "id": "field-companyName",
+      "conditional": {
+        "hide": "=showResult"
+      }
+    },
+    {
+      "type": "text",
+      "text": "### Результат",
+      "id": "header-result",
+      "conditional": {
+        "hide": "=not(showResult)"
+      }
+    },
+    {
+      "type": "text",
+      "text": "=resultSummary",
+      "id": "result-body",
+      "conditional": {
+        "hide": "=not(showResult)"
+      }
     }
   ],
   "id": "register-form"

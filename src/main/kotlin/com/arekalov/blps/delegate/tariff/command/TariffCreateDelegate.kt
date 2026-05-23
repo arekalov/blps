@@ -1,5 +1,6 @@
 package com.arekalov.blps.delegate.tariff.command
 
+import com.arekalov.blps.camunda.CamundaPresentation
 import com.arekalov.blps.dto.tariff.CreateTariffRequest
 import com.arekalov.blps.service.TariffService
 import org.camunda.bpm.engine.delegate.DelegateExecution
@@ -23,5 +24,7 @@ class TariffCreateDelegate(
         val created = tariffService.createTariff(request)
         execution.setVariable("createdTariffId", created.id.toString())
         execution.setVariable("createdTariffName", created.name)
+        execution.setVariable("resultSummary", "Тариф создан.\n\n" + CamundaPresentation.formatTariff(created))
+        execution.setVariable("showResult", true)
     }
 }

@@ -14,10 +14,17 @@ class UserDeleteDelegate(
 ) : JavaDelegate {
 
     override fun execute(execution: DelegateExecution) {
+        val confirmed = execution.getVariable("deleteConfirmed")
+        if (confirmed != true && confirmed?.toString() != "true") {
+            throw IllegalStateException("Подтвердите удаление пользователя в форме")
+        }
+
         val actorId = processUserResolver.resolveActor(execution).id!!
         val targetUserId = UUID.fromString(execution.getVariable("targetUserId") as String)
 
         userService.deleteUser(currentUserId = actorId, targetUserId = targetUserId)
         execution.setVariable("deletedUserId", targetUserId.toString())
+        execution.setVariable("resultSummary", "Пользователь $targetUserId удалён.")
+        execution.setVariable("showResult", true)
     }
 }

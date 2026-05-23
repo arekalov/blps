@@ -35,5 +35,6 @@ class RegisterDelegate(
             |Войдите в Tasklist (Camunda → Tasklist → Login) тем же email и паролем.
             """.trimMargin(),
         )
+        execution.setVariable("showResult", true)
     }
 }

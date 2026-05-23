@@ -8,125 +8,114 @@
              targetNamespace="http://bpmn.io/schema/bpmn"
              id="user-management-definitions">
 
-  <process id="user-management" name="[PATCH/DELETE] Управление профилем" isExecutable="true" camunda:historyTimeToLive="180" camunda:candidateStarterGroups="EMPLOYER,MODERATOR,ADMIN">
+  <process id="user-management" name="[PATCH/DELETE] Управление профилем" isExecutable="true"
+           camunda:historyTimeToLive="180" camunda:candidateStarterGroups="EMPLOYER,MODERATOR,ADMIN">
 
     <startEvent id="start" name="Управление пользователями">
-      <outgoing>flow-start-to-action</outgoing>
+      <extensionElements>
+        <camunda:executionListener event="end" expression="${execution.setVariable(&#39;showResult&#39;, false)}" />
+      </extensionElements>
+      <outgoing>flow-start-to-options</outgoing>
     </startEvent>
 
-    <userTask id="task-choose-action" name="Выбрать действие с профилем"
-              camunda:formKey="camunda-forms:deployment:forms/user-action.form"
+    <serviceTask id="task-load-options" name="Список пользователей"
+                 camunda:delegateExpression="${userListOptionsDelegate}">
+      <incoming>flow-start-to-options</incoming>
+      <incoming>flow-loop-edit</incoming>
+      <incoming>flow-loop-delete</incoming>
+      <outgoing>flow-options-to-form</outgoing>
+    </serviceTask>
+
+    <userTask id="task-form" name="Управление профилем"
+              camunda:formKey="camunda-forms:deployment:forms/user-management.form"
               camunda:candidateGroups="EMPLOYER,MODERATOR,ADMIN">
-      <incoming>flow-start-to-action</incoming>
-      <outgoing>flow-action-to-gw</outgoing>
+      <incoming>flow-options-to-form</incoming>
+      <outgoing>flow-form-to-gw</outgoing>
     </userTask>
 
+    <exclusiveGateway id="gw-result" name="Результат?">
+      <incoming>flow-form-to-gw</incoming>
+      <outgoing>flow-done</outgoing>
+      <outgoing>flow-to-action</outgoing>
+    </exclusiveGateway>
+
     <exclusiveGateway id="gw-action" name="Действие?">
-      <incoming>flow-action-to-gw</incoming>
+      <incoming>flow-to-action</incoming>
       <outgoing>flow-action-edit</outgoing>
       <outgoing>flow-action-delete</outgoing>
     </exclusiveGateway>
 
-    <!-- EDIT branch -->
-    <userTask id="task-edit-form" name="Редактировать профиль пользователя"
-              camunda:formKey="camunda-forms:deployment:forms/user-edit.form"
-              camunda:candidateGroups="EMPLOYER,MODERATOR,ADMIN">
-      <incoming>flow-action-edit</incoming>
-      <outgoing>flow-edit-form-to-service</outgoing>
-    </userTask>
-
     <serviceTask id="task-edit-service" name="Сохранить изменения профиля"
                  camunda:delegateExpression="${userUpdateDelegate}">
-      <incoming>flow-edit-form-to-service</incoming>
-      <outgoing>flow-edit-to-end</outgoing>
+      <incoming>flow-action-edit</incoming>
+      <outgoing>flow-loop-edit</outgoing>
     </serviceTask>
-
-    <!-- DELETE branch — только ADMIN -->
-    <userTask id="task-delete-confirm" name="Подтвердить удаление пользователя (ADMIN)"
-              camunda:formKey="camunda-forms:deployment:forms/user-delete.form"
-              camunda:candidateGroups="ADMIN">
-      <incoming>flow-action-delete</incoming>
-      <outgoing>flow-delete-confirm-to-service</outgoing>
-    </userTask>
 
     <serviceTask id="task-delete-service" name="Удалить пользователя"
                  camunda:delegateExpression="${userDeleteDelegate}">
-      <incoming>flow-delete-confirm-to-service</incoming>
-      <outgoing>flow-delete-to-end</outgoing>
+      <incoming>flow-action-delete</incoming>
+      <outgoing>flow-loop-delete</outgoing>
     </serviceTask>
 
     <endEvent id="end" name="Операция выполнена">
-      <incoming>flow-edit-to-end</incoming>
-      <incoming>flow-delete-to-end</incoming>
+      <incoming>flow-done</incoming>
     </endEvent>
 
-    <sequenceFlow id="flow-start-to-action" sourceRef="start" targetRef="task-choose-action"/>
-    <sequenceFlow id="flow-action-to-gw" sourceRef="task-choose-action" targetRef="gw-action"/>
-    <sequenceFlow id="flow-action-edit" name="редактировать" sourceRef="gw-action" targetRef="task-edit-form">
+    <sequenceFlow id="flow-start-to-options" sourceRef="start" targetRef="task-load-options"/>
+    <sequenceFlow id="flow-options-to-form" sourceRef="task-load-options" targetRef="task-form"/>
+    <sequenceFlow id="flow-form-to-gw" sourceRef="task-form" targetRef="gw-result"/>
+    <sequenceFlow id="flow-done" sourceRef="gw-result" targetRef="end">
+      <conditionExpression xsi:type="tFormalExpression">${showResult == true}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow-to-action" sourceRef="gw-result" targetRef="gw-action">
+      <conditionExpression xsi:type="tFormalExpression">${showResult != true}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow-action-edit" name="редактировать" sourceRef="gw-action" targetRef="task-edit-service">
       <conditionExpression xsi:type="tFormalExpression">${userAction == 'EDIT'}</conditionExpression>
     </sequenceFlow>
-    <sequenceFlow id="flow-action-delete" name="удалить (ADMIN)" sourceRef="gw-action" targetRef="task-delete-confirm">
+    <sequenceFlow id="flow-action-delete" name="удалить" sourceRef="gw-action" targetRef="task-delete-service">
       <conditionExpression xsi:type="tFormalExpression">${userAction == 'DELETE'}</conditionExpression>
     </sequenceFlow>
-    <sequenceFlow id="flow-edit-form-to-service" sourceRef="task-edit-form" targetRef="task-edit-service"/>
-    <sequenceFlow id="flow-edit-to-end" sourceRef="task-edit-service" targetRef="end"/>
-    <sequenceFlow id="flow-delete-confirm-to-service" sourceRef="task-delete-confirm" targetRef="task-delete-service"/>
-    <sequenceFlow id="flow-delete-to-end" sourceRef="task-delete-service" targetRef="end"/>
-
+    <sequenceFlow id="flow-loop-edit" sourceRef="task-edit-service" targetRef="task-load-options"/>
+    <sequenceFlow id="flow-loop-delete" sourceRef="task-delete-service" targetRef="task-load-options"/>
   </process>
 
   <bpmndi:BPMNDiagram id="BPMNDiagram_user-management">
     <bpmndi:BPMNPlane id="BPMNPlane_user-management" bpmnElement="user-management">
-      <bpmndi:BPMNShape id="start_di" bpmnElement="start">
-        <omgdc:Bounds x="152" y="132" width="36" height="36"/>
-        <bpmndi:BPMNLabel><omgdc:Bounds x="130" y="175" width="80" height="27"/></bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-choose-action_di" bpmnElement="task-choose-action">
-        <omgdc:Bounds x="240" y="110" width="160" height="80"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="gw-action_di" bpmnElement="gw-action" isMarkerVisible="true">
-        <omgdc:Bounds x="455" y="125" width="50" height="50"/>
-        <bpmndi:BPMNLabel><omgdc:Bounds x="460" y="182" width="40" height="14"/></bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-edit-form_di" bpmnElement="task-edit-form">
-        <omgdc:Bounds x="560" y="60" width="160" height="80"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-edit-service_di" bpmnElement="task-edit-service">
-        <omgdc:Bounds x="780" y="60" width="160" height="80"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-delete-confirm_di" bpmnElement="task-delete-confirm">
-        <omgdc:Bounds x="560" y="200" width="160" height="80"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-delete-service_di" bpmnElement="task-delete-service">
-        <omgdc:Bounds x="780" y="200" width="160" height="80"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="end_di" bpmnElement="end">
-        <omgdc:Bounds x="1002" y="132" width="36" height="36"/>
-        <bpmndi:BPMNLabel><omgdc:Bounds x="980" y="175" width="80" height="27"/></bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="flow-start-to-action_di" bpmnElement="flow-start-to-action">
+      <bpmndi:BPMNShape id="start_di" bpmnElement="start"><omgdc:Bounds x="152" y="132" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-load-options_di" bpmnElement="task-load-options"><omgdc:Bounds x="240" y="110" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-form_di" bpmnElement="task-form"><omgdc:Bounds x="460" y="110" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-result_di" bpmnElement="gw-result" isMarkerVisible="true"><omgdc:Bounds x="675" y="125" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-action_di" bpmnElement="gw-action" isMarkerVisible="true"><omgdc:Bounds x="775" y="125" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-edit-service_di" bpmnElement="task-edit-service"><omgdc:Bounds x="900" y="60" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-delete-service_di" bpmnElement="task-delete-service"><omgdc:Bounds x="900" y="200" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_di" bpmnElement="end"><omgdc:Bounds x="1100" y="132" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow-start-to-options_di" bpmnElement="flow-start-to-options">
         <omgdi:waypoint x="188" y="150"/><omgdi:waypoint x="240" y="150"/>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-action-to-gw_di" bpmnElement="flow-action-to-gw">
-        <omgdi:waypoint x="400" y="150"/><omgdi:waypoint x="455" y="150"/>
+      <bpmndi:BPMNEdge id="flow-options-to-form_di" bpmnElement="flow-options-to-form">
+        <omgdi:waypoint x="400" y="150"/><omgdi:waypoint x="460" y="150"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-form-to-gw_di" bpmnElement="flow-form-to-gw">
+        <omgdi:waypoint x="620" y="150"/><omgdi:waypoint x="675" y="150"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-done_di" bpmnElement="flow-done">
+        <omgdi:waypoint x="725" y="150"/><omgdi:waypoint x="1100" y="150"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-to-action_di" bpmnElement="flow-to-action">
+        <omgdi:waypoint x="700" y="150"/><omgdi:waypoint x="775" y="150"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="flow-action-edit_di" bpmnElement="flow-action-edit">
-        <omgdi:waypoint x="480" y="125"/><omgdi:waypoint x="480" y="100"/><omgdi:waypoint x="560" y="100"/>
+        <omgdi:waypoint x="800" y="125"/><omgdi:waypoint x="800" y="100"/><omgdi:waypoint x="900" y="100"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="flow-action-delete_di" bpmnElement="flow-action-delete">
-        <omgdi:waypoint x="480" y="175"/><omgdi:waypoint x="480" y="240"/><omgdi:waypoint x="560" y="240"/>
+        <omgdi:waypoint x="800" y="175"/><omgdi:waypoint x="800" y="240"/><omgdi:waypoint x="900" y="240"/>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-edit-form-to-service_di" bpmnElement="flow-edit-form-to-service">
-        <omgdi:waypoint x="720" y="100"/><omgdi:waypoint x="780" y="100"/>
+      <bpmndi:BPMNEdge id="flow-loop-edit_di" bpmnElement="flow-loop-edit">
+        <omgdi:waypoint x="900" y="60"/><omgdi:waypoint x="320" y="60"/><omgdi:waypoint x="320" y="150"/>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-edit-to-end_di" bpmnElement="flow-edit-to-end">
-        <omgdi:waypoint x="940" y="100"/><omgdi:waypoint x="1020" y="100"/><omgdi:waypoint x="1020" y="132"/>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-delete-confirm-to-service_di" bpmnElement="flow-delete-confirm-to-service">
-        <omgdi:waypoint x="720" y="240"/><omgdi:waypoint x="780" y="240"/>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-delete-to-end_di" bpmnElement="flow-delete-to-end">
-        <omgdi:waypoint x="940" y="240"/><omgdi:waypoint x="1020" y="240"/><omgdi:waypoint x="1020" y="168"/>
+      <bpmndi:BPMNEdge id="flow-loop-delete_di" bpmnElement="flow-loop-delete">
+        <omgdi:waypoint x="900" y="200"/><omgdi:waypoint x="320" y="200"/><omgdi:waypoint x="320" y="150"/>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

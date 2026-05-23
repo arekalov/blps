@@ -15,6 +15,11 @@ class VacancyPublishDelegate(
 ) : JavaDelegate {
 
     override fun execute(execution: DelegateExecution) {
+        val submit = execution.getVariable("submitForModeration")
+        if (submit != true && submit?.toString() != "true") {
+            throw IllegalStateException("Подтвердите отправку на модерацию в форме")
+        }
+
         val vacancyId = UUID.fromString(execution.getVariable("vacancyId") as String)
         val actor = processUserResolver.resolveActor(execution)
         val role = processUserResolver.resolveActorRole(execution, actor)
@@ -30,5 +35,6 @@ class VacancyPublishDelegate(
             "resultSummary",
             "Вакансия отправлена на модерацию.\nСтатус: ${result.status}\nID: ${result.id}",
         )
+        execution.setVariable("showResult", true)
     }
 }

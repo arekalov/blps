@@ -1,0 +1,213 @@
+{
+  "type": "default",
+  "components": [
+    {
+      "type": "text",
+      "text": "## Управление тарифами",
+      "id": "header",
+      "conditional": {
+        "hide": "=showResult"
+      }
+    },
+    {
+      "type": "select",
+      "key": "tariffAction",
+      "label": "Выберите действие",
+      "validate": {
+        "required": true
+      },
+      "values": [
+        {
+          "value": "CREATE",
+          "label": "Создать новый тариф"
+        },
+        {
+          "value": "EDIT",
+          "label": "Редактировать тариф"
+        },
+        {
+          "value": "DELETE",
+          "label": "Удалить тариф"
+        }
+      ],
+      "id": "field-tariffAction",
+      "conditional": {
+        "hide": "=showResult"
+      }
+    },
+    {
+      "type": "select",
+      "key": "tariffId",
+      "label": "Тариф (для редактирования/удаления)",
+      "validate": {
+        "required": true
+      },
+      "valuesExpression": "=tariffOptions",
+      "id": "field-tariffId",
+      "conditional": {
+        "hide": "=showResult or tariffAction == \"CREATE\""
+      }
+    },
+    {
+      "type": "text",
+      "text": "### Создание тарифа",
+      "id": "header-create",
+      "conditional": {
+        "hide": "=showResult or tariffAction != \"CREATE\""
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "tariffName",
+      "label": "Название тарифа",
+      "validate": {
+        "required": true,
+        "maxLength": 100
+      },
+      "id": "field-create-name",
+      "conditional": {
+        "hide": "=showResult or tariffAction != \"CREATE\""
+      }
+    },
+    {
+      "type": "number",
+      "key": "tariffPrice",
+      "label": "Цена (руб.)",
+      "validate": {
+        "required": true,
+        "min": 0
+      },
+      "id": "field-create-price",
+      "conditional": {
+        "hide": "=showResult or tariffAction != \"CREATE\""
+      }
+    },
+    {
+      "type": "number",
+      "key": "tariffDurationDays",
+      "label": "Срок размещения (дней)",
+      "validate": {
+        "required": true,
+        "min": 1
+      },
+      "id": "field-create-duration",
+      "conditional": {
+        "hide": "=showResult or tariffAction != \"CREATE\""
+      }
+    },
+    {
+      "type": "textarea",
+      "key": "tariffDescription",
+      "label": "Описание тарифа",
+      "validate": {
+        "required": true,
+        "maxLength": 1000
+      },
+      "id": "field-create-description",
+      "conditional": {
+        "hide": "=showResult or tariffAction != \"CREATE\""
+      }
+    },
+    {
+      "type": "text",
+      "text": "### Редактирование тарифа",
+      "id": "header-edit",
+      "conditional": {
+        "hide": "=showResult or tariffAction != \"EDIT\""
+      }
+    },
+    {
+      "type": "textfield",
+      "key": "tariffName",
+      "label": "Название тарифа",
+      "validate": {
+        "maxLength": 100
+      },
+      "id": "field-edit-name",
+      "conditional": {
+        "hide": "=showResult or tariffAction != \"EDIT\""
+      }
+    },
+    {
+      "type": "number",
+      "key": "tariffPrice",
+      "label": "Цена (руб.)",
+      "validate": {
+        "min": 0
+      },
+      "id": "field-edit-price",
+      "conditional": {
+        "hide": "=showResult or tariffAction != \"EDIT\""
+      }
+    },
+    {
+      "type": "number",
+      "key": "tariffDurationDays",
+      "label": "Срок размещения (дней)",
+      "validate": {
+        "min": 1
+      },
+      "id": "field-edit-duration",
+      "conditional": {
+        "hide": "=showResult or tariffAction != \"EDIT\""
+      }
+    },
+    {
+      "type": "textarea",
+      "key": "tariffDescription",
+      "label": "Описание тарифа",
+      "validate": {
+        "maxLength": 1000
+      },
+      "id": "field-edit-description",
+      "conditional": {
+        "hide": "=showResult or tariffAction != \"EDIT\""
+      }
+    },
+    {
+      "type": "text",
+      "text": "### Удаление тарифа",
+      "id": "header-delete",
+      "conditional": {
+        "hide": "=showResult or tariffAction != \"DELETE\""
+      }
+    },
+    {
+      "type": "text",
+      "text": "Внимание! Удаление тарифа необратимо.",
+      "id": "warning-delete",
+      "conditional": {
+        "hide": "=showResult or tariffAction != \"DELETE\""
+      }
+    },
+    {
+      "type": "checkbox",
+      "key": "deleteConfirmed",
+      "label": "Подтверждаю удаление тарифа",
+      "validate": {
+        "required": true
+      },
+      "id": "field-confirm-delete",
+      "conditional": {
+        "hide": "=showResult or tariffAction != \"DELETE\""
+      }
+    },
+    {
+      "type": "text",
+      "text": "### Результат",
+      "id": "header-result",
+      "conditional": {
+        "hide": "=not(showResult)"
+      }
+    },
+    {
+      "type": "text",
+      "text": "=resultSummary",
+      "id": "result-body",
+      "conditional": {
+        "hide": "=not(showResult)"
+      }
+    }
+  ],
+  "id": "tariff-management-form"
+}

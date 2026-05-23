@@ -1,6 +1,7 @@
 package com.arekalov.blps.delegate.user.command
 
 import com.arekalov.blps.dto.user.UpdateUserRequest
+import com.arekalov.blps.camunda.CamundaPresentation
 import com.arekalov.blps.camunda.ProcessUserResolver
 import com.arekalov.blps.model.enum.UserRole
 import com.arekalov.blps.service.UserService
@@ -43,5 +44,7 @@ class UserUpdateDelegate(
 
         val updated = userService.updateUser(actorId, actorRole, targetUserId, request)
         execution.setVariable("updatedUserId", updated.id.toString())
+        execution.setVariable("resultSummary", "Профиль обновлён.\n\n" + CamundaPresentation.formatUser(updated))
+        execution.setVariable("showResult", true)
     }
 }

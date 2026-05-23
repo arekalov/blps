@@ -17,5 +17,6 @@ class TariffListLoadDelegate(
         val size = CamundaPresentation.intVar(execution, "size", 20)
         val result = tariffService.getAllTariffs(PageRequest.of(page, size))
         execution.setVariable("resultSummary", CamundaPresentation.formatTariffList(result))
+        execution.setVariable("finish", false)
     }
 }

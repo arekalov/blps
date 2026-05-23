@@ -3,16 +3,22 @@
   "components": [
     {
       "type": "text",
-      "text": "## Vacancy View",
+      "text": "## Вакансия по ID",
       "id": "header-query"
     },
     {
-      "type": "textfield",
+      "type": "text",
+      "text": "Выберите вакансию и нажмите **Complete** для загрузки. Чтобы выйти — отметьте «Завершить просмотр».",
+      "id": "hint"
+    },
+    {
+      "type": "select",
       "key": "vacancyId",
-      "label": "ID вакансии (UUID)",
+      "label": "Вакансия",
       "validate": {
         "required": true
       },
+      "valuesExpression": "=vacancyOptions",
       "id": "field-vacancyId"
     },
     {
@@ -27,9 +33,9 @@
     },
     {
       "type": "checkbox",
-      "key": "refreshSearch",
-      "label": "Обновить результат с новыми параметрами",
-      "id": "field-refreshSearch"
+      "key": "finish",
+      "label": "Завершить просмотр",
+      "id": "field-finish"
     }
   ],
   "id": "vacancy-view-get"

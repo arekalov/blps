@@ -13,8 +13,23 @@ class VacancyViewLoadDelegate(
 ) : JavaDelegate {
 
     override fun execute(execution: DelegateExecution) {
-        val vacancyId = UUID.fromString(execution.getVariable("vacancyId") as String)
+        val idRaw = execution.getVariable("vacancyId") as? String
+        if (idRaw.isNullOrBlank()) {
+            execution.setVariable("resultSummary", "Укажите ID вакансии.")
+            execution.setVariable("finish", false)
+            return
+        }
+
+        val vacancyId = try {
+            UUID.fromString(idRaw.trim())
+        } catch (_: IllegalArgumentException) {
+            execution.setVariable("resultSummary", "Некорректный UUID: $idRaw")
+            execution.setVariable("finish", false)
+            return
+        }
+
         val vacancy = vacancyService.getVacancyById(vacancyId)
         execution.setVariable("resultSummary", CamundaPresentation.formatVacancy(vacancy))
+        execution.setVariable("finish", false)
     }
 }

@@ -3,8 +3,19 @@
   "components": [
     {
       "type": "text",
+      "text": "## Создание и отправка вакансии на модерацию",
+      "id": "header-main",
+      "conditional": {
+        "hide": "=showResult"
+      }
+    },
+    {
+      "type": "text",
       "text": "## Обязательные данные вакансии",
-      "id": "header-required"
+      "id": "header-required",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "textfield",
@@ -14,7 +25,10 @@
         "required": true,
         "maxLength": 255
       },
-      "id": "field-title"
+      "id": "field-title",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "textarea",
@@ -24,7 +38,10 @@
         "required": true,
         "maxLength": 10000
       },
-      "id": "field-description"
+      "id": "field-description",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "select",
@@ -51,7 +68,10 @@
           "label": "Более 6 лет"
         }
       ],
-      "id": "field-experienceLevel"
+      "id": "field-experienceLevel",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "select",
@@ -82,7 +102,10 @@
           "label": "Волонтёрство"
         }
       ],
-      "id": "field-employmentType"
+      "id": "field-employmentType",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "select",
@@ -105,7 +128,10 @@
           "label": "Гибридный"
         }
       ],
-      "id": "field-workFormat"
+      "id": "field-workFormat",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "select",
@@ -128,7 +154,10 @@
           "label": "Самозанятость"
         }
       ],
-      "id": "field-employmentFormat"
+      "id": "field-employmentFormat",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "select",
@@ -163,7 +192,10 @@
           "label": "Удалённо, гибкий график"
         }
       ],
-      "id": "field-workSchedule"
+      "id": "field-workSchedule",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "textfield",
@@ -173,20 +205,26 @@
         "required": true,
         "maxLength": 100
       },
-      "id": "field-city"
+      "id": "field-city",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "checkbox",
       "key": "fillOptional",
       "label": "Указать дополнительные данные (зарплата, навыки, адрес)",
-      "id": "field-fillOptional"
+      "id": "field-fillOptional",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "text",
       "text": "### Дополнительные данные",
       "id": "header-optional",
       "conditional": {
-        "hide": "=not(fillOptional)"
+        "hide": "=showResult or not(fillOptional)"
       }
     },
     {
@@ -198,7 +236,7 @@
       },
       "id": "field-salaryFrom",
       "conditional": {
-        "hide": "=not(fillOptional)"
+        "hide": "=showResult or not(fillOptional)"
       }
     },
     {
@@ -210,7 +248,7 @@
       },
       "id": "field-salaryTo",
       "conditional": {
-        "hide": "=not(fillOptional)"
+        "hide": "=showResult or not(fillOptional)"
       }
     },
     {
@@ -219,7 +257,7 @@
       "label": "Навыки (через запятую, например: Java, Kotlin, Spring)",
       "id": "field-additionalSkills",
       "conditional": {
-        "hide": "=not(fillOptional)"
+        "hide": "=showResult or not(fillOptional)"
       }
     },
     {
@@ -231,7 +269,7 @@
       },
       "id": "field-address",
       "conditional": {
-        "hide": "=not(fillOptional)"
+        "hide": "=showResult or not(fillOptional)"
       }
     },
     {
@@ -243,18 +281,24 @@
       },
       "id": "field-companyDescription",
       "conditional": {
-        "hide": "=not(fillOptional)"
+        "hide": "=showResult or not(fillOptional)"
       }
     },
     {
       "type": "text",
       "text": "## Выбор тарифа",
-      "id": "header-tariff"
+      "id": "header-tariff",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "text",
       "text": "Выберите тариф для публикации вакансии. Тариф определяет срок размещения.",
-      "id": "description-tariff"
+      "id": "description-tariff",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "select",
@@ -264,21 +308,58 @@
         "required": true
       },
       "valuesExpression": "=tariffOptions",
-      "id": "field-selectedTariffId"
+      "id": "field-selectedTariffId",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "text",
       "text": "### Подтверждение",
-      "id": "header-confirm"
+      "id": "header-confirm",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "checkbox",
       "key": "confirmed",
-      "label": "Подтверждаю корректность данных и создаю вакансию",
+      "label": "Подтверждаю корректность данных",
       "validate": {
         "required": true
       },
-      "id": "field-confirmed"
+      "id": "field-confirmed",
+      "conditional": {
+        "hide": "=showResult"
+      }
+    },
+    {
+      "type": "checkbox",
+      "key": "submitForModeration",
+      "label": "Создать вакансию и отправить на модерацию",
+      "validate": {
+        "required": true
+      },
+      "id": "field-submitForModeration",
+      "conditional": {
+        "hide": "=showResult"
+      }
+    },
+    {
+      "type": "text",
+      "text": "### Результат",
+      "id": "header-result",
+      "conditional": {
+        "hide": "=not(showResult)"
+      }
+    },
+    {
+      "type": "text",
+      "text": "=resultSummary",
+      "id": "result-body",
+      "conditional": {
+        "hide": "=not(showResult)"
+      }
     }
   ],
   "id": "vacancy-create-form"

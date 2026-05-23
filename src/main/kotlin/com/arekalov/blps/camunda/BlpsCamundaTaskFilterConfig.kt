@@ -25,27 +25,33 @@ class BlpsCamundaTaskFilterConfig(
     @EventListener(ApplicationReadyEvent::class)
     @Order(300)
     fun setupFilters() {
-        listOf("All Tasks", FILTER_MY_TASKS, FILTER_MODERATION).forEach { name ->
+        listOf(FILTER_ALL_TASKS, FILTER_MY_TASKS, FILTER_MODERATION).forEach { name ->
             filterService.createFilterQuery().filterName(name).list()
                 .forEach { filterService.deleteFilter(it.id) }
         }
 
+        val allTasksFilterId = saveTaskFilter(FILTER_ALL_TASKS, emptyMap())
         val myTasksFilterId = saveTaskFilter(
             FILTER_MY_TASKS,
-            mapOf("assigneeExpression" to "\${currentUser()}"),
+            mapOf("involvedUserExpression" to "\${currentUser()}"),
         )
         val moderationFilterId = saveTaskFilter(
             FILTER_MODERATION,
             mapOf("candidateGroupIn" to listOf("MODERATOR", "ADMIN")),
         )
 
-        listOf(myTasksFilterId, moderationFilterId).forEach { filterId ->
+        listOf(allTasksFilterId, myTasksFilterId, moderationFilterId).forEach { filterId ->
             grantFilterRead(BlpsCamundaAuthorizationConfig.GROUP_EMPLOYER, filterId)
             grantFilterRead(BlpsCamundaAuthorizationConfig.GROUP_MODERATOR, filterId)
             grantFilterRead(BlpsCamundaAuthorizationConfig.GROUP_ADMIN, filterId)
         }
 
-        log.info("Tasklist filters configured: {}, {}", FILTER_MY_TASKS, FILTER_MODERATION)
+        log.info(
+            "Tasklist filters configured: {}, {}, {}",
+            FILTER_ALL_TASKS,
+            FILTER_MY_TASKS,
+            FILTER_MODERATION,
+        )
     }
 
     private fun saveTaskFilter(name: String, queryProperties: Map<String, Any>): String {
@@ -73,6 +79,7 @@ class BlpsCamundaTaskFilterConfig(
     }
 
     companion object {
+        const val FILTER_ALL_TASKS = "All Tasks"
         const val FILTER_MY_TASKS = "Мои задачи"
         const val FILTER_MODERATION = "Очередь модерации"
     }

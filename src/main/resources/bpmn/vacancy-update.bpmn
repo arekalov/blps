@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
              xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
              xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
@@ -10,7 +11,12 @@
   <process id="vacancy-update" name="[PATCH] Обновить вакансию" isExecutable="true"
            camunda:historyTimeToLive="180" camunda:candidateStarterGroups="EMPLOYER,ADMIN">
 
-    <startEvent id="start"><outgoing>flow-0</outgoing></startEvent>
+    <startEvent id="start">
+      <extensionElements>
+        <camunda:executionListener event="end" expression="${execution.setVariable(&#39;showResult&#39;, false)}" />
+      </extensionElements>
+      <outgoing>flow-0</outgoing>
+    </startEvent>
 
     <serviceTask id="task-set-mode" name="Подготовка"
                  camunda:expression="${execution.setVariable(&#39;pickerMode&#39;, &#39;MY&#39;)}">
@@ -22,69 +28,70 @@
       <incoming>flow-1</incoming><outgoing>flow-2</outgoing>
     </serviceTask>
 
-    <userTask id="task-pick" name="Выбрать вакансию"
-              camunda:formKey="camunda-forms:deployment:forms/vacancy-picker.form"
-              camunda:candidateGroups="EMPLOYER,ADMIN">
-      <incoming>flow-2</incoming><outgoing>flow-3</outgoing>
-    </userTask>
-
-    <userTask id="task-edit" name="Новые данные"
+    <userTask id="task-form" name="Обновить вакансию"
               camunda:formKey="camunda-forms:deployment:forms/vacancy-update.form"
               camunda:candidateGroups="EMPLOYER,ADMIN">
-      <incoming>flow-3</incoming><outgoing>flow-4</outgoing>
+      <incoming>flow-2</incoming>
+      <incoming>flow-loop</incoming>
+      <outgoing>flow-to-gw</outgoing>
     </userTask>
+
+    <exclusiveGateway id="gw-result" name="Результат?">
+      <incoming>flow-to-gw</incoming>
+      <outgoing>flow-done</outgoing>
+      <outgoing>flow-run</outgoing>
+    </exclusiveGateway>
 
     <serviceTask id="task-update" name="Обновить"
                  camunda:delegateExpression="${vacancyUpdateDelegate}">
-      <incoming>flow-4</incoming><outgoing>flow-5</outgoing>
+      <incoming>flow-run</incoming>
+      <outgoing>flow-loop</outgoing>
     </serviceTask>
 
-    <userTask id="task-result" name="Результат"
-              camunda:formKey="camunda-forms:deployment:forms/result-display.form"
-              camunda:candidateGroups="EMPLOYER,ADMIN">
-      <incoming>flow-5</incoming><outgoing>flow-6</outgoing>
-    </userTask>
-
-    <endEvent id="end"><incoming>flow-6</incoming></endEvent>
+    <endEvent id="end"><incoming>flow-done</incoming></endEvent>
 
     <sequenceFlow id="flow-0" sourceRef="start" targetRef="task-set-mode"/>
     <sequenceFlow id="flow-1" sourceRef="task-set-mode" targetRef="task-picker"/>
-    <sequenceFlow id="flow-2" sourceRef="task-picker" targetRef="task-pick"/>
-    <sequenceFlow id="flow-3" sourceRef="task-pick" targetRef="task-edit"/>
-    <sequenceFlow id="flow-4" sourceRef="task-edit" targetRef="task-update"/>
-    <sequenceFlow id="flow-5" sourceRef="task-update" targetRef="task-result"/>
-    <sequenceFlow id="flow-6" sourceRef="task-result" targetRef="end"/>
+    <sequenceFlow id="flow-2" sourceRef="task-picker" targetRef="task-form"/>
+    <sequenceFlow id="flow-to-gw" sourceRef="task-form" targetRef="gw-result"/>
+    <sequenceFlow id="flow-done" sourceRef="gw-result" targetRef="end">
+      <conditionExpression xsi:type="tFormalExpression">${showResult == true}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow-run" sourceRef="gw-result" targetRef="task-update">
+      <conditionExpression xsi:type="tFormalExpression">${showResult != true}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow-loop" sourceRef="task-update" targetRef="task-form"/>
   </process>
+
   <bpmndi:BPMNDiagram id="BPMNDiagram_vacancy-update">
     <bpmndi:BPMNPlane id="BPMNPlane_vacancy-update" bpmnElement="vacancy-update">
       <bpmndi:BPMNShape id="start_di" bpmnElement="start"><omgdc:Bounds x="152" y="100" width="36" height="36"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-set-mode_di" bpmnElement="task-set-mode"><omgdc:Bounds x="240" y="78" width="160" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-picker_di" bpmnElement="task-picker"><omgdc:Bounds x="460" y="78" width="160" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-pick_di" bpmnElement="task-pick"><omgdc:Bounds x="680" y="78" width="160" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-edit_di" bpmnElement="task-edit"><omgdc:Bounds x="900" y="78" width="160" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-update_di" bpmnElement="task-update"><omgdc:Bounds x="1120" y="78" width="160" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-result_di" bpmnElement="task-result"><omgdc:Bounds x="1340" y="78" width="160" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="end_di" bpmnElement="end"><omgdc:Bounds x="1560" y="100" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-set-mode_di" bpmnElement="task-set-mode"><omgdc:Bounds x="240" y="78" width="120" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-picker_di" bpmnElement="task-picker"><omgdc:Bounds x="400" y="78" width="120" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-form_di" bpmnElement="task-form"><omgdc:Bounds x="560" y="78" width="140" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-result_di" bpmnElement="gw-result" isMarkerVisible="true"><omgdc:Bounds x="745" y="93" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-update_di" bpmnElement="task-update"><omgdc:Bounds x="840" y="160" width="120" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_di" bpmnElement="end"><omgdc:Bounds x="840" y="100" width="36" height="36"/></bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="flow-0_di" bpmnElement="flow-0">
         <omgdi:waypoint x="188" y="118"/><omgdi:waypoint x="240" y="118"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="flow-1_di" bpmnElement="flow-1">
-        <omgdi:waypoint x="400" y="118"/><omgdi:waypoint x="460" y="118"/>
+        <omgdi:waypoint x="360" y="118"/><omgdi:waypoint x="400" y="118"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="flow-2_di" bpmnElement="flow-2">
-        <omgdi:waypoint x="620" y="118"/><omgdi:waypoint x="680" y="118"/>
+        <omgdi:waypoint x="520" y="118"/><omgdi:waypoint x="560" y="118"/>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-3_di" bpmnElement="flow-3">
-        <omgdi:waypoint x="840" y="118"/><omgdi:waypoint x="900" y="118"/>
+      <bpmndi:BPMNEdge id="flow-to-gw_di" bpmnElement="flow-to-gw">
+        <omgdi:waypoint x="700" y="118"/><omgdi:waypoint x="745" y="118"/>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-4_di" bpmnElement="flow-4">
-        <omgdi:waypoint x="1060" y="118"/><omgdi:waypoint x="1120" y="118"/>
+      <bpmndi:BPMNEdge id="flow-done_di" bpmnElement="flow-done">
+        <omgdi:waypoint x="795" y="118"/><omgdi:waypoint x="840" y="118"/>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-5_di" bpmnElement="flow-5">
-        <omgdi:waypoint x="1280" y="118"/><omgdi:waypoint x="1340" y="118"/>
+      <bpmndi:BPMNEdge id="flow-run_di" bpmnElement="flow-run">
+        <omgdi:waypoint x="770" y="143"/><omgdi:waypoint x="770" y="200"/><omgdi:waypoint x="900" y="200"/>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-6_di" bpmnElement="flow-6">
-        <omgdi:waypoint x="1500" y="118"/><omgdi:waypoint x="1560" y="118"/>
+      <bpmndi:BPMNEdge id="flow-loop_di" bpmnElement="flow-loop">
+        <omgdi:waypoint x="900" y="160"/><omgdi:waypoint x="630" y="160"/><omgdi:waypoint x="630" y="158"/>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

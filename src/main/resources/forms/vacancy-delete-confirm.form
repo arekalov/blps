@@ -3,8 +3,32 @@
   "components": [
     {
       "type": "text",
+      "text": "## Удаление вакансии",
+      "id": "header",
+      "conditional": {
+        "hide": "=showResult"
+      }
+    },
+    {
+      "type": "select",
+      "key": "vacancyId",
+      "label": "Вакансия",
+      "validate": {
+        "required": true
+      },
+      "valuesExpression": "=vacancyOptions",
+      "id": "field-vacancyId",
+      "conditional": {
+        "hide": "=showResult"
+      }
+    },
+    {
+      "type": "text",
       "text": "Удаление вакансии необратимо.",
-      "id": "warning"
+      "id": "warning",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "checkbox",
@@ -13,7 +37,26 @@
       "validate": {
         "required": true
       },
-      "id": "field-confirm"
+      "id": "field-confirm",
+      "conditional": {
+        "hide": "=showResult"
+      }
+    },
+    {
+      "type": "text",
+      "text": "### Результат",
+      "id": "header-result",
+      "conditional": {
+        "hide": "=not(showResult)"
+      }
+    },
+    {
+      "type": "text",
+      "text": "=resultSummary",
+      "id": "result-body",
+      "conditional": {
+        "hide": "=not(showResult)"
+      }
     }
   ],
   "id": "vacancy-delete-confirm-form"

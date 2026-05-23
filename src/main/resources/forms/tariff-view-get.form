@@ -3,16 +3,22 @@
   "components": [
     {
       "type": "text",
-      "text": "## Tariff View",
+      "text": "## Тариф по ID",
       "id": "header-query"
     },
     {
-      "type": "textfield",
+      "type": "text",
+      "text": "Выберите тариф и нажмите **Complete** для загрузки. Чтобы выйти — отметьте «Завершить просмотр».",
+      "id": "hint"
+    },
+    {
+      "type": "select",
       "key": "tariffId",
-      "label": "ID тарифа (UUID)",
+      "label": "Тариф",
       "validate": {
         "required": true
       },
+      "valuesExpression": "=tariffOptions",
       "id": "field-tariffId"
     },
     {
@@ -27,9 +33,9 @@
     },
     {
       "type": "checkbox",
-      "key": "refreshSearch",
-      "label": "Обновить результат с новыми параметрами",
-      "id": "field-refreshSearch"
+      "key": "finish",
+      "label": "Завершить просмотр",
+      "id": "field-finish"
     }
   ],
   "id": "tariff-view-get"

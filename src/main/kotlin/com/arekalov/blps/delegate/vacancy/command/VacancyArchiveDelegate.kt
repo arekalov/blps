@@ -15,11 +15,17 @@ class VacancyArchiveDelegate(
 ) : JavaDelegate {
 
     override fun execute(execution: DelegateExecution) {
+        val confirmed = execution.getVariable("confirmArchive")
+        if (confirmed != true && confirmed?.toString() != "true") {
+            throw IllegalStateException("Подтвердите архивирование вакансии в форме")
+        }
+
         val actor = processUserResolver.resolveActor(execution)
         val role = processUserResolver.resolveActorRole(execution, actor)
         val vacancyId = UUID.fromString(execution.getVariable("vacancyId") as String)
 
         val result = vacancyService.archiveVacancy(actor.id!!, vacancyId, role)
         execution.setVariable("resultSummary", "Вакансия архивирована.\n\n" + CamundaPresentation.formatVacancy(result))
+        execution.setVariable("showResult", true)
     }
 }

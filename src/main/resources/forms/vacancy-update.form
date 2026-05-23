@@ -3,44 +3,102 @@
   "components": [
     {
       "type": "text",
+      "text": "## Обновление вакансии",
+      "id": "header",
+      "conditional": {
+        "hide": "=showResult"
+      }
+    },
+    {
+      "type": "select",
+      "key": "vacancyId",
+      "label": "Вакансия",
+      "validate": {
+        "required": true
+      },
+      "valuesExpression": "=vacancyOptions",
+      "id": "field-vacancyId",
+      "conditional": {
+        "hide": "=showResult"
+      }
+    },
+    {
+      "type": "text",
       "text": "Заполните только поля, которые нужно изменить.",
-      "id": "hint"
+      "id": "hint",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "textfield",
       "key": "title",
       "label": "Название",
-      "id": "field-title"
+      "id": "field-title",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "textarea",
       "key": "description",
       "label": "Описание",
-      "id": "field-description"
+      "id": "field-description",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "textfield",
       "key": "city",
       "label": "Город",
-      "id": "field-city"
+      "id": "field-city",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "textfield",
       "key": "salaryFrom",
       "label": "Зарплата от",
-      "id": "field-salaryFrom"
+      "id": "field-salaryFrom",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "textfield",
       "key": "salaryTo",
       "label": "Зарплата до",
-      "id": "field-salaryTo"
+      "id": "field-salaryTo",
+      "conditional": {
+        "hide": "=showResult"
+      }
     },
     {
       "type": "textfield",
       "key": "additionalSkills",
       "label": "Навыки (через запятую)",
-      "id": "field-skills"
+      "id": "field-skills",
+      "conditional": {
+        "hide": "=showResult"
+      }
+    },
+    {
+      "type": "text",
+      "text": "### Результат",
+      "id": "header-result",
+      "conditional": {
+        "hide": "=not(showResult)"
+      }
+    },
+    {
+      "type": "text",
+      "text": "=resultSummary",
+      "id": "result-body",
+      "conditional": {
+        "hide": "=not(showResult)"
+      }
     }
   ],
   "id": "vacancy-update-form"

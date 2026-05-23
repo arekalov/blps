@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
              xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
              xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
@@ -10,66 +11,67 @@
   <process id="user-registration" name="[POST] Регистрация пользователя" isExecutable="true" camunda:historyTimeToLive="180">
 
     <startEvent id="start" name="Начало регистрации">
+      <extensionElements>
+        <camunda:executionListener event="end" expression="${execution.setVariable(&#39;showResult&#39;, false)}" />
+      </extensionElements>
       <outgoing>flow-start-to-form</outgoing>
     </startEvent>
 
-    <userTask id="task-fill-register" name="Заполнить форму регистрации"
+    <userTask id="task-register" name="Регистрация"
               camunda:formKey="camunda-forms:deployment:forms/register.form">
       <incoming>flow-start-to-form</incoming>
-      <outgoing>flow-form-to-register</outgoing>
+      <incoming>flow-loop</incoming>
+      <outgoing>flow-form-to-gw</outgoing>
     </userTask>
+
+    <exclusiveGateway id="gw-result" name="Результат?">
+      <incoming>flow-form-to-gw</incoming>
+      <outgoing>flow-done</outgoing>
+      <outgoing>flow-run</outgoing>
+    </exclusiveGateway>
 
     <serviceTask id="task-register-user" name="Зарегистрировать пользователя"
                  camunda:delegateExpression="${registerDelegate}">
-      <incoming>flow-form-to-register</incoming>
-      <outgoing>flow-register-to-result</outgoing>
+      <incoming>flow-run</incoming>
+      <outgoing>flow-loop</outgoing>
     </serviceTask>
 
-    <userTask id="task-result" name="Результат регистрации"
-              camunda:formKey="camunda-forms:deployment:forms/result-display.form">
-      <incoming>flow-register-to-result</incoming>
-      <outgoing>flow-result-to-end</outgoing>
-    </userTask>
-
-    <endEvent id="end" name="Пользователь зарегистрирован">
-      <incoming>flow-result-to-end</incoming>
+    <endEvent id="end" name="Готово">
+      <incoming>flow-done</incoming>
     </endEvent>
 
-    <sequenceFlow id="flow-start-to-form" sourceRef="start" targetRef="task-fill-register"/>
-    <sequenceFlow id="flow-form-to-register" sourceRef="task-fill-register" targetRef="task-register-user"/>
-    <sequenceFlow id="flow-register-to-result" sourceRef="task-register-user" targetRef="task-result"/>
-    <sequenceFlow id="flow-result-to-end" sourceRef="task-result" targetRef="end"/>
-
+    <sequenceFlow id="flow-start-to-form" sourceRef="start" targetRef="task-register"/>
+    <sequenceFlow id="flow-form-to-gw" sourceRef="task-register" targetRef="gw-result"/>
+    <sequenceFlow id="flow-done" sourceRef="gw-result" targetRef="end">
+      <conditionExpression xsi:type="tFormalExpression">${showResult == true}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow-run" sourceRef="gw-result" targetRef="task-register-user">
+      <conditionExpression xsi:type="tFormalExpression">${showResult != true}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow-loop" sourceRef="task-register-user" targetRef="task-register"/>
   </process>
 
   <bpmndi:BPMNDiagram id="BPMNDiagram_user-registration">
     <bpmndi:BPMNPlane id="BPMNPlane_user-registration" bpmnElement="user-registration">
-      <bpmndi:BPMNShape id="start_di" bpmnElement="start">
-        <omgdc:Bounds x="152" y="82" width="36" height="36"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-fill-register_di" bpmnElement="task-fill-register">
-        <omgdc:Bounds x="240" y="60" width="180" height="80"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-register-user_di" bpmnElement="task-register-user">
-        <omgdc:Bounds x="480" y="60" width="180" height="80"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-result_di" bpmnElement="task-result">
-        <omgdc:Bounds x="720" y="60" width="160" height="80"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="end_di" bpmnElement="end">
-        <omgdc:Bounds x="932" y="82" width="36" height="36"/>
-      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="start_di" bpmnElement="start"><omgdc:Bounds x="152" y="100" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-register_di" bpmnElement="task-register"><omgdc:Bounds x="240" y="78" width="180" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-result_di" bpmnElement="gw-result" isMarkerVisible="true"><omgdc:Bounds x="475" y="93" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-register-user_di" bpmnElement="task-register-user"><omgdc:Bounds x="580" y="160" width="180" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_di" bpmnElement="end"><omgdc:Bounds x="680" y="100" width="36" height="36"/></bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="flow-start-to-form_di" bpmnElement="flow-start-to-form">
-        <omgdi:waypoint x="188" y="100"/><omgdi:waypoint x="240" y="100"/>
+        <omgdi:waypoint x="188" y="118"/><omgdi:waypoint x="240" y="118"/>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-form-to-register_di" bpmnElement="flow-form-to-register">
-        <omgdi:waypoint x="420" y="100"/><omgdi:waypoint x="480" y="100"/>
+      <bpmndi:BPMNEdge id="flow-form-to-gw_di" bpmnElement="flow-form-to-gw">
+        <omgdi:waypoint x="420" y="118"/><omgdi:waypoint x="475" y="118"/>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-register-to-result_di" bpmnElement="flow-register-to-result">
-        <omgdi:waypoint x="660" y="100"/><omgdi:waypoint x="720" y="100"/>
+      <bpmndi:BPMNEdge id="flow-done_di" bpmnElement="flow-done">
+        <omgdi:waypoint x="525" y="118"/><omgdi:waypoint x="680" y="118"/>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-result-to-end_di" bpmnElement="flow-result-to-end">
-        <omgdi:waypoint x="880" y="100"/><omgdi:waypoint x="932" y="100"/>
+      <bpmndi:BPMNEdge id="flow-run_di" bpmnElement="flow-run">
+        <omgdi:waypoint x="500" y="143"/><omgdi:waypoint x="500" y="200"/><omgdi:waypoint x="670" y="200"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-loop_di" bpmnElement="flow-loop">
+        <omgdi:waypoint x="580" y="160"/><omgdi:waypoint x="330" y="160"/><omgdi:waypoint x="330" y="158"/>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

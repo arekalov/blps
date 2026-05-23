@@ -8,161 +8,133 @@
              targetNamespace="http://bpmn.io/schema/bpmn"
              id="tariff-management-definitions">
 
-  <process id="tariff-management" name="[POST/PUT/DELETE] Управление тарифами" isExecutable="true" camunda:historyTimeToLive="180" camunda:candidateStarterGroups="ADMIN">
+  <process id="tariff-management" name="[POST/PUT/DELETE] Управление тарифами" isExecutable="true"
+           camunda:historyTimeToLive="180" camunda:candidateStarterGroups="ADMIN">
 
     <startEvent id="start" name="Управление тарифами">
-      <outgoing>flow-start-to-action</outgoing>
+      <extensionElements>
+        <camunda:executionListener event="end" expression="${execution.setVariable(&#39;showResult&#39;, false)}" />
+      </extensionElements>
+      <outgoing>flow-start-to-options</outgoing>
     </startEvent>
 
-    <userTask id="task-choose-action" name="Выбрать действие с тарифом"
-              camunda:formKey="camunda-forms:deployment:forms/tariff-action.form"
+    <serviceTask id="task-load-options" name="Список тарифов"
+                 camunda:delegateExpression="${tariffListDelegate}">
+      <incoming>flow-start-to-options</incoming>
+      <incoming>flow-loop-create</incoming>
+      <incoming>flow-loop-edit</incoming>
+      <incoming>flow-loop-delete</incoming>
+      <outgoing>flow-options-to-form</outgoing>
+    </serviceTask>
+
+    <userTask id="task-form" name="Управление тарифами"
+              camunda:formKey="camunda-forms:deployment:forms/tariff-management.form"
               camunda:candidateGroups="ADMIN">
-      <incoming>flow-start-to-action</incoming>
-      <outgoing>flow-action-to-gw</outgoing>
+      <incoming>flow-options-to-form</incoming>
+      <outgoing>flow-form-to-gw</outgoing>
     </userTask>
 
+    <exclusiveGateway id="gw-result" name="Результат?">
+      <incoming>flow-form-to-gw</incoming>
+      <outgoing>flow-done</outgoing>
+      <outgoing>flow-to-action</outgoing>
+    </exclusiveGateway>
+
     <exclusiveGateway id="gw-action" name="Действие?">
-      <incoming>flow-action-to-gw</incoming>
+      <incoming>flow-to-action</incoming>
       <outgoing>flow-action-create</outgoing>
       <outgoing>flow-action-edit</outgoing>
       <outgoing>flow-action-delete</outgoing>
     </exclusiveGateway>
 
-    <!-- CREATE branch -->
-    <userTask id="task-create-form" name="Заполнить форму создания тарифа"
-              camunda:formKey="camunda-forms:deployment:forms/tariff-create.form"
-              camunda:candidateGroups="ADMIN">
-      <incoming>flow-action-create</incoming>
-      <outgoing>flow-create-form-to-service</outgoing>
-    </userTask>
-
     <serviceTask id="task-create-service" name="Создать тариф"
                  camunda:delegateExpression="${tariffCreateDelegate}">
-      <incoming>flow-create-form-to-service</incoming>
-      <outgoing>flow-create-to-end</outgoing>
+      <incoming>flow-action-create</incoming>
+      <outgoing>flow-loop-create</outgoing>
     </serviceTask>
-
-    <!-- EDIT branch -->
-    <userTask id="task-edit-form" name="Редактировать тариф"
-              camunda:formKey="camunda-forms:deployment:forms/tariff-edit.form"
-              camunda:candidateGroups="ADMIN">
-      <incoming>flow-action-edit</incoming>
-      <outgoing>flow-edit-form-to-service</outgoing>
-    </userTask>
 
     <serviceTask id="task-edit-service" name="Обновить тариф"
                  camunda:delegateExpression="${tariffUpdateDelegate}">
-      <incoming>flow-edit-form-to-service</incoming>
-      <outgoing>flow-edit-to-end</outgoing>
+      <incoming>flow-action-edit</incoming>
+      <outgoing>flow-loop-edit</outgoing>
     </serviceTask>
-
-    <!-- DELETE branch -->
-    <userTask id="task-delete-confirm" name="Подтвердить удаление тарифа"
-              camunda:formKey="camunda-forms:deployment:forms/tariff-delete.form"
-              camunda:candidateGroups="ADMIN">
-      <incoming>flow-action-delete</incoming>
-      <outgoing>flow-delete-confirm-to-service</outgoing>
-    </userTask>
 
     <serviceTask id="task-delete-service" name="Удалить тариф"
                  camunda:delegateExpression="${tariffDeleteDelegate}">
-      <incoming>flow-delete-confirm-to-service</incoming>
-      <outgoing>flow-delete-to-end</outgoing>
+      <incoming>flow-action-delete</incoming>
+      <outgoing>flow-loop-delete</outgoing>
     </serviceTask>
 
     <endEvent id="end" name="Операция выполнена">
-      <incoming>flow-create-to-end</incoming>
-      <incoming>flow-edit-to-end</incoming>
-      <incoming>flow-delete-to-end</incoming>
+      <incoming>flow-done</incoming>
     </endEvent>
 
-    <sequenceFlow id="flow-start-to-action" sourceRef="start" targetRef="task-choose-action"/>
-    <sequenceFlow id="flow-action-to-gw" sourceRef="task-choose-action" targetRef="gw-action"/>
-    <sequenceFlow id="flow-action-create" name="создать" sourceRef="gw-action" targetRef="task-create-form">
+    <sequenceFlow id="flow-start-to-options" sourceRef="start" targetRef="task-load-options"/>
+    <sequenceFlow id="flow-options-to-form" sourceRef="task-load-options" targetRef="task-form"/>
+    <sequenceFlow id="flow-form-to-gw" sourceRef="task-form" targetRef="gw-result"/>
+    <sequenceFlow id="flow-done" sourceRef="gw-result" targetRef="end">
+      <conditionExpression xsi:type="tFormalExpression">${showResult == true}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow-to-action" sourceRef="gw-result" targetRef="gw-action">
+      <conditionExpression xsi:type="tFormalExpression">${showResult != true}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow-action-create" name="создать" sourceRef="gw-action" targetRef="task-create-service">
       <conditionExpression xsi:type="tFormalExpression">${tariffAction == 'CREATE'}</conditionExpression>
     </sequenceFlow>
-    <sequenceFlow id="flow-action-edit" name="редактировать" sourceRef="gw-action" targetRef="task-edit-form">
+    <sequenceFlow id="flow-action-edit" name="редактировать" sourceRef="gw-action" targetRef="task-edit-service">
       <conditionExpression xsi:type="tFormalExpression">${tariffAction == 'EDIT'}</conditionExpression>
     </sequenceFlow>
-    <sequenceFlow id="flow-action-delete" name="удалить" sourceRef="gw-action" targetRef="task-delete-confirm">
+    <sequenceFlow id="flow-action-delete" name="удалить" sourceRef="gw-action" targetRef="task-delete-service">
       <conditionExpression xsi:type="tFormalExpression">${tariffAction == 'DELETE'}</conditionExpression>
     </sequenceFlow>
-    <sequenceFlow id="flow-create-form-to-service" sourceRef="task-create-form" targetRef="task-create-service"/>
-    <sequenceFlow id="flow-create-to-end" sourceRef="task-create-service" targetRef="end"/>
-    <sequenceFlow id="flow-edit-form-to-service" sourceRef="task-edit-form" targetRef="task-edit-service"/>
-    <sequenceFlow id="flow-edit-to-end" sourceRef="task-edit-service" targetRef="end"/>
-    <sequenceFlow id="flow-delete-confirm-to-service" sourceRef="task-delete-confirm" targetRef="task-delete-service"/>
-    <sequenceFlow id="flow-delete-to-end" sourceRef="task-delete-service" targetRef="end"/>
-
+    <sequenceFlow id="flow-loop-create" sourceRef="task-create-service" targetRef="task-load-options"/>
+    <sequenceFlow id="flow-loop-edit" sourceRef="task-edit-service" targetRef="task-load-options"/>
+    <sequenceFlow id="flow-loop-delete" sourceRef="task-delete-service" targetRef="task-load-options"/>
   </process>
 
   <bpmndi:BPMNDiagram id="BPMNDiagram_tariff-management">
     <bpmndi:BPMNPlane id="BPMNPlane_tariff-management" bpmnElement="tariff-management">
-      <bpmndi:BPMNShape id="start_di" bpmnElement="start">
-        <omgdc:Bounds x="152" y="182" width="36" height="36"/>
-        <bpmndi:BPMNLabel><omgdc:Bounds x="130" y="225" width="80" height="27"/></bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-choose-action_di" bpmnElement="task-choose-action">
-        <omgdc:Bounds x="240" y="160" width="160" height="80"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="gw-action_di" bpmnElement="gw-action" isMarkerVisible="true">
-        <omgdc:Bounds x="455" y="175" width="50" height="50"/>
-        <bpmndi:BPMNLabel><omgdc:Bounds x="460" y="232" width="40" height="14"/></bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-create-form_di" bpmnElement="task-create-form">
-        <omgdc:Bounds x="560" y="60" width="160" height="80"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-create-service_di" bpmnElement="task-create-service">
-        <omgdc:Bounds x="780" y="60" width="160" height="80"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-edit-form_di" bpmnElement="task-edit-form">
-        <omgdc:Bounds x="560" y="160" width="160" height="80"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-edit-service_di" bpmnElement="task-edit-service">
-        <omgdc:Bounds x="780" y="160" width="160" height="80"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-delete-confirm_di" bpmnElement="task-delete-confirm">
-        <omgdc:Bounds x="560" y="260" width="160" height="80"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-delete-service_di" bpmnElement="task-delete-service">
-        <omgdc:Bounds x="780" y="260" width="160" height="80"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="end_di" bpmnElement="end">
-        <omgdc:Bounds x="1002" y="182" width="36" height="36"/>
-        <bpmndi:BPMNLabel><omgdc:Bounds x="980" y="225" width="80" height="27"/></bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="flow-start-to-action_di" bpmnElement="flow-start-to-action">
-        <omgdi:waypoint x="188" y="200"/><omgdi:waypoint x="240" y="200"/>
+      <bpmndi:BPMNShape id="start_di" bpmnElement="start"><omgdc:Bounds x="152" y="132" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-load-options_di" bpmnElement="task-load-options"><omgdc:Bounds x="240" y="110" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-form_di" bpmnElement="task-form"><omgdc:Bounds x="460" y="110" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-result_di" bpmnElement="gw-result" isMarkerVisible="true"><omgdc:Bounds x="675" y="125" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-action_di" bpmnElement="gw-action" isMarkerVisible="true"><omgdc:Bounds x="775" y="125" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-create-service_di" bpmnElement="task-create-service"><omgdc:Bounds x="900" y="20" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-edit-service_di" bpmnElement="task-edit-service"><omgdc:Bounds x="900" y="110" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-delete-service_di" bpmnElement="task-delete-service"><omgdc:Bounds x="900" y="200" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_di" bpmnElement="end"><omgdc:Bounds x="1100" y="132" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow-start-to-options_di" bpmnElement="flow-start-to-options">
+        <omgdi:waypoint x="188" y="150"/><omgdi:waypoint x="240" y="150"/>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-action-to-gw_di" bpmnElement="flow-action-to-gw">
-        <omgdi:waypoint x="400" y="200"/><omgdi:waypoint x="455" y="200"/>
+      <bpmndi:BPMNEdge id="flow-options-to-form_di" bpmnElement="flow-options-to-form">
+        <omgdi:waypoint x="400" y="150"/><omgdi:waypoint x="460" y="150"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-form-to-gw_di" bpmnElement="flow-form-to-gw">
+        <omgdi:waypoint x="620" y="150"/><omgdi:waypoint x="675" y="150"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-done_di" bpmnElement="flow-done">
+        <omgdi:waypoint x="725" y="150"/><omgdi:waypoint x="1100" y="150"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-to-action_di" bpmnElement="flow-to-action">
+        <omgdi:waypoint x="700" y="150"/><omgdi:waypoint x="775" y="150"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="flow-action-create_di" bpmnElement="flow-action-create">
-        <omgdi:waypoint x="480" y="175"/><omgdi:waypoint x="480" y="100"/><omgdi:waypoint x="560" y="100"/>
+        <omgdi:waypoint x="800" y="125"/><omgdi:waypoint x="800" y="60"/><omgdi:waypoint x="900" y="60"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="flow-action-edit_di" bpmnElement="flow-action-edit">
-        <omgdi:waypoint x="505" y="200"/><omgdi:waypoint x="560" y="200"/>
+        <omgdi:waypoint x="825" y="150"/><omgdi:waypoint x="900" y="150"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="flow-action-delete_di" bpmnElement="flow-action-delete">
-        <omgdi:waypoint x="480" y="225"/><omgdi:waypoint x="480" y="300"/><omgdi:waypoint x="560" y="300"/>
+        <omgdi:waypoint x="800" y="175"/><omgdi:waypoint x="800" y="240"/><omgdi:waypoint x="900" y="240"/>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-create-form-to-service_di" bpmnElement="flow-create-form-to-service">
-        <omgdi:waypoint x="720" y="100"/><omgdi:waypoint x="780" y="100"/>
+      <bpmndi:BPMNEdge id="flow-loop-create_di" bpmnElement="flow-loop-create">
+        <omgdi:waypoint x="900" y="20"/><omgdi:waypoint x="320" y="20"/><omgdi:waypoint x="320" y="150"/>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-create-to-end_di" bpmnElement="flow-create-to-end">
-        <omgdi:waypoint x="940" y="100"/><omgdi:waypoint x="1020" y="100"/><omgdi:waypoint x="1020" y="182"/>
+      <bpmndi:BPMNEdge id="flow-loop-edit_di" bpmnElement="flow-loop-edit">
+        <omgdi:waypoint x="900" y="110"/><omgdi:waypoint x="320" y="110"/><omgdi:waypoint x="320" y="150"/>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-edit-form-to-service_di" bpmnElement="flow-edit-form-to-service">
-        <omgdi:waypoint x="720" y="200"/><omgdi:waypoint x="780" y="200"/>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-edit-to-end_di" bpmnElement="flow-edit-to-end">
-        <omgdi:waypoint x="940" y="200"/><omgdi:waypoint x="1002" y="200"/>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-delete-confirm-to-service_di" bpmnElement="flow-delete-confirm-to-service">
-        <omgdi:waypoint x="720" y="300"/><omgdi:waypoint x="780" y="300"/>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-delete-to-end_di" bpmnElement="flow-delete-to-end">
-        <omgdi:waypoint x="940" y="300"/><omgdi:waypoint x="1020" y="300"/><omgdi:waypoint x="1020" y="218"/>
+      <bpmndi:BPMNEdge id="flow-loop-delete_di" bpmnElement="flow-loop-delete">
+        <omgdi:waypoint x="900" y="200"/><omgdi:waypoint x="320" y="200"/><omgdi:waypoint x="320" y="150"/>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

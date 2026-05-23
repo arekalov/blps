@@ -3,8 +3,13 @@
   "components": [
     {
       "type": "text",
-      "text": "## Параметры списка вакансий",
+      "text": "## Список вакансий",
       "id": "header"
+    },
+    {
+      "type": "text",
+      "text": "Настройте фильтры и пагинацию, затем нажмите **Complete** — список обновится. Чтобы выйти, отметьте «Завершить просмотр».",
+      "id": "hint"
     },
     {
       "type": "checkbox",
@@ -70,9 +75,9 @@
     },
     {
       "type": "checkbox",
-      "key": "refreshSearch",
-      "label": "Обновить результат с новыми параметрами",
-      "id": "field-refreshSearch"
+      "key": "finish",
+      "label": "Завершить просмотр (иначе Complete обновит список с новыми параметрами)",
+      "id": "field-finish"
     }
   ],
   "id": "vacancy-list-get"

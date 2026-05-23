@@ -10,67 +10,78 @@
   <process id="tariff-statistics" name="[GET] Статистика тарифа" isExecutable="true" camunda:historyTimeToLive="180" camunda:candidateStarterGroups="MODERATOR,ADMIN">
 
     <startEvent id="start">
-      <outgoing>flow-start-to-get</outgoing>
+      <extensionElements>
+        <camunda:executionListener event="end" expression="${execution.setVariable(&#39;finish&#39;, false)}" />
+      </extensionElements>
+      <outgoing>flow-start-to-options</outgoing>
     </startEvent>
+
+    <serviceTask id="task-load-options" name="Список тарифов"
+                 camunda:delegateExpression="${tariffListDelegate}">
+      <incoming>flow-start-to-options</incoming>
+      <outgoing>flow-options-to-get</outgoing>
+    </serviceTask>
 
     <userTask id="task-get" name="Статистика тарифа"
               camunda:formKey="camunda-forms:deployment:forms/tariff-statistics-get.form"
               camunda:candidateGroups="MODERATOR,ADMIN">
-      <extensionElements>
-        <camunda:executionListener event="start" delegateExpression="${tariffStatisticsLoadDelegate}" />
-      </extensionElements>
-      <incoming>flow-start-to-get</incoming>
+      <incoming>flow-options-to-get</incoming>
       <incoming>flow-load-to-get</incoming>
       <outgoing>flow-get-to-gw</outgoing>
     </userTask>
 
-    <exclusiveGateway id="gw-refresh" name="Обновить?">
+    <exclusiveGateway id="gw-finish" name="Завершить?">
       <incoming>flow-get-to-gw</incoming>
-      <outgoing>flow-refresh-yes</outgoing>
-      <outgoing>flow-refresh-no</outgoing>
+      <outgoing>flow-finish-yes</outgoing>
+      <outgoing>flow-finish-no</outgoing>
     </exclusiveGateway>
 
     <serviceTask id="task-load" name="Загрузить статистику"
                  camunda:delegateExpression="${tariffStatisticsLoadDelegate}">
-      <incoming>flow-refresh-yes</incoming>
+      <incoming>flow-finish-no</incoming>
       <outgoing>flow-load-to-get</outgoing>
     </serviceTask>
 
     <endEvent id="end">
-      <incoming>flow-refresh-no</incoming>
+      <incoming>flow-finish-yes</incoming>
     </endEvent>
 
-    <sequenceFlow id="flow-start-to-get" sourceRef="start" targetRef="task-get"/>
-    <sequenceFlow id="flow-get-to-gw" sourceRef="task-get" targetRef="gw-refresh"/>
-    <sequenceFlow id="flow-refresh-yes" name="обновить" sourceRef="gw-refresh" targetRef="task-load">
-      <conditionExpression xsi:type="tFormalExpression">${refreshSearch == true}</conditionExpression>
+    <sequenceFlow id="flow-start-to-options" sourceRef="start" targetRef="task-load-options"/>
+    <sequenceFlow id="flow-options-to-get" sourceRef="task-load-options" targetRef="task-get"/>
+    <sequenceFlow id="flow-get-to-gw" sourceRef="task-get" targetRef="gw-finish"/>
+    <sequenceFlow id="flow-finish-yes" name="завершить" sourceRef="gw-finish" targetRef="end">
+      <conditionExpression xsi:type="tFormalExpression">${finish == true}</conditionExpression>
     </sequenceFlow>
-    <sequenceFlow id="flow-refresh-no" name="готово" sourceRef="gw-refresh" targetRef="end">
-      <conditionExpression xsi:type="tFormalExpression">${refreshSearch != true}</conditionExpression>
+    <sequenceFlow id="flow-finish-no" name="загрузить" sourceRef="gw-finish" targetRef="task-load">
+      <conditionExpression xsi:type="tFormalExpression">${finish != true}</conditionExpression>
     </sequenceFlow>
     <sequenceFlow id="flow-load-to-get" sourceRef="task-load" targetRef="task-get"/>
   </process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_tariff-statistics">
     <bpmndi:BPMNPlane id="BPMNPlane_tariff-statistics" bpmnElement="tariff-statistics">
       <bpmndi:BPMNShape id="start_di" bpmnElement="start"><omgdc:Bounds x="152" y="100" width="36" height="36"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-get_di" bpmnElement="task-get"><omgdc:Bounds x="240" y="78" width="160" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="gw-refresh_di" bpmnElement="gw-refresh" isMarkerVisible="true"><omgdc:Bounds x="455" y="93" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-load-options_di" bpmnElement="task-load-options"><omgdc:Bounds x="240" y="78" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-get_di" bpmnElement="task-get"><omgdc:Bounds x="460" y="78" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-finish_di" bpmnElement="gw-finish" isMarkerVisible="true"><omgdc:Bounds x="675" y="93" width="50" height="50"/></bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="task-load_di" bpmnElement="task-load"><omgdc:Bounds x="560" y="160" width="160" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="end_di" bpmnElement="end"><omgdc:Bounds x="560" y="100" width="36" height="36"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="flow-start-to-get_di" bpmnElement="flow-start-to-get">
+      <bpmndi:BPMNShape id="end_di" bpmnElement="end"><omgdc:Bounds x="780" y="100" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow-start-to-options_di" bpmnElement="flow-start-to-options">
         <omgdi:waypoint x="188" y="118"/><omgdi:waypoint x="240" y="118"/>
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-options-to-get_di" bpmnElement="flow-options-to-get">
+        <omgdi:waypoint x="400" y="118"/><omgdi:waypoint x="460" y="118"/>
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="flow-get-to-gw_di" bpmnElement="flow-get-to-gw">
-        <omgdi:waypoint x="400" y="118"/><omgdi:waypoint x="455" y="118"/>
+        <omgdi:waypoint x="620" y="118"/><omgdi:waypoint x="675" y="118"/>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-refresh-yes_di" bpmnElement="flow-refresh-yes">
-        <omgdi:waypoint x="480" y="143"/><omgdi:waypoint x="480" y="200"/><omgdi:waypoint x="560" y="200"/>
+      <bpmndi:BPMNEdge id="flow-finish-yes_di" bpmnElement="flow-finish-yes">
+        <omgdi:waypoint x="725" y="118"/><omgdi:waypoint x="780" y="118"/>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-refresh-no_di" bpmnElement="flow-refresh-no">
-        <omgdi:waypoint x="505" y="118"/><omgdi:waypoint x="560" y="118"/>
+      <bpmndi:BPMNEdge id="flow-finish-no_di" bpmnElement="flow-finish-no">
+        <omgdi:waypoint x="700" y="143"/><omgdi:waypoint x="700" y="200"/><omgdi:waypoint x="640" y="200"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="flow-load-to-get_di" bpmnElement="flow-load-to-get">
-        <omgdi:waypoint x="640" y="160"/><omgdi:waypoint x="640" y="40"/><omgdi:waypoint x="320" y="40"/><omgdi:waypoint x="320" y="78"/>
+        <omgdi:waypoint x="560" y="160"/><omgdi:waypoint x="540" y="160"/><omgdi:waypoint x="540" y="118"/>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

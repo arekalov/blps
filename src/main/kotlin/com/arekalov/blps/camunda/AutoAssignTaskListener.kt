@@ -25,6 +25,9 @@ class AutoAssignTaskListener(
             delegateTask.getVariable("initiatorEmail") as? String,
             delegateTask.execution?.getVariable("initiatorEmail") as? String,
             delegateTask.execution?.processInstance?.getVariable("initiatorEmail") as? String,
+            delegateTask.getVariable("initiator") as? String,
+            delegateTask.execution?.getVariable("initiator") as? String,
+            delegateTask.execution?.processInstance?.getVariable("initiator") as? String,
             identityService.currentAuthentication?.userId,
         ).firstOrNull { !it.isNullOrBlank() } ?: return
 
