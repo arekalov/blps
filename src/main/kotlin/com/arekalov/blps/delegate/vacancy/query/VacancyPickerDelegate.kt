@@ -1,5 +1,6 @@
 package com.arekalov.blps.delegate.vacancy.query
 
+import com.arekalov.blps.camunda.CamundaFormVariables
 import com.arekalov.blps.camunda.CamundaPresentation
 import com.arekalov.blps.camunda.ProcessUserResolver
 import com.arekalov.blps.model.enum.VacancyStatus
@@ -48,6 +49,10 @@ class VacancyPickerDelegate(
             throw IllegalStateException("Нет вакансий для выбора (режим: $mode)")
         }
 
-        execution.setVariable("vacancyOptions", CamundaPresentation.toSelectOptions(options))
+        CamundaFormVariables.setSelectOptions(
+            execution,
+            "vacancyOptions",
+            CamundaPresentation.toSelectOptions(options),
+        )
     }
 }

@@ -1,0 +1,36 @@
+{
+  "type": "default",
+  "components": [
+    {
+      "type": "text",
+      "text": "## Tariff Statistics",
+      "id": "header-query"
+    },
+    {
+      "type": "textfield",
+      "key": "tariffId",
+      "label": "ID тарифа (UUID)",
+      "validate": {
+        "required": true
+      },
+      "id": "field-tariffId"
+    },
+    {
+      "type": "text",
+      "text": "### Результат",
+      "id": "header-result"
+    },
+    {
+      "type": "text",
+      "text": "=resultSummary",
+      "id": "result-body"
+    },
+    {
+      "type": "checkbox",
+      "key": "refreshSearch",
+      "label": "Обновить результат с новыми параметрами",
+      "id": "field-refreshSearch"
+    }
+  ],
+  "id": "tariff-statistics-get"
+}

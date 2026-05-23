@@ -22,6 +22,11 @@ class VacancyCreateDelegate(
 ) : JavaDelegate {
 
     override fun execute(execution: DelegateExecution) {
+        val confirmed = execution.getVariable("confirmed")
+        if (confirmed != true && confirmed?.toString() != "true") {
+            throw IllegalStateException("Подтвердите создание вакансии в форме")
+        }
+
         val initiatorId = processUserResolver.resolveActor(execution).id!!
 
         val skillsRaw = execution.getVariable("additionalSkills") as? String ?: ""

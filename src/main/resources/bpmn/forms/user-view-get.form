@@ -1,0 +1,36 @@
+{
+  "type": "default",
+  "components": [
+    {
+      "type": "text",
+      "text": "## User View",
+      "id": "header-query"
+    },
+    {
+      "type": "textfield",
+      "key": "targetUserId",
+      "label": "ID пользователя (UUID)",
+      "validate": {
+        "required": true
+      },
+      "id": "field-targetUserId"
+    },
+    {
+      "type": "text",
+      "text": "### Результат",
+      "id": "header-result"
+    },
+    {
+      "type": "text",
+      "text": "=resultSummary",
+      "id": "result-body"
+    },
+    {
+      "type": "checkbox",
+      "key": "refreshSearch",
+      "label": "Обновить результат с новыми параметрами",
+      "id": "field-refreshSearch"
+    }
+  ],
+  "id": "user-view-get"
+}

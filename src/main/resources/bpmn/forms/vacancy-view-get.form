@@ -1,0 +1,36 @@
+{
+  "type": "default",
+  "components": [
+    {
+      "type": "text",
+      "text": "## Vacancy View",
+      "id": "header-query"
+    },
+    {
+      "type": "textfield",
+      "key": "vacancyId",
+      "label": "ID вакансии (UUID)",
+      "validate": {
+        "required": true
+      },
+      "id": "field-vacancyId"
+    },
+    {
+      "type": "text",
+      "text": "### Результат",
+      "id": "header-result"
+    },
+    {
+      "type": "text",
+      "text": "=resultSummary",
+      "id": "result-body"
+    },
+    {
+      "type": "checkbox",
+      "key": "refreshSearch",
+      "label": "Обновить результат с новыми параметрами",
+      "id": "field-refreshSearch"
+    }
+  ],
+  "id": "vacancy-view-get"
+}

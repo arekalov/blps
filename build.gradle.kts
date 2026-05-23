@@ -51,6 +51,8 @@ dependencies {
 		// WildFly + Weld: SpringLifecycleListener тянет CDI-inject ApplicationContext
 		exclude(group = "org.glassfish.jersey.ext", module = "jersey-spring6")
 	}
+	implementation("org.camunda.bpm:camunda-engine-plugin-spin:7.22.0")
+	implementation("org.camunda.spin:camunda-spin-dataformat-json-jackson:1.23.0")
 
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")

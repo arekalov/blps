@@ -38,6 +38,7 @@ class ProcessDefinitionDiagramTest {
         assertNotNull(resource)
         val xml = resource.inputStream.use { it.readBytes().decodeToString() }
         assertTrue(xml.contains("BPMNDiagram"))
-        assertTrue(xml.contains("BPMNEdge id=\"flow-0_di\""))
+        assertTrue(xml.contains("BPMNEdge")) { "tariff-list BPMN missing BPMNEdge" }
+        assertTrue(xml.contains("bpmnElement=\"flow-start-to-get\""))
     }
 }

@@ -10,41 +10,36 @@
   <process id="user-current" name="[GET] Текущий пользователь" isExecutable="true" camunda:historyTimeToLive="180" camunda:candidateStarterGroups="EMPLOYER,MODERATOR,ADMIN">
 
     <startEvent id="start">
-      <outgoing>flow-0</outgoing>
+      <outgoing>flow-start-to-get</outgoing>
     </startEvent>
-    <serviceTask id="task-load" name="Загрузить профиль"
-                 camunda:delegateExpression="${userCurrentLoadDelegate}">
-      <incoming>flow-0</incoming>
-      <outgoing>flow-1</outgoing>
-    </serviceTask>
-    <userTask id="task-result" name="Мой профиль"
-              camunda:formKey="camunda-forms:deployment:forms/result-display.form"
+
+    <userTask id="task-get" name="Мой профиль"
+              camunda:formKey="camunda-forms:deployment:forms/user-current-get.form"
               camunda:candidateGroups="EMPLOYER,MODERATOR,ADMIN">
-      <incoming>flow-1</incoming>
-      <outgoing>flow-2</outgoing>
+      <extensionElements>
+        <camunda:executionListener event="start" delegateExpression="${userCurrentLoadDelegate}" />
+      </extensionElements>
+      <incoming>flow-start-to-get</incoming>
+      <outgoing>flow-get-to-end</outgoing>
     </userTask>
+
     <endEvent id="end">
-      <incoming>flow-2</incoming>
+      <incoming>flow-get-to-end</incoming>
     </endEvent>
 
-    <sequenceFlow id="flow-0" sourceRef="start" targetRef="task-load"/>
-    <sequenceFlow id="flow-1" sourceRef="task-load" targetRef="task-result"/>
-    <sequenceFlow id="flow-2" sourceRef="task-result" targetRef="end"/>
+    <sequenceFlow id="flow-start-to-get" sourceRef="start" targetRef="task-get"/>
+    <sequenceFlow id="flow-get-to-end" sourceRef="task-get" targetRef="end"/>
   </process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_user-current">
     <bpmndi:BPMNPlane id="BPMNPlane_user-current" bpmnElement="user-current">
       <bpmndi:BPMNShape id="start_di" bpmnElement="start"><omgdc:Bounds x="152" y="100" width="36" height="36"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-load_di" bpmnElement="task-load"><omgdc:Bounds x="240" y="78" width="160" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-result_di" bpmnElement="task-result"><omgdc:Bounds x="460" y="78" width="160" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="end_di" bpmnElement="end"><omgdc:Bounds x="680" y="100" width="36" height="36"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="flow-0_di" bpmnElement="flow-0">
+      <bpmndi:BPMNShape id="task-get_di" bpmnElement="task-get"><omgdc:Bounds x="240" y="78" width="160" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_di" bpmnElement="end"><omgdc:Bounds x="460" y="100" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow-start-to-get_di" bpmnElement="flow-start-to-get">
         <omgdi:waypoint x="188" y="118"/><omgdi:waypoint x="240" y="118"/>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-1_di" bpmnElement="flow-1">
+      <bpmndi:BPMNEdge id="flow-get-to-end_di" bpmnElement="flow-get-to-end">
         <omgdi:waypoint x="400" y="118"/><omgdi:waypoint x="460" y="118"/>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-2_di" bpmnElement="flow-2">
-        <omgdi:waypoint x="620" y="118"/><omgdi:waypoint x="680" y="118"/>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

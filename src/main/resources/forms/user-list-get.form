@@ -1,0 +1,47 @@
+{
+  "type": "default",
+  "components": [
+    {
+      "type": "text",
+      "text": "## User List",
+      "id": "header-query"
+    },
+    {
+      "type": "checkbox",
+      "key": "my",
+      "label": "Только текущий пользователь",
+      "id": "field-my"
+    },
+    {
+      "type": "number",
+      "key": "page",
+      "label": "Страница (с 0)",
+      "defaultValue": 0,
+      "id": "field-page"
+    },
+    {
+      "type": "number",
+      "key": "size",
+      "label": "Размер страницы",
+      "defaultValue": 20,
+      "id": "field-size"
+    },
+    {
+      "type": "text",
+      "text": "### Результат",
+      "id": "header-result"
+    },
+    {
+      "type": "text",
+      "text": "=resultSummary",
+      "id": "result-body"
+    },
+    {
+      "type": "checkbox",
+      "key": "refreshSearch",
+      "label": "Обновить результат с новыми параметрами",
+      "id": "field-refreshSearch"
+    }
+  ],
+  "id": "user-list-get"
+}
