@@ -104,11 +104,11 @@ sequenceDiagram
 |-----------|------------------|
 | WildFly | `~/blps/wildfly-39.0.1.Final` |
 | Приложение | `standalone/deployments/blps.war` |
-| URL (через SSH-туннель) | `http://localhost:8080/blps/camunda/app/welcome/` |
-| Профиль Spring | `-Dspring.profiles.active=wildfly` |
-| БД | `BlpsDS` в `standalone.xml` |
+| Spring-профиль | **`prod`** (`-Dspring.profiles.active=prod` в `standalone.conf`) |
+| HTTP | **23561** (`port-offset=15481`), туннель `ssh -L 8080:localhost:23561 ifmo` |
+| БД | PostgreSQL STUDS `pg:5432/studs` (см. `application-prod.yaml`, генерируется из `deployment/helios.env`) |
 
-Деплой: `./deployment/deploy-helios.sh` (сборка WAR, `scp`, перезапуск на сервере).
+Деплой: `./deployment/deploy-helios.sh` — подробнее [deployment/README-helios.md](../deployment/README-helios.md).
 
 ## Что сознательно не переносилось в BPMN
 

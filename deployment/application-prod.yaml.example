@@ -1,0 +1,76 @@
+# Helios (STUDS PostgreSQL). Генерируется в src/main/resources/application-prod.yaml
+# скриптом deploy-helios.sh из deployment/helios.env (см. helios.env.example).
+
+spring:
+  datasource:
+    url: jdbc:postgresql://pg:5432/studs?currentSchema=${STUDS_DB_SCHEMA}
+    username: ${STUDS_DB_USER}
+    password: ${STUDS_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: ${STUDS_DB_SCHEMA}
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 4
+    validate-on-migrate: false
+    locations: classpath:db/migration
+    out-of-order: true
+    schemas: ${STUDS_DB_SCHEMA}
+    default-schema: ${STUDS_DB_SCHEMA}
+
+  jersey:
+    application-path: /engine-rest
+    init:
+      jersey.config.server.resource.validation.disable: "true"
+
+server:
+  servlet:
+    context-path: /blps
+
+camunda.bpm:
+  spin:
+    enabled: true
+  authorization:
+    enabled: true
+  generic-properties:
+    properties:
+      historyTimeToLive: P180D
+      databaseSchema: ${STUDS_DB_SCHEMA}
+  deploy-changed-only: false
+  enable-duplicate-filtering: false
+  database:
+    schema-update: true
+    schema-name: ${STUDS_DB_SCHEMA}
+  auto-deployment-enabled: false
+  webapp:
+    index-redirect-enabled: false
+
+blps:
+  bootstrap:
+    admin-email: admin@ya.ru
+    admin-password: admin
+    admin-company-name: Admin Company
+
+logging:
+  level:
+    root: INFO
+    com.arekalov.blps: INFO
+    org.camunda: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

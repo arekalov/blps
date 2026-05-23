@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Lazy
 @Configuration
 class AutoAssignTaskListenerPluginConfig(
     @Lazy private val autoAssignTaskListener: AutoAssignTaskListener,
+    @Lazy private val taskAuthorAuthorizationListener: TaskAuthorAuthorizationListener,
 ) {
 
     @Bean
@@ -30,6 +31,10 @@ class AutoAssignTaskListenerPluginConfig(
                             taskDefinition.addTaskListener(
                                 TaskListener.EVENTNAME_CREATE,
                                 autoAssignTaskListener,
+                            )
+                            taskDefinition.addTaskListener(
+                                TaskListener.EVENTNAME_CREATE,
+                                taskAuthorAuthorizationListener,
                             )
                         }
                     },

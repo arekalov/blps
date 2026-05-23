@@ -2,7 +2,7 @@ spring:
   application:
     name: blps
   
-  # Профиль по умолчанию для локальной разработки (WildFly: wildfly, тесты: test/verify)
+  # Профиль по умолчанию: dev (локально). WildFly локально: wildfly. Helios: prod (см. deployment/README-helios.md).
   profiles:
     active: dev
   

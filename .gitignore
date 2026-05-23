@@ -48,6 +48,7 @@ application.yaml
 application-prod.yaml
 deployment/application-prod.yaml
 deployment/wildfly.env
+deployment/helios.env
 
 ### Cursor AI ###
 .cursor/

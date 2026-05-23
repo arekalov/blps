@@ -12,7 +12,7 @@ import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
 /**
- * Tasklist filters + READ authorizations (без READ на FILTER Tasklist показывает «No filter available»).
+ * Tasklist: один фильтр — задачи процессов, где текущий пользователь автор (initiatorEmail).
  */
 @Component
 class BlpsCamundaTaskFilterConfig(
@@ -25,34 +25,34 @@ class BlpsCamundaTaskFilterConfig(
     @EventListener(ApplicationReadyEvent::class)
     @Order(300)
     fun setupFilters() {
-        listOf(FILTER_ALL_TASKS, FILTER_MY_TASKS, FILTER_MODERATION).forEach { name ->
+        listOf(FILTER_MY_TASKS, FILTER_ALL_TASKS, FILTER_MODERATION).forEach { name ->
             filterService.createFilterQuery().filterName(name).list()
                 .forEach { filterService.deleteFilter(it.id) }
         }
 
-        val allTasksFilterId = saveTaskFilter(FILTER_ALL_TASKS, emptyMap())
-        val myTasksFilterId = saveTaskFilter(
-            FILTER_MY_TASKS,
-            mapOf("involvedUserExpression" to "\${currentUser()}"),
-        )
-        val moderationFilterId = saveTaskFilter(
-            FILTER_MODERATION,
-            mapOf("candidateGroupIn" to listOf("MODERATOR", "ADMIN")),
-        )
+        val myTasksFilterId = saveTaskFilter(FILTER_MY_TASKS, authorTasksFilterProperties())
 
-        listOf(allTasksFilterId, myTasksFilterId, moderationFilterId).forEach { filterId ->
-            grantFilterRead(BlpsCamundaAuthorizationConfig.GROUP_EMPLOYER, filterId)
-            grantFilterRead(BlpsCamundaAuthorizationConfig.GROUP_MODERATOR, filterId)
-            grantFilterRead(BlpsCamundaAuthorizationConfig.GROUP_ADMIN, filterId)
+        listOf(
+            BlpsCamundaAuthorizationConfig.GROUP_EMPLOYER,
+            BlpsCamundaAuthorizationConfig.GROUP_MODERATOR,
+            BlpsCamundaAuthorizationConfig.GROUP_ADMIN,
+        ).forEach { group ->
+            grantFilterRead(group, myTasksFilterId)
         }
 
-        log.info(
-            "Tasklist filters configured: {}, {}, {}",
-            FILTER_ALL_TASKS,
-            FILTER_MY_TASKS,
-            FILTER_MODERATION,
-        )
+        log.info("Tasklist filter configured: {} (initiatorEmail = current user)", FILTER_MY_TASKS)
     }
+
+    private fun authorTasksFilterProperties(): Map<String, Any> =
+        mapOf(
+            "processVariables" to listOf(
+                mapOf(
+                    "name" to TaskAuthorAuthorizationListener.VAR_INITIATOR_EMAIL,
+                    "operator" to "eq",
+                    "value" to "\${currentUser()}",
+                ),
+            ),
+        )
 
     private fun saveTaskFilter(name: String, queryProperties: Map<String, Any>): String {
         val filter = filterService.newTaskFilter(name)
@@ -79,8 +79,9 @@ class BlpsCamundaTaskFilterConfig(
     }
 
     companion object {
-        const val FILTER_ALL_TASKS = "All Tasks"
         const val FILTER_MY_TASKS = "Мои задачи"
-        const val FILTER_MODERATION = "Очередь модерации"
+        /** Удаляются при старте (legacy). */
+        private const val FILTER_ALL_TASKS = "All Tasks"
+        private const val FILTER_MODERATION = "Очередь модерации"
     }
 }
