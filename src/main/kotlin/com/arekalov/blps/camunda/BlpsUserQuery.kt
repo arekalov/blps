@@ -23,8 +23,8 @@ class BlpsUserQuery(
             .map { user ->
                 val entity = UserEntity()
                 entity.id = user.email
-                entity.firstName = user.companyName
-                entity.lastName = user.role.name
+                entity.firstName = user.email
+                entity.lastName = "${user.companyName} ${user.role.name}"
                 entity.email = user.email
                 entity
             }

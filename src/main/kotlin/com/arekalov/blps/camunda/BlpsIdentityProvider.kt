@@ -74,8 +74,8 @@ class BlpsIdentityProvider(
     private fun User.toCamundaUser(): org.camunda.bpm.engine.identity.User {
         val entity = UserEntity()
         entity.id = email
-        entity.firstName = companyName
-        entity.lastName = role.name
+        entity.firstName = email
+        entity.lastName = "$companyName ${role.name}"
         entity.email = email
         return entity
     }
