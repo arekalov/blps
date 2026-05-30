@@ -15,38 +15,38 @@ import java.math.BigDecimal
 
 @ValidSalaryRange
 data class CreateVacancyRequest(
-    @field:NotBlank(message = "Title cannot be blank")
-    @field:Size(max = 255, message = "Title must not exceed 255 characters")
+    @field:NotBlank(message = "Поле не может быть пустым")
+    @field:Size(max = 255, message = "Не более 255 символов")
     val title: String,
-    @field:NotBlank(message = "Description cannot be blank")
-    @field:Size(max = 10000, message = "Description must not exceed 10000 characters")
+    @field:NotBlank(message = "Поле не может быть пустым")
+    @field:Size(max = 10000, message = "Не более 10000 символов")
     val description: String,
-    @field:NotNull(message = "Experience level cannot be null")
+    @field:NotNull(message = "Выберите значение")
     val experienceLevel: ExperienceLevel,
-    @field:Positive(message = "Salary from must be positive")
+    @field:Positive(message = "Должно быть положительным числом")
     override val salaryFrom: BigDecimal? = null,
-    @field:Positive(message = "Salary to must be positive")
+    @field:Positive(message = "Должно быть положительным числом")
     override val salaryTo: BigDecimal? = null,
-    @field:NotNull(message = "Employment type cannot be null")
+    @field:NotNull(message = "Выберите значение")
     val employmentType: EmploymentType,
-    @field:NotNull(message = "Work format cannot be null")
+    @field:NotNull(message = "Выберите значение")
     val workFormat: WorkFormat,
-    @field:NotNull(message = "Employment format cannot be null")
+    @field:NotNull(message = "Выберите значение")
     val employmentFormat: EmploymentFormat,
-    @field:NotNull(message = "Work schedule cannot be null")
+    @field:NotNull(message = "Выберите значение")
     val workSchedule: WorkSchedule,
-    @field:NotBlank(message = "City cannot be blank")
-    @field:Size(max = 100, message = "City must not exceed 100 characters")
+    @field:NotBlank(message = "Поле не может быть пустым")
+    @field:Size(max = 100, message = "Не более 100 символов")
     val city: String,
-    @field:Size(max = 500, message = "Address must not exceed 500 characters")
+    @field:Size(max = 500, message = "Не более 500 символов")
     val address: String? = null,
-    @field:Size(max = 5000, message = "Company description must not exceed 5000 characters")
+    @field:Size(max = 5000, message = "Не более 5000 символов")
     val companyDescription: String? = null,
-    @field:Size(max = 50, message = "Cannot add more than 50 skills")
+    @field:Size(max = 50, message = "Не более 50 навыков")
     val additionalSkills: List<
         @Size(
             max = 100,
-            message = "Skill name must not exceed 100 characters",
+            message = "Название навыка не более 100 символов",
         ) String,
         > = emptyList(),
 ) : SalaryRange

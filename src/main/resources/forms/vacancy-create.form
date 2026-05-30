@@ -1,29 +1,46 @@
 {
-  "type": "default",
   "components": [
     {
+      "text": "## Ошибка заполнения",
       "type": "text",
+      "id": "process-error-header",
+      "conditional": {
+        "hide": "=processError != true"
+      }
+    },
+    {
+      "label": "Подробности",
+      "type": "textarea",
+      "key": "errorMessage",
+      "readonly": true,
+      "id": "field-error-message",
+      "conditional": {
+        "hide": "=processError != true"
+      }
+    },
+    {
       "text": "## Создание и отправка вакансии на модерацию",
+      "type": "text",
       "id": "header-main",
       "conditional": {
         "hide": "=showResult"
       }
     },
     {
-      "type": "text",
       "text": "## Обязательные данные вакансии",
+      "type": "text",
       "id": "header-required",
       "conditional": {
         "hide": "=showResult"
       }
     },
     {
+      "label": "Название вакансии",
       "type": "textfield",
       "key": "title",
-      "label": "Название вакансии",
       "validate": {
-        "required": true,
-        "maxLength": 255
+        "required": false,
+        "minLength": 1
       },
       "id": "field-title",
       "conditional": {
@@ -31,9 +48,9 @@
       }
     },
     {
+      "label": "Описание вакансии",
       "type": "textarea",
       "key": "description",
-      "label": "Описание вакансии",
       "validate": {
         "required": true,
         "maxLength": 10000
@@ -44,12 +61,7 @@
       }
     },
     {
-      "type": "select",
-      "key": "experienceLevel",
       "label": "Требуемый опыт",
-      "validate": {
-        "required": true
-      },
       "values": [
         {
           "value": "NO_EXPERIENCE",
@@ -68,18 +80,18 @@
           "label": "Более 6 лет"
         }
       ],
+      "type": "select",
+      "key": "experienceLevel",
+      "validate": {
+        "required": true
+      },
       "id": "field-experienceLevel",
       "conditional": {
         "hide": "=showResult"
       }
     },
     {
-      "type": "select",
-      "key": "employmentType",
       "label": "Тип занятости",
-      "validate": {
-        "required": true
-      },
       "values": [
         {
           "value": "FULL_TIME",
@@ -102,18 +114,18 @@
           "label": "Волонтёрство"
         }
       ],
+      "type": "select",
+      "key": "employmentType",
+      "validate": {
+        "required": true
+      },
       "id": "field-employmentType",
       "conditional": {
         "hide": "=showResult"
       }
     },
     {
-      "type": "select",
-      "key": "workFormat",
       "label": "Формат работы",
-      "validate": {
-        "required": true
-      },
       "values": [
         {
           "value": "OFFICE",
@@ -128,18 +140,18 @@
           "label": "Гибридный"
         }
       ],
+      "type": "select",
+      "key": "workFormat",
+      "validate": {
+        "required": true
+      },
       "id": "field-workFormat",
       "conditional": {
         "hide": "=showResult"
       }
     },
     {
-      "type": "select",
-      "key": "employmentFormat",
       "label": "Формат трудоустройства",
-      "validate": {
-        "required": true
-      },
       "values": [
         {
           "value": "EMPLOYMENT_CONTRACT",
@@ -154,18 +166,18 @@
           "label": "Самозанятость"
         }
       ],
+      "type": "select",
+      "key": "employmentFormat",
+      "validate": {
+        "required": true
+      },
       "id": "field-employmentFormat",
       "conditional": {
         "hide": "=showResult"
       }
     },
     {
-      "type": "select",
-      "key": "workSchedule",
       "label": "График работы",
-      "validate": {
-        "required": true
-      },
       "values": [
         {
           "value": "NINE_TO_EIGHTEEN",
@@ -192,15 +204,20 @@
           "label": "Удалённо, гибкий график"
         }
       ],
+      "type": "select",
+      "key": "workSchedule",
+      "validate": {
+        "required": true
+      },
       "id": "field-workSchedule",
       "conditional": {
         "hide": "=showResult"
       }
     },
     {
+      "label": "Город",
       "type": "textfield",
       "key": "city",
-      "label": "Город",
       "validate": {
         "required": true,
         "maxLength": 100
@@ -211,26 +228,26 @@
       }
     },
     {
+      "label": "Указать дополнительные данные (зарплата, навыки, адрес)",
       "type": "checkbox",
       "key": "fillOptional",
-      "label": "Указать дополнительные данные (зарплата, навыки, адрес)",
       "id": "field-fillOptional",
       "conditional": {
         "hide": "=showResult"
       }
     },
     {
-      "type": "text",
       "text": "### Дополнительные данные",
+      "type": "text",
       "id": "header-optional",
       "conditional": {
         "hide": "=showResult or not(fillOptional)"
       }
     },
     {
+      "label": "Зарплата от (руб.)",
       "type": "number",
       "key": "salaryFrom",
-      "label": "Зарплата от (руб.)",
       "validate": {
         "min": 0
       },
@@ -240,9 +257,9 @@
       }
     },
     {
+      "label": "Зарплата до (руб.)",
       "type": "number",
       "key": "salaryTo",
-      "label": "Зарплата до (руб.)",
       "validate": {
         "min": 0
       },
@@ -252,18 +269,18 @@
       }
     },
     {
+      "label": "Навыки (через запятую, например: Java, Kotlin, Spring)",
       "type": "textfield",
       "key": "additionalSkills",
-      "label": "Навыки (через запятую, например: Java, Kotlin, Spring)",
       "id": "field-additionalSkills",
       "conditional": {
         "hide": "=showResult or not(fillOptional)"
       }
     },
     {
+      "label": "Адрес офиса",
       "type": "textfield",
       "key": "address",
-      "label": "Адрес офиса",
       "validate": {
         "maxLength": 500
       },
@@ -273,9 +290,9 @@
       }
     },
     {
+      "label": "Описание компании",
       "type": "textarea",
       "key": "companyDescription",
-      "label": "Описание компании",
       "validate": {
         "maxLength": 5000
       },
@@ -285,25 +302,25 @@
       }
     },
     {
-      "type": "text",
       "text": "## Выбор тарифа",
+      "type": "text",
       "id": "header-tariff",
       "conditional": {
         "hide": "=showResult"
       }
     },
     {
-      "type": "text",
       "text": "Выберите тариф для публикации вакансии. Тариф определяет срок размещения.",
+      "type": "text",
       "id": "description-tariff",
       "conditional": {
         "hide": "=showResult"
       }
     },
     {
+      "label": "Тариф",
       "type": "select",
       "key": "selectedTariffId",
-      "label": "Тариф",
       "validate": {
         "required": true
       },
@@ -314,17 +331,17 @@
       }
     },
     {
-      "type": "text",
       "text": "### Подтверждение",
+      "type": "text",
       "id": "header-confirm",
       "conditional": {
         "hide": "=showResult"
       }
     },
     {
+      "label": "Подтверждаю корректность данных",
       "type": "checkbox",
       "key": "confirmed",
-      "label": "Подтверждаю корректность данных",
       "validate": {
         "required": true
       },
@@ -334,9 +351,9 @@
       }
     },
     {
+      "label": "Создать вакансию и отправить на модерацию",
       "type": "checkbox",
       "key": "submitForModeration",
-      "label": "Создать вакансию и отправить на модерацию",
       "validate": {
         "required": true
       },
@@ -346,21 +363,27 @@
       }
     },
     {
-      "type": "text",
       "text": "### Результат",
+      "type": "text",
       "id": "header-result",
       "conditional": {
         "hide": "=not(showResult)"
       }
     },
     {
-      "type": "text",
       "text": "=resultSummary",
+      "type": "text",
       "id": "result-body",
       "conditional": {
         "hide": "=not(showResult)"
       }
     }
   ],
-  "id": "vacancy-create-form"
+  "type": "default",
+  "id": "vacancy-create-form",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.47.0"
+  },
+  "schemaVersion": 19
 }

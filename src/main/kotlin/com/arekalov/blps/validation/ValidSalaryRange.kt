@@ -8,7 +8,7 @@ import kotlin.reflect.KClass
 @Retention(AnnotationRetention.RUNTIME)
 @Constraint(validatedBy = [SalaryRangeValidator::class])
 annotation class ValidSalaryRange(
-    val message: String = "Salary 'from' must not be greater than salary 'to'",
+    val message: String = "Значение «от» не может быть больше значения «до»",
     val groups: Array<KClass<*>> = [],
     val payload: Array<KClass<out Payload>> = [],
 )

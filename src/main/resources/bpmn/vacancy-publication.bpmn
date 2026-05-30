@@ -1,103 +1,185 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
-             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
-             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
-             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
-             xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
-             targetNamespace="http://bpmn.io/schema/bpmn"
-             id="vacancy-publication-definitions">
-
-  <process id="vacancy-publication" name="[POST] Создание и отправка на модерацию" isExecutable="true"
-           camunda:historyTimeToLive="180" camunda:candidateStarterGroups="EMPLOYER,ADMIN">
-
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" id="vacancy-publication-definitions" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.47.0">
+  <process id="vacancy-publication" name="[POST] Создание и отправка на модерацию" isExecutable="true" camunda:candidateStarterGroups="EMPLOYER,ADMIN" camunda:historyTimeToLive="180">
     <startEvent id="start" name="Начало">
       <extensionElements>
-        <camunda:executionListener event="end" expression="${execution.setVariable(&#39;showResult&#39;, false)}" />
+        <camunda:executionListener expression="${execution.setVariable(&#39;showResult&#39;, false)}" event="end" />
+        <camunda:executionListener expression="${execution.setVariable(&#39;processError&#39;, false)}" event="end" />
+        <camunda:executionListener expression="${execution.setVariable(&#39;errorMessage&#39;, null)}" event="end" />
+        <camunda:executionListener expression="${execution.setVariable(&#39;vacancyId&#39;, null)}" event="end" />
       </extensionElements>
       <outgoing>flow-start-to-load-tariffs</outgoing>
     </startEvent>
-
-    <serviceTask id="task-load-tariffs" name="Загрузить тарифы"
-                 camunda:delegateExpression="${tariffListDelegate}">
+    <serviceTask id="task-load-tariffs" name="Загрузить тарифы" camunda:delegateExpression="${tariffListDelegate}">
       <incoming>flow-start-to-load-tariffs</incoming>
       <outgoing>flow-load-tariffs-to-fill</outgoing>
     </serviceTask>
-
-    <userTask id="task-fill-vacancy" name="Создание вакансии"
-              camunda:formKey="camunda-forms:deployment:forms/vacancy-create.form"
-              camunda:candidateGroups="EMPLOYER,ADMIN">
+    <userTask id="task-fill-vacancy" name="Создание вакансии" camunda:formKey="camunda-forms:deployment:forms/vacancy-create.form" camunda:candidateGroups="EMPLOYER,ADMIN">
       <incoming>flow-load-tariffs-to-fill</incoming>
       <incoming>flow-publish-to-loop</incoming>
+      <incoming>flow-create-error</incoming>
       <outgoing>flow-fill-to-gw</outgoing>
     </userTask>
-
-    <exclusiveGateway id="gw-result" name="Результат?">
+    <exclusiveGateway id="gw-result" name="Результат?" default="flow-run">
       <incoming>flow-fill-to-gw</incoming>
       <outgoing>flow-done</outgoing>
       <outgoing>flow-run</outgoing>
     </exclusiveGateway>
-
-    <serviceTask id="task-create-vacancy" name="Создать вакансию (черновик)"
-                 camunda:delegateExpression="${vacancyCreateDelegate}">
+    <exclusiveGateway id="gw-has-draft" name="Черновик?" default="flow-no-draft">
       <incoming>flow-run</incoming>
-      <outgoing>flow-create-to-publish</outgoing>
+      <outgoing>flow-has-draft</outgoing>
+      <outgoing>flow-no-draft</outgoing>
+    </exclusiveGateway>
+    <serviceTask id="task-create-vacancy" name="Создать вакансию (черновик)" camunda:delegateExpression="${vacancyCreateDelegate}">
+      <incoming>flow-no-draft</incoming>
+      <outgoing>flow-create-to-gw-create</outgoing>
     </serviceTask>
-
-    <serviceTask id="task-submit-moderation" name="Отправить на модерацию"
-                 camunda:delegateExpression="${vacancyPublishDelegate}">
-      <incoming>flow-create-to-publish</incoming>
+    <exclusiveGateway id="gw-create" name="Ошибка create?" default="flow-create-ok">
+      <incoming>flow-create-to-gw-create</incoming>
+      <outgoing>flow-create-error</outgoing>
+      <outgoing>flow-create-ok</outgoing>
+    </exclusiveGateway>
+    <serviceTask id="task-submit-moderation" name="Отправить на модерацию" camunda:delegateExpression="${vacancyPublishDelegate}">
+      <incoming>flow-create-ok</incoming>
+      <incoming>flow-has-draft</incoming>
       <outgoing>flow-publish-to-loop</outgoing>
     </serviceTask>
-
     <endEvent id="end" name="Готово">
       <incoming>flow-done</incoming>
     </endEvent>
-
-    <sequenceFlow id="flow-start-to-load-tariffs" sourceRef="start" targetRef="task-load-tariffs"/>
-    <sequenceFlow id="flow-load-tariffs-to-fill" sourceRef="task-load-tariffs" targetRef="task-fill-vacancy"/>
-    <sequenceFlow id="flow-fill-to-gw" sourceRef="task-fill-vacancy" targetRef="gw-result"/>
+    <sequenceFlow id="flow-start-to-load-tariffs" sourceRef="start" targetRef="task-load-tariffs" />
+    <sequenceFlow id="flow-load-tariffs-to-fill" sourceRef="task-load-tariffs" targetRef="task-fill-vacancy" />
+    <sequenceFlow id="flow-fill-to-gw" sourceRef="task-fill-vacancy" targetRef="gw-result" />
     <sequenceFlow id="flow-done" name="готово" sourceRef="gw-result" targetRef="end">
-      <conditionExpression xsi:type="tFormalExpression">${showResult == true}</conditionExpression>
+      <conditionExpression xsi:type="tFormalExpression">${execution.getVariable('showResult') == true}</conditionExpression>
     </sequenceFlow>
-    <sequenceFlow id="flow-run" name="выполнить" sourceRef="gw-result" targetRef="task-create-vacancy">
-      <conditionExpression xsi:type="tFormalExpression">${showResult != true}</conditionExpression>
+    <sequenceFlow id="flow-run" name="выполнить" sourceRef="gw-result" targetRef="gw-has-draft" />
+    <sequenceFlow id="flow-has-draft" name="есть черновик" sourceRef="gw-has-draft" targetRef="task-submit-moderation">
+      <conditionExpression xsi:type="tFormalExpression">${execution.getVariable('vacancyId') != null &amp;&amp; execution.getVariable('vacancyId') != ''}</conditionExpression>
     </sequenceFlow>
-    <sequenceFlow id="flow-create-to-publish" sourceRef="task-create-vacancy" targetRef="task-submit-moderation"/>
-    <sequenceFlow id="flow-publish-to-loop" sourceRef="task-submit-moderation" targetRef="task-fill-vacancy"/>
+    <sequenceFlow id="flow-no-draft" name="нет черновика" sourceRef="gw-has-draft" targetRef="task-create-vacancy" />
+    <sequenceFlow id="flow-create-to-gw-create" sourceRef="task-create-vacancy" targetRef="gw-create" />
+    <sequenceFlow id="flow-create-error" name="ошибка" sourceRef="gw-create" targetRef="task-fill-vacancy">
+      <conditionExpression xsi:type="tFormalExpression">${execution.getVariable('processError') == true}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow-create-ok" name="ok" sourceRef="gw-create" targetRef="task-submit-moderation" />
+    <sequenceFlow id="flow-publish-to-loop" sourceRef="task-submit-moderation" targetRef="task-fill-vacancy" />
   </process>
-
   <bpmndi:BPMNDiagram id="BPMNDiagram_vacancy-publication">
     <bpmndi:BPMNPlane id="BPMNPlane_vacancy-publication" bpmnElement="vacancy-publication">
-      <bpmndi:BPMNShape id="start_di" bpmnElement="start"><omgdc:Bounds x="152" y="100" width="36" height="36"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-load-tariffs_di" bpmnElement="task-load-tariffs"><omgdc:Bounds x="240" y="78" width="160" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-fill-vacancy_di" bpmnElement="task-fill-vacancy"><omgdc:Bounds x="460" y="78" width="160" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="gw-result_di" bpmnElement="gw-result" isMarkerVisible="true"><omgdc:Bounds x="675" y="93" width="50" height="50"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-create-vacancy_di" bpmnElement="task-create-vacancy"><omgdc:Bounds x="780" y="160" width="160" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task-submit-moderation_di" bpmnElement="task-submit-moderation"><omgdc:Bounds x="780" y="280" width="160" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="end_di" bpmnElement="end"><omgdc:Bounds x="780" y="100" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="start_di" bpmnElement="start">
+        <omgdc:Bounds x="152" y="200" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="151" y="236" width="39" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-load-tariffs_di" bpmnElement="task-load-tariffs">
+        <omgdc:Bounds x="240" y="178" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-fill-vacancy_di" bpmnElement="task-fill-vacancy">
+        <omgdc:Bounds x="460" y="178" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-create-vacancy_di" bpmnElement="task-create-vacancy">
+        <omgdc:Bounds x="880" y="260" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-create_di" bpmnElement="gw-create" isMarkerVisible="true">
+        <omgdc:Bounds x="935" y="375" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="920" y="425" width="81" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task-submit-moderation_di" bpmnElement="task-submit-moderation">
+        <omgdc:Bounds x="1080" y="260" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_di" bpmnElement="end">
+        <omgdc:Bounds x="772" y="234" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="773" y="270" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-result_di" bpmnElement="gw-result" isMarkerVisible="true">
+        <omgdc:Bounds x="675" y="175" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="734.5" y="193" width="57" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-has-draft_di" bpmnElement="gw-has-draft" isMarkerVisible="true">
+        <omgdc:Bounds x="935" y="105" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="932" y="81" width="55" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="flow-start-to-load-tariffs_di" bpmnElement="flow-start-to-load-tariffs">
-        <omgdi:waypoint x="188" y="118"/><omgdi:waypoint x="240" y="118"/>
+        <omgdi:waypoint x="188" y="218" />
+        <omgdi:waypoint x="240" y="218" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="flow-load-tariffs-to-fill_di" bpmnElement="flow-load-tariffs-to-fill">
-        <omgdi:waypoint x="400" y="118"/><omgdi:waypoint x="460" y="118"/>
+        <omgdi:waypoint x="400" y="218" />
+        <omgdi:waypoint x="460" y="218" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="flow-fill-to-gw_di" bpmnElement="flow-fill-to-gw">
-        <omgdi:waypoint x="620" y="118"/><omgdi:waypoint x="675" y="118"/>
+        <omgdi:waypoint x="620" y="218" />
+        <omgdi:waypoint x="648" y="218" />
+        <omgdi:waypoint x="648" y="200" />
+        <omgdi:waypoint x="675" y="200" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="flow-done_di" bpmnElement="flow-done">
-        <omgdi:waypoint x="725" y="118"/><omgdi:waypoint x="780" y="118"/>
+        <omgdi:waypoint x="700" y="225" />
+        <omgdi:waypoint x="700" y="252" />
+        <omgdi:waypoint x="772" y="252" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="720" y="227" width="33" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="flow-run_di" bpmnElement="flow-run">
-        <omgdi:waypoint x="700" y="143"/><omgdi:waypoint x="700" y="200"/><omgdi:waypoint x="780" y="200"/>
+        <omgdi:waypoint x="700" y="175" />
+        <omgdi:waypoint x="700" y="130" />
+        <omgdi:waypoint x="935" y="130" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="792" y="105" width="55" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="flow-create-to-publish_di" bpmnElement="flow-create-to-publish">
-        <omgdi:waypoint x="860" y="240"/><omgdi:waypoint x="860" y="280"/>
+      <bpmndi:BPMNEdge id="flow-has-draft_di" bpmnElement="flow-has-draft">
+        <omgdi:waypoint x="985" y="130" />
+        <omgdi:waypoint x="1060" y="130" />
+        <omgdi:waypoint x="1060" y="326" />
+        <omgdi:waypoint x="1080" y="326" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1040" y="217" width="73" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-no-draft_di" bpmnElement="flow-no-draft">
+        <omgdi:waypoint x="960" y="155" />
+        <omgdi:waypoint x="960" y="260" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="925" y="222" width="74" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-create-to-gw-create_di" bpmnElement="flow-create-to-gw-create">
+        <omgdi:waypoint x="960" y="340" />
+        <omgdi:waypoint x="960" y="375" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-create-error_di" bpmnElement="flow-create-error">
+        <omgdi:waypoint x="935" y="400" />
+        <omgdi:waypoint x="540" y="400" />
+        <omgdi:waypoint x="540" y="258" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="718" y="375" width="39" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-create-ok_di" bpmnElement="flow-create-ok">
+        <omgdi:waypoint x="985" y="400" />
+        <omgdi:waypoint x="1160" y="400" />
+        <omgdi:waypoint x="1160" y="340" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1067" y="375" width="12" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="flow-publish-to-loop_di" bpmnElement="flow-publish-to-loop">
-        <omgdi:waypoint x="780" y="320"/><omgdi:waypoint x="540" y="320"/><omgdi:waypoint x="540" y="158"/>
+        <omgdi:waypoint x="1080" y="300" />
+        <omgdi:waypoint x="540" y="300" />
+        <omgdi:waypoint x="540" y="258" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
-
 </definitions>

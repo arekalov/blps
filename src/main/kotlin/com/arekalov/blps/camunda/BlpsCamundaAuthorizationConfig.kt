@@ -34,8 +34,13 @@ class BlpsCamundaAuthorizationConfig(
 
         listOf(GROUP_EMPLOYER, GROUP_MODERATOR, GROUP_ADMIN).forEach { group ->
             ensureGroupGrant(group, Resources.APPLICATION, APP_TASKLIST, Permissions.ACCESS)
+        }
+
+        listOf(GROUP_EMPLOYER, GROUP_MODERATOR).forEach { group ->
             revokeGroupGrant(group, Resources.TASK, ANY_RESOURCE)
         }
+
+        ensureGroupGrant(GROUP_ADMIN, Resources.TASK, ANY_RESOURCE, Permissions.ALL)
 
         listOf(GROUP_EMPLOYER, GROUP_MODERATOR).forEach { group ->
             revokeGroupGrant(group, Resources.PROCESS_INSTANCE, ANY_RESOURCE)
